@@ -1,11 +1,11 @@
 # Computer Graphics 203.3710, Winter 2018/2019
 ## Students Team data
 
-Name: 'Your real name'  
+Name: 'Shani Cohen'  
 Student Number: 'Your student number'
 
-Name: 'Your real name'  
-Student Number: 'Your student number'
+Name: 'Matan Kolath'  
+Student Number: '203333927'
 
 ### Lecturer
 *Roi Poranne*
