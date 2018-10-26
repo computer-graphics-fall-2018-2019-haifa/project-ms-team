@@ -34,6 +34,38 @@ void Renderer::putPixel(int i, int j, const glm::vec3& color)
 	colorBuffer[INDEX(viewportWidth, i, j, 2)] = color.z;
 }
 
+void Renderer::drawLine(int x1, int y1, int x2, int y2, glm::vec3 color) {
+	if ((x1 < 0) || (x1 > this->viewportWidth)) return;
+	if ((y1 < 0) || (y1 > this->viewportHeight)) return;
+	if ((x2 < 0) || (x2 > this->viewportWidth)) return;
+	if ((y2 < 0) || (y2 > this->viewportHeight)) return;
+	float slope = ((float)(y2 - y1)) / ((float)(x2 - x1));
+	if (slope < 0) {
+		return this->drawLine(x2, y2, x1, y2);
+	}
+	int x = x1, y = y1;
+	float e = -1.0f;
+	if (slope > 1) {
+		slope *= 2;
+		while (y <= y2) {
+			if (e > 0) {
+				x++; e -= 2;
+			}
+			this->putPixel(x, y, color);
+			y++; e += slope;
+		}
+	} else {
+		slope *= 2;
+		while (x <= x2) {
+			if (e > 0) {
+				y++; e -= 2;
+			}
+			this->putPixel(x, y, color);
+			x++; e += slope;
+		}
+	}
+}
+
 void Renderer::createBuffers(int viewportWidth, int viewportHeight)
 {
 	if (colorBuffer)
