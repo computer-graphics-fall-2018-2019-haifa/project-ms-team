@@ -56,3 +56,11 @@ const int Scene::GetActiveModelIndex() const
 {
 	return activeModelIndex;
 }
+
+const std::shared_ptr<MeshModel> Scene::getModel(int index) const
+{
+	if (index >= 0 && index < models.size()) {
+		return this->models[index];
+	}
+	return nullptr;
+}

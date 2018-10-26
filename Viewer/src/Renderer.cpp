@@ -142,20 +142,27 @@ void Renderer::SetViewport(int viewportWidth, int viewportHeight, int viewportX,
 	createOpenGLBuffer();
 }
 
-void Renderer::Render(const Scene& scene)
-{
-	//#############################################
-	//## You should override this implementation ##
-	//## Here you should render the scene.       ##
-	//#############################################
+void Renderer::Render(const Scene& scene) {
+	for (int i = 0; i < scene.GetModelCount(); i++) {
+		auto model = scene.getModel(i);
+		this->drawModel(model->getFaces(), model->getVertices());
+	}
+}
 
-	// Draw a chess board in the middle of the screen
-	for (int i = 0; i < viewportWidth; i++)
-	{
-		for (int j = 0; j < viewportHeight; j++)
-		{
 
-		}
+void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertices) {
+	for (auto face = faces.begin(); face != faces.end(); ++face) {
+		glm::vec3 v0, v1, v2;		// the 3 points that make the triangle
+		v0 = vertices[face->GetVertexIndex(0)];
+		v1 = vertices[face->GetVertexIndex(1)];
+		v2 = vertices[face->GetVertexIndex(2)];
+		// draw the lines between each 2 points
+		// v0 - v1
+		this->drawLine(v0.x, v0.y, v1.x, v1.y);
+		// v0 - v2
+		this->drawLine(v0.x, v0.y, v2.x, v2.y);
+		// v1 - v2
+		this->drawLine(v1.x, v1.y, v2.x, v2.y);
 	}
 }
 

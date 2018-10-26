@@ -35,5 +35,6 @@ public:
 	void SetActiveModelIndex(int index);
 	const int GetActiveModelIndex() const;
 
+	const std::shared_ptr<MeshModel> getModel(int index) const;
 	// Add more methods as needed...
 };

@@ -40,28 +40,23 @@ MeshModel Utils::LoadMeshModel(const std::string& filePath)
 		issLine >> std::ws >> lineType;
 
 		// based on the type parse data
-		if (lineType == "v")
-		{
+		if (lineType == "v") {
 			vertices.push_back(Utils::Vec3fFromStream(issLine));
 		}
-		else if (lineType == "vn")
-		{
-			// Add the required code here...
+		else if (lineType == "vn") {
+			normals.push_back(Utils::Vec3fFromStream(issLine));
 		}
-		else if (lineType == "vt")
-		{
+		else if (lineType == "vt") {
 			// Texture coordinates
 		}
-		else if (lineType == "f")
-		{
+		else if (lineType == "f") {
 			faces.push_back(Face(issLine));
 		}
 		else if (lineType == "#" || lineType == "")
 		{
 			// comment / empty line
 		}
-		else
-		{
+		else {
 			std::cout << "Found unknown line Type \"" << lineType << "\"";
 		}
 	}

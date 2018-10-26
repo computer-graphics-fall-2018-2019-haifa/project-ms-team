@@ -137,7 +137,6 @@ void RenderFrame(GLFWwindow* window, Scene& scene, Renderer& renderer, ImGuiIO& 
 
 	// Clear the frame buffer
 	renderer.ClearColorBuffer(GetClearColor());
-	draw_line(renderer);
 	// Render the scene
 	renderer.Render(scene);
 

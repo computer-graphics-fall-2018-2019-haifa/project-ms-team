@@ -1,5 +1,6 @@
 #pragma once
 #include "Scene.h"
+#include "Face.h"
 #include <vector>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -28,6 +29,8 @@ private:
 	void createOpenGLBuffer();
 	void initOpenGLRendering();
 
+	void drawModel(std::vector<Face>, std::vector<glm::vec3>);
+
 public:
 	Renderer(int viewportWidth, int viewportHeight, int viewportX = 0, int viewportY = 0);
 	~Renderer();
@@ -36,6 +39,6 @@ public:
 	void SwapBuffers();
 	void ClearColorBuffer(const glm::vec3& color);
 	void SetViewport(int viewportWidth, int viewportHeight, int viewportX = 0, int viewportY = 0);
-	void Renderer::drawLine(int x1, int y1, int x2, int y2, glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f));
+	void drawLine(int x1, int y1, int x2, int y2, glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f));
 	// Add more methods/functionality as needed...
 };

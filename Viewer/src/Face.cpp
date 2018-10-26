@@ -44,15 +44,15 @@ Face::~Face()
 
 const int Face::GetVertexIndex(int index)
 {
-	return vertexIndices[index];
+	return vertexIndices[index] - 1;	// decrement by 1 because the index in the file is one larger then the actual index in the vector
 }
 
 const int Face::GetNormalIndex(int index)
 {
-	return normalIndices[index];
+	return normalIndices[index] - 1;	// decrement by 1 because the index in the file is one larger then the actual index in the vector
 }
 
 const int Face::GetTextureIndex(int index)
 {
-	return textureIndices[index];
+	return textureIndices[index] - 1;	// decrement by 1 because the index in the file is one larger then the actual index in the vector
 }
