@@ -35,33 +35,71 @@ void Renderer::putPixel(int i, int j, const glm::vec3& color)
 }
 
 void Renderer::drawLine(int x1, int y1, int x2, int y2, glm::vec3 color) {
-	if ((x1 < 0) || (x1 > this->viewportWidth)) return;
+	if ((x1 < 0) || (x1 > this->viewportWidth)) return;			// handle cases outside the drawing range
 	if ((y1 < 0) || (y1 > this->viewportHeight)) return;
 	if ((x2 < 0) || (x2 > this->viewportWidth)) return;
 	if ((y2 < 0) || (y2 > this->viewportHeight)) return;
-	float slope = ((float)(y2 - y1)) / ((float)(x2 - x1));
-	if (slope < 0) {
-		return this->drawLine(x2, y2, x1, y2);
-	}
-	int x = x1, y = y1;
-	float e = -1.0f;
-	if (slope > 1) {
-		slope *= 2;
-		while (y <= y2) {
-			if (e > 0) {
-				x++; e -= 2;
-			}
-			this->putPixel(x, y, color);
-			y++; e += slope;
+	if (x2 - x1 == 0) {			// need to draw a vertical line
+		if (y1 >= y2) {			// switch y1 and y2 if needed
+			std::swap(y1, y2);
 		}
-	} else {
-		slope *= 2;
-		while (x <= x2) {
-			if (e > 0) {
-				y++; e -= 2;
+		while (y1 <= y2) {
+			this->putPixel(x1, y1, color);
+			y1++;
+		}
+		return;
+	}
+	if (x2 - x1 < 0) {		// we want to always draw the line to the right, so if x2 is smaller then x1, switch the points
+		std::swap(x1, x2);
+		std::swap(y1, y2);
+	}
+	float deltaX = (float)(x2 - x1);
+	float deltaY = (float)(y2 - y1);
+	float slope = deltaY / deltaX;
+	deltaX *= 2;		// scaling now to not perform it inside the loop each time
+	deltaY *= 2;
+	if (slope < 0) {	// case of a line with 'downwards' slope
+		if (slope < -1) {		// case of a line that decreases on Y faster then it increases on X
+			float e = deltaY;
+			while (y1 >= y2) {
+				if (e > 0) {
+					x1++; e += deltaY;
+				}
+				this->putPixel(x1, y1, color);
+				y1--; e += deltaX;
 			}
-			this->putPixel(x, y, color);
-			x++; e += slope;
+		}
+		else {					// case of a line that decreases on Y slower then it increases on X
+			float e = -deltaX;
+			while (x1 <= x2) {
+				if (e > 0) {
+					y1--; e -= deltaX;
+				}
+				this->putPixel(x1, y1, color);
+				x1++; e -= deltaY;
+			}
+		}
+	}
+	else {				// case of a line with 'upwards' slope
+		if (slope > 1) {		// case of a line that increases on Y faster then it increases on X
+			float e = -deltaY;
+			while (y1 <= y2) {
+				if (e > 0) {
+					x1++; e -= deltaY;
+				}
+				this->putPixel(x1, y1, color);
+				y1++; e += deltaX;
+			}
+		}
+		else {					// case of a line that increases on Y slower then it increases on X
+			float e = -deltaX;
+			while (x1 <= x2) {
+				if (e > 0) {
+					y1++; e -= deltaX;
+				}
+				this->putPixel(x1, y1, color);
+				x1++; e += deltaY;
+			}
 		}
 	}
 }
@@ -112,22 +150,11 @@ void Renderer::Render(const Scene& scene)
 	//#############################################
 
 	// Draw a chess board in the middle of the screen
-	for (int i = 100; i < viewportWidth - 100; i++)
+	for (int i = 0; i < viewportWidth; i++)
 	{
-		for (int j = 100; j < viewportHeight - 100; j++)
+		for (int j = 0; j < viewportHeight; j++)
 		{
-			int mod_i = i / 50;
-			int mod_j = j / 50;
 
-			int odd = (mod_i + mod_j) % 2;
-			if (odd)
-			{
-				putPixel(i, j, glm::vec3(0, 1, 0));
-			}
-			else
-			{
-				putPixel(i, j, glm::vec3(1, 0, 0));
-			}
 		}
 	}
 }

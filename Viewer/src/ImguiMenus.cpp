@@ -17,10 +17,14 @@ bool showDemoWindow = false;
 bool showAnotherWindow = false;
 
 glm::vec4 clearColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
-
+int xx1 = 0, xx2 = 10, yy1 = 0, yy2 = 10;
 const glm::vec4& GetClearColor()
 {
 	return clearColor;
+}
+
+void draw_line(Renderer& r) {
+	r.drawLine(xx1, yy1, xx2, yy2);
 }
 
 void DrawImguiMenus(ImGuiIO& io, Scene& scene)
@@ -51,6 +55,10 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		ImGui::Text("counter = %d", counter);
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::InputInt("X1", &xx1);
+		ImGui::InputInt("Y1", &yy1);
+		ImGui::InputInt("X2", &xx2);
+		ImGui::InputInt("Y2", &yy2);
 		ImGui::End();
 	}
 
