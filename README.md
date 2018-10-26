@@ -1,8 +1,8 @@
 # Computer Graphics 203.3710, Winter 2018/2019
 ## Students Team data
 
-Name: 'Shani Cohen'  
-Student Number: 'Your student number'
+Name: 'Shani CCohen'  
+Student Number: '205710973'
 
 Name: 'Matan Kolath'  
 Student Number: '203333927'
