@@ -13,12 +13,13 @@ public:
 	static glm::vec3 Vec3fFromStream(std::istream& issLine);
 	static glm::vec2 Vec2fFromStream(std::istream& issLine);
 	static MeshModel LoadMeshModel(const std::string& filePath);
+	static glm::mat4 getRotationMatrix(const float angle, char axis);
+	static glm::mat4 getTranslationMatrix(const glm::vec3 vec);
+	static glm::mat4 getScaleMatrix(const glm::vec3 vec);
 
 	// Add here more static utility functions...
 	// For example:
-	//	1. function that gets an angle, and returns a rotation matrix around a certian axis
-	//	2. function that gets a vector, and returns a translation matrix
-	//	3. anything else that may be useful in global scope
+	//	anything else that may be useful in global scope
 
 private:
 	static std::string GetFileName(const std::string& filePath);

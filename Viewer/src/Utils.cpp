@@ -64,6 +64,50 @@ MeshModel Utils::LoadMeshModel(const std::string& filePath)
 	return MeshModel(faces, vertices, normals, Utils::GetFileName(filePath));
 }
 
+glm::mat4 Utils::getRotationMatrix(const float angle, char axis)
+{
+	glm::mat4 mat(1);
+	float c = cos(angle);
+	float s = sin(angle);
+	if (axis == 'x') {
+		mat[1][1] = c;
+		mat[2][2] = c;
+		mat[2][3] = -s;
+		mat[3][2] = s;
+	}
+	else if (axis == 'y') {
+		mat[0][0] = c;
+		mat[2][2] = c;
+		mat[1][3] = -s;
+		mat[3][1] = s;
+	}
+	else if (axis == 'z') {
+		mat[0][0] = c;
+		mat[1][1] = c;
+		mat[0][1] = -s;
+		mat[1][0] = s;
+	}
+	return mat;
+}
+
+glm::mat4 Utils::getTranslationMatrix(const glm::vec3 vec)
+{
+	glm::mat4 mat(1);
+	mat[0][3] = vec.x;
+	mat[1][3] = vec.y;
+	mat[2][3] = vec.z;
+	return mat;
+}
+
+glm::mat4 Utils::getScaleMatrix(const glm::vec3 vec)
+{
+	glm::mat4 mat(1);
+	mat[0][0] = vec.x;
+	mat[1][1] = vec.y;
+	mat[2][2] = vec.z;
+	return mat;
+}
+
 std::string Utils::GetFileName(const std::string& filePath)
 {
 	if (filePath.empty()) {

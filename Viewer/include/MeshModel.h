@@ -16,6 +16,7 @@ private:
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
 	glm::mat4x4 worldTransform;
+	glm::mat4x4 objectTransform;
 	glm::vec4 color;
 	std::string modelName;
 
@@ -24,7 +25,9 @@ public:
 	virtual ~MeshModel();
 
 	void SetWorldTransformation(const glm::mat4x4& worldTransform);
+	void SetObjectTransformation(const glm::mat4x4& worldTransform);
 	const glm::mat4x4& GetWorldTransformation() const;
+	const glm::mat4x4& GetObjectTransformation() const;
 
 	const glm::vec4& GetColor() const;
 	void SetColor(const glm::vec4& color);
