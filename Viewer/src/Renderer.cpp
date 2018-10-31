@@ -145,7 +145,7 @@ void Renderer::SetViewport(int viewportWidth, int viewportHeight, int viewportX,
 void Renderer::Render(const Scene& scene) {
 	for (int i = 0; i < scene.GetModelCount(); i++) {
 		auto model = scene.getModel(i);
-		this->drawModel(model->getFaces(), applyObjectTransform(model->getVertices(), model->GetObjectTransformation()));
+		this->drawModel(model->getFaces(), modelTransfrom(model->getVertices(), model->GetWorldTransformation()));
 	}
 }
 
@@ -166,18 +166,15 @@ void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertice
 	}
 }
 
-
-std::vector<glm::vec3> Renderer::applyObjectTransform(std::vector<glm::vec3> vec, glm::mat4 transform)
-{
-	std::vector<glm::vec3> after;
-	for (auto vertex : vec) {
-		glm::vec4 normal(vertex.x, vertex.y, vertex.z ,1);
-		glm::vec4 temp = transform * normal;
-		after.push_back(glm::vec3(temp.x, temp.y, temp.z));
+std::vector<glm::vec3> Renderer::modelTransfrom(std::vector<glm::vec3> ver, glm::mat4 mat) {
+	std::vector<glm::vec3> new_ver;
+	for (auto v : ver) {
+		glm::vec4 temp(v.x, v.y, v.z, 1);
+		temp = mat * temp;
+		new_ver.push_back(glm::vec3(temp.x / temp.w, temp.y / temp.w, temp.z / temp.w));
 	}
-	return after;
+	return new_ver;
 }
-
 //##############################
 //##OpenGL stuff. Don't touch.##
 //##############################

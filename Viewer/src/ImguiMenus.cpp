@@ -35,6 +35,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 	// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
 	{
 		static float f = 0.0f;
+		static float scale[3] = { 1.0f, 1.0f, 1.0f };
+		static float translation[3] = { 0.0f, 0.0f, 0.0f };
+		static float rotation[3] = { 0.0f, 0.0f, 0.0f };
 		static int counter = 0;
 
 		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
@@ -50,9 +53,35 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			counter++;
 		ImGui::SameLine();
 		ImGui::Text("counter = %d", counter);
-
-		ImGui::ListBox("Models", &activeModel, Utils::convertStringVectorToCharArray(models), models.size());
-
+		activeModel = scene.GetActiveModelIndex();
+		if (ImGui::ListBox("Models", &activeModel, Utils::convertStringVectorToCharArray(models), models.size())) {
+			scene.SetActiveModelIndex(activeModel);
+		}
+		ImGui::InputFloat3("XYZ scale", scale, 2);
+		if (ImGui::Button("Set scale")) {
+			auto m = scene.getModel(scene.GetActiveModelIndex());
+			m->scaleObject(scale);
+		}
+		ImGui::InputFloat3("XYZ translation", translation, 2);
+		if (ImGui::Button("Set translation")) {
+			auto m = scene.getModel(scene.GetActiveModelIndex());
+			m->translateObject(translation);
+		}
+		ImGui::InputFloat("X rotation", &rotation[0], 2);
+		if (ImGui::Button("Set X rotation")) {
+			auto m = scene.getModel(scene.GetActiveModelIndex());
+			m->xRotateObject(rotation[0]);
+		}
+		ImGui::InputFloat("Y rotation", &rotation[1], 2);
+		if (ImGui::Button("Set Y rotation")) {
+			auto m = scene.getModel(scene.GetActiveModelIndex());
+			m->yRotateObject(rotation[1]);
+		}
+		ImGui::InputFloat("Z rotation", &rotation[2], 2);
+		if (ImGui::Button("Set Z rotation")) {
+			auto m = scene.getModel(scene.GetActiveModelIndex());
+			m->zRotateObject(rotation[2]);
+		}
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();
 	}
@@ -82,8 +111,8 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					nfdresult_t result = NFD_OpenDialog("obj;png,jpg", NULL, &outPath);
 					if (result == NFD_OKAY) {
 						scene.AddModel(std::make_shared<MeshModel>(Utils::LoadMeshModel(outPath)));
-						activeModel = scene.GetModelCount() - 1;
-						models.push_back(scene.getModel(activeModel)->GetModelName());
+						scene.SetActiveModelIndex(scene.GetModelCount() - 1);
+						models.push_back(scene.getModel(scene.GetActiveModelIndex())->GetModelName());
 						free(outPath);
 					}
 					else if (result == NFD_CANCEL) {

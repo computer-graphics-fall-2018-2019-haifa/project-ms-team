@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+constexpr auto PI = 3.14159265359f;
 
 glm::vec3 Utils::Vec3fFromStream(std::istream& issLine)
 {
@@ -67,25 +68,26 @@ MeshModel Utils::LoadMeshModel(const std::string& filePath)
 glm::mat4 Utils::getRotationMatrix(const float angle, char axis)
 {
 	glm::mat4 mat(1);
-	float c = cos(angle);
-	float s = sin(angle);
+	float  deg = angle * PI / 180;
+	float c = cos(deg);
+	float s = sin(deg);
 	if (axis == 'x') {
 		mat[1][1] = c;
 		mat[2][2] = c;
-		mat[2][3] = -s;
-		mat[3][2] = s;
+		mat[2][1] = -s;
+		mat[1][2] = s;
 	}
 	else if (axis == 'y') {
 		mat[0][0] = c;
 		mat[2][2] = c;
-		mat[1][3] = -s;
-		mat[3][1] = s;
+		mat[2][0] = -s;
+		mat[0][2] = s;
 	}
 	else if (axis == 'z') {
 		mat[0][0] = c;
 		mat[1][1] = c;
-		mat[0][1] = -s;
-		mat[1][0] = s;
+		mat[1][0] = -s;
+		mat[0][1] = s;
 	}
 	return mat;
 }
@@ -93,9 +95,9 @@ glm::mat4 Utils::getRotationMatrix(const float angle, char axis)
 glm::mat4 Utils::getTranslationMatrix(const glm::vec3 vec)
 {
 	glm::mat4 mat(1);
-	mat[0][3] = vec.x;
-	mat[1][3] = vec.y;
-	mat[2][3] = vec.z;
+	mat[3][0] = vec.x;
+	mat[3][1] = vec.y;
+	mat[3][2] = vec.z;
 	return mat;
 }
 
