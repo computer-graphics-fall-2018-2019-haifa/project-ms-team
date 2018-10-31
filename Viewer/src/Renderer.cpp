@@ -145,17 +145,17 @@ void Renderer::SetViewport(int viewportWidth, int viewportHeight, int viewportX,
 void Renderer::Render(const Scene& scene) {
 	for (int i = 0; i < scene.GetModelCount(); i++) {
 		auto model = scene.getModel(i);
-		this->drawModel(model->getFaces(), model->getVertices());
+		this->drawModel(model->getFaces(), applyObjectTransform(model->getVertices(), model->GetObjectTransformation()));
 	}
 }
 
 
 void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertices) {
-	for (auto face = faces.begin(); face != faces.end(); ++face) {
+	for (auto face : faces) {
 		glm::vec3 v0, v1, v2;		// the 3 points that make the triangle
-		v0 = vertices[face->GetVertexIndex(0)];
-		v1 = vertices[face->GetVertexIndex(1)];
-		v2 = vertices[face->GetVertexIndex(2)];
+		v0 = vertices[face.GetVertexIndex(0)];
+		v1 = vertices[face.GetVertexIndex(1)];
+		v2 = vertices[face.GetVertexIndex(2)];
 		// draw the lines between each 2 points
 		// v0 - v1
 		this->drawLine(v0.x, v0.y, v1.x, v1.y);
@@ -164,6 +164,18 @@ void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertice
 		// v1 - v2
 		this->drawLine(v1.x, v1.y, v2.x, v2.y);
 	}
+}
+
+
+std::vector<glm::vec3> Renderer::applyObjectTransform(std::vector<glm::vec3> vec, glm::mat4 transform)
+{
+	std::vector<glm::vec3> after;
+	for (auto vertex : vec) {
+		glm::vec4 normal(vertex.x, vertex.y, vertex.z ,1);
+		glm::vec4 temp = transform * normal;
+		after.push_back(glm::vec3(temp.x, temp.y, temp.z));
+	}
+	return after;
 }
 
 //##############################

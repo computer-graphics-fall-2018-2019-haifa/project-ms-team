@@ -30,6 +30,7 @@ private:
 	void initOpenGLRendering();
 
 	void drawModel(std::vector<Face>, std::vector<glm::vec3>);
+	std::vector<glm::vec3> applyObjectTransform(std::vector<glm::vec3> vec, glm::mat4 transform);
 
 public:
 	Renderer(int viewportWidth, int viewportHeight, int viewportX = 0, int viewportY = 0);

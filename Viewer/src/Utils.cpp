@@ -108,6 +108,17 @@ glm::mat4 Utils::getScaleMatrix(const glm::vec3 vec)
 	return mat;
 }
 
+char ** Utils::convertStringVectorToCharArray(std::vector<std::string> vec)
+{
+	int i = 0;
+	char** strings = new char*[vec.size() + 1];
+	for (auto s : vec) {
+		strings[i] = new char[s.size() + 1];
+		std::strcpy(strings[i++], s.c_str());
+	}
+	return strings;
+}
+
 std::string Utils::GetFileName(const std::string& filePath)
 {
 	if (filePath.empty()) {

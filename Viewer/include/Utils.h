@@ -16,7 +16,7 @@ public:
 	static glm::mat4 getRotationMatrix(const float angle, char axis);
 	static glm::mat4 getTranslationMatrix(const glm::vec3 vec);
 	static glm::mat4 getScaleMatrix(const glm::vec3 vec);
-
+	static char** convertStringVectorToCharArray(std::vector<std::string> vec);
 	// Add here more static utility functions...
 	// For example:
 	//	anything else that may be useful in global scope
