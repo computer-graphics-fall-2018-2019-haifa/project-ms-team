@@ -145,7 +145,9 @@ void Renderer::SetViewport(int viewportWidth, int viewportHeight, int viewportX,
 void Renderer::Render(const Scene& scene) {
 	for (int i = 0; i < scene.GetModelCount(); i++) {
 		auto model = scene.getModel(i);
-		this->drawModel(model->getFaces(), modelTransfrom(model->getVertices(), model->GetWorldTransformation()));
+		auto points = applyTransfrom(model->getVertices(), model->GetObjectTransformation());
+		points = applyTransfrom(points, model->GetWorldTransformation());
+		this->drawModel(model->getFaces(), points);
 	}
 }
 
@@ -166,7 +168,7 @@ void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertice
 	}
 }
 
-std::vector<glm::vec3> Renderer::modelTransfrom(std::vector<glm::vec3> ver, glm::mat4 mat) {
+std::vector<glm::vec3> Renderer::applyTransfrom(std::vector<glm::vec3> ver, glm::mat4 mat) {
 	std::vector<glm::vec3> new_ver;
 	for (auto v : ver) {
 		glm::vec4 temp(v.x, v.y, v.z, 1);
