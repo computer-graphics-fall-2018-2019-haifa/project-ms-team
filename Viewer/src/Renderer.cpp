@@ -34,7 +34,7 @@ void Renderer::putPixel(int i, int j, const glm::vec3& color)
 	colorBuffer[INDEX(viewportWidth, i, j, 2)] = color.z;
 }
 
-void Renderer::drawLine(int x1, int y1, int x2, int y2, glm::vec3 color) {
+void Renderer::drawLine(int x1, int y1, int x2, int y2, glm::vec4 color) {
 	if ((x1 < 0) || (x1 > this->viewportWidth)) return;			// handle cases outside the drawing range
 	if ((y1 < 0) || (y1 > this->viewportHeight)) return;
 	if ((x2 < 0) || (x2 > this->viewportWidth)) return;
@@ -147,12 +147,12 @@ void Renderer::Render(const Scene& scene) {
 		auto model = scene.getModel(i);
 		auto points = applyTransfrom(model->getVertices(), model->GetObjectTransformation());
 		points = applyTransfrom(points, model->GetWorldTransformation());
-		this->drawModel(model->getFaces(), points);
+		this->drawModel(model->getFaces(), points, model->GetColor());
 	}
 }
 
 
-void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertices) {
+void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, glm::vec4 color) {
 	for (auto face : faces) {
 		glm::vec3 v0, v1, v2;		// the 3 points that make the triangle
 		v0 = vertices[face.GetVertexIndex(0)];
@@ -160,11 +160,11 @@ void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertice
 		v2 = vertices[face.GetVertexIndex(2)];
 		// draw the lines between each 2 points
 		// v0 - v1
-		this->drawLine(v0.x, v0.y, v1.x, v1.y);
+		this->drawLine(v0.x, v0.y, v1.x, v1.y, color);
 		// v0 - v2
-		this->drawLine(v0.x, v0.y, v2.x, v2.y);
+		this->drawLine(v0.x, v0.y, v2.x, v2.y, color);
 		// v1 - v2
-		this->drawLine(v1.x, v1.y, v2.x, v2.y);
+		this->drawLine(v1.x, v1.y, v2.x, v2.y, color);
 	}
 }
 

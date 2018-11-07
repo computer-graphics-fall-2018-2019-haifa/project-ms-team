@@ -15,20 +15,22 @@
 
 bool showDemoWindow = false;
 bool showAnotherWindow = false;
+bool showScaleError = false;
 
 glm::vec4 clearColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
+glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.00f);
+
 int activeModel = 0;
 std::vector<std::string> models;
-const glm::vec4& GetClearColor()
-{
+
+const glm::vec4& GetClearColor() {
 	return clearColor;
 }
 
 void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 {
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-	if (showDemoWindow)
-	{
+	if (showDemoWindow) {
 		ImGui::ShowDemoWindow(&showDemoWindow);
 	}
 
@@ -57,30 +59,39 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		if (ImGui::ListBox("Models", &activeModel, Utils::convertStringVectorToCharArray(models), models.size())) {
 			scene.SetActiveModelIndex(activeModel);
 		}
-		ImGui::InputFloat3("XYZ scale", scale, 2);
-		if (ImGui::Button("Set scale")) {
-			auto m = scene.getModel(scene.GetActiveModelIndex());
-			m->scaleObject(scale);
-		}
-		ImGui::InputFloat3("XYZ translation", translation, 2);
-		if (ImGui::Button("Set translation")) {
-			auto m = scene.getModel(scene.GetActiveModelIndex());
-			m->translateObject(translation);
-		}
-		ImGui::InputFloat("X rotation", &rotation[0], 2);
-		if (ImGui::Button("Set X rotation")) {
-			auto m = scene.getModel(scene.GetActiveModelIndex());
-			m->xRotateObject(rotation[0]);
-		}
-		ImGui::InputFloat("Y rotation", &rotation[1], 2);
-		if (ImGui::Button("Set Y rotation")) {
-			auto m = scene.getModel(scene.GetActiveModelIndex());
-			m->yRotateObject(rotation[1]);
-		}
-		ImGui::InputFloat("Z rotation", &rotation[2], 2);
-		if (ImGui::Button("Set Z rotation")) {
-			auto m = scene.getModel(scene.GetActiveModelIndex());
-			m->zRotateObject(rotation[2]);
+		if (activeModel != -1) {
+			auto m = scene.getModel(activeModel);
+			if (ImGui::ColorEdit3("line color", (float*)&lineColor)) {
+				m->SetColor(lineColor);
+			}
+			ImGui::InputFloat3("XYZ scale", scale, 2);
+			if (ImGui::Button("Set scale")) {
+				if ((scale[0] == 0.0f) || (scale[1] == 0.0f) || (scale[1] == 0.0f)) {
+					scale[0] = 1.0f;
+					scale[1] = 1.0f;
+					scale[2] = 1.0f;
+					showScaleError = true;
+				}
+				else {
+					m->scaleObject(scale);
+				}
+			}
+			ImGui::InputFloat3("XYZ translation", translation, 2);
+			if (ImGui::Button("Set translation")) {
+				m->translateObject(translation);
+			}
+			ImGui::InputFloat("X rotation", &rotation[0], 2);
+			if (ImGui::Button("Set X rotation")) {
+				m->xRotateObject(rotation[0]);
+			}
+			ImGui::InputFloat("Y rotation", &rotation[1], 2);
+			if (ImGui::Button("Set Y rotation")) {
+				m->yRotateObject(rotation[1]);
+			}
+			ImGui::InputFloat("Z rotation", &rotation[2], 2);
+			if (ImGui::Button("Set Z rotation")) {
+				m->zRotateObject(rotation[2]);
+			}
 		}
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();
@@ -91,8 +102,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 	{
 		ImGui::Begin("Another Window", &showAnotherWindow);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
 		ImGui::Text("Hello from another window!");
-		if (ImGui::Button("Close Me"))
-		{
+		if (ImGui::Button("Close Me")) {
 			showAnotherWindow = false;
 		}
 		ImGui::End();
@@ -125,5 +135,15 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			}
 			ImGui::EndMainMenuBar();
 		}
+	}
+
+	// 5. Display error when trying to set the scale to 0
+	if (showScaleError) {
+		ImGui::Begin("Scale Use Error", &showScaleError);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+		ImGui::Text("Scale value cannot be set to 0!");
+		if (ImGui::Button("Close")) {
+			showScaleError = false;
+		}
+		ImGui::End();
 	}
 }
