@@ -91,7 +91,7 @@ void MeshModel::yRotateWorld(const float angle)
 	updateWorldTransorm();
 }
 
-void MeshModel::zRotateworld(const float angle)
+void MeshModel::zRotateWorld(const float angle)
 {
 	auto m = Utils::getRotationMatrix(angle, 'z');
 	this->worldzRotationTransform = m * this->worldzRotationTransform;

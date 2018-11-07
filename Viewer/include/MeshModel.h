@@ -43,7 +43,7 @@ public:
 	void scaleObject(const float* scale);
 	void xRotateWorld(const float angle);
 	void yRotateWorld(const float angle);
-	void zRotateworld(const float angle);
+	void zRotateWorld(const float angle);
 	void translateWorld(const float* translation);
 	void scaleWorld(const float* scale);
 	void updateWorldTransorm();

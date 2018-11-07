@@ -21,6 +21,7 @@ glm::vec4 clearColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
 glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.00f);
 
 int activeModel = 0;
+static int trasformType = 0;
 std::vector<std::string> models;
 
 const glm::vec4& GetClearColor() {
@@ -61,6 +62,8 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		}
 		if (activeModel != -1) {
 			auto m = scene.getModel(activeModel);
+			ImGui::RadioButton("Object", &trasformType, 0); ImGui::SameLine();
+			ImGui::RadioButton("World", &trasformType, 1);
 			if (ImGui::ColorEdit3("line color", (float*)&lineColor)) {
 				m->SetColor(lineColor);
 			}
@@ -73,24 +76,49 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					showScaleError = true;
 				}
 				else {
-					m->scaleObject(scale);
+					if (trasformType) {
+						m->scaleWorld(scale);
+					}
+					else {
+						m->scaleObject(scale);
+					}
 				}
 			}
 			ImGui::InputFloat3("XYZ translation", translation, 2);
 			if (ImGui::Button("Set translation")) {
-				m->translateObject(translation);
+				if (trasformType) {
+					m->translateWorld(translation);
+				}
+				else {
+					m->translateObject(translation);
+				}
 			}
 			ImGui::InputFloat("X rotation", &rotation[0], 2);
 			if (ImGui::Button("Set X rotation")) {
-				m->xRotateObject(rotation[0]);
+				if (trasformType) {
+					m->xRotateWorld(rotation[0]);
+				}
+				else {
+					m->xRotateObject(rotation[0]);
+				}
 			}
 			ImGui::InputFloat("Y rotation", &rotation[1], 2);
 			if (ImGui::Button("Set Y rotation")) {
-				m->yRotateObject(rotation[1]);
+				if (trasformType) {
+					m->yRotateWorld(rotation[1]);
+				}
+				else {
+					m->yRotateObject(rotation[1]);
+				}
 			}
 			ImGui::InputFloat("Z rotation", &rotation[2], 2);
 			if (ImGui::Button("Set Z rotation")) {
-				m->zRotateObject(rotation[2]);
+				if (trasformType) {
+					m->zRotateWorld(rotation[2]);
+				}
+				else {
+					m->zRotateObject(rotation[2]);
+				}
 			}
 		}
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
