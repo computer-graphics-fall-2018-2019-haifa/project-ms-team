@@ -15,7 +15,6 @@
 class Camera : public MeshModel {
 private:
 	glm::mat4x4 viewTransformation;
-	glm::mat4x4 reverseTransformation;
 	glm::mat4x4 projectionTransformation;
 	float zoom;
 
@@ -24,6 +23,18 @@ public:
 	~Camera();
 
 	void SetCameraLookAt(const glm::vec3& eye, const glm::vec3& at, const glm::vec3& up);
+	void xRotateObject(const float angle);
+	void yRotateObject(const float angle);
+	void zRotateObject(const float angle);
+	void translateObject(const float* translation);
+	void scaleObject(const float* scale);
+	void xRotateWorld(const float angle);
+	void yRotateWorld(const float angle);
+	void zRotateWorld(const float angle);
+	void translateWorld(const float* translation);
+	void scaleWorld(const float* scale);
+	void updateWorldTransorm();
+	void updateObjectTransorm();
 
 	void SetOrthographicProjection(
 		const float height,
@@ -39,6 +50,6 @@ public:
 
 	void SetZoom(const float zoom);
 
-	glm::mat4x4 getReverseTransformation();
+	glm::mat4x4 getViewTransformation();
 	// Add more methods/functionality as needed...
 };

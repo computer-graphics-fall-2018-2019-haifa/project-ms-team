@@ -107,7 +107,7 @@ void Renderer::createBuffers(int viewportWidth, int viewportHeight)
 		delete[] colorBuffer;
 	}
 
-	colorBuffer = new float[3* viewportWidth * viewportHeight];
+	colorBuffer = new float[3 * viewportWidth * viewportHeight];
 	for (int x = 0; x < viewportWidth; x++)
 	{
 		for (int y = 0; y < viewportHeight; y++)
@@ -142,7 +142,7 @@ void Renderer::Render(const Scene& scene) {
 	int activeCamera = scene.GetActiveCameraIndex();
 	glm::mat4 viewMatrix(1);
 	if (activeCamera != -1) {
-		viewMatrix = scene.getCamera(scene.GetActiveCameraIndex())->getReverseTransformation();
+		viewMatrix = scene.getCamera(scene.GetActiveCameraIndex())->getViewTransformation();
 	}
 	
 	for (int i = 0; i < scene.GetModelCount(); i++) {
