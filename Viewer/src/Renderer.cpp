@@ -34,17 +34,13 @@ void Renderer::putPixel(int i, int j, const glm::vec3& color)
 	colorBuffer[INDEX(viewportWidth, i, j, 2)] = color.z;
 }
 
-void Renderer::drawLine(int x1, int y1, int x2, int y2, glm::vec4 color) {
-	if ((x1 < 0) || (x1 > this->viewportWidth)) return;			// handle cases outside the drawing range
-	if ((y1 < 0) || (y1 > this->viewportHeight)) return;
-	if ((x2 < 0) || (x2 > this->viewportWidth)) return;
-	if ((y2 < 0) || (y2 > this->viewportHeight)) return;
+void Renderer::drawLine(float x1, float y1, float x2, float y2, glm::vec4 color) {
 	if (x2 - x1 == 0) {			// need to draw a vertical line
 		if (y1 >= y2) {			// switch y1 and y2 if needed
 			std::swap(y1, y2);
 		}
 		while (y1 <= y2) {
-			this->putPixel(x1, y1, color);
+			this->putPixel((int)x1, (int)y1, color);
 			y1++;
 		}
 		return;
@@ -53,8 +49,8 @@ void Renderer::drawLine(int x1, int y1, int x2, int y2, glm::vec4 color) {
 		std::swap(x1, x2);
 		std::swap(y1, y2);
 	}
-	float deltaX = (float)(x2 - x1);
-	float deltaY = (float)(y2 - y1);
+	float deltaX = x2 - x1;
+	float deltaY = y2 - y1;
 	float slope = deltaY / deltaX;
 	deltaX *= 2;		// scaling now to not perform it inside the loop each time
 	deltaY *= 2;
@@ -65,7 +61,7 @@ void Renderer::drawLine(int x1, int y1, int x2, int y2, glm::vec4 color) {
 				if (e > 0) {
 					x1++; e += deltaY;
 				}
-				this->putPixel(x1, y1, color);
+				this->putPixel((int)x1, (int)y1, color);
 				y1--; e += deltaX;
 			}
 		}
@@ -75,7 +71,7 @@ void Renderer::drawLine(int x1, int y1, int x2, int y2, glm::vec4 color) {
 				if (e > 0) {
 					y1--; e -= deltaX;
 				}
-				this->putPixel(x1, y1, color);
+				this->putPixel((int)x1, (int)y1, color);
 				x1++; e -= deltaY;
 			}
 		}
@@ -87,7 +83,7 @@ void Renderer::drawLine(int x1, int y1, int x2, int y2, glm::vec4 color) {
 				if (e > 0) {
 					x1++; e -= deltaY;
 				}
-				this->putPixel(x1, y1, color);
+				this->putPixel((int)x1, (int)y1, color);
 				y1++; e += deltaX;
 			}
 		}
@@ -97,7 +93,7 @@ void Renderer::drawLine(int x1, int y1, int x2, int y2, glm::vec4 color) {
 				if (e > 0) {
 					y1++; e -= deltaX;
 				}
-				this->putPixel(x1, y1, color);
+				this->putPixel((int)x1, (int)y1, color);
 				x1++; e += deltaY;
 			}
 		}
@@ -143,11 +139,28 @@ void Renderer::SetViewport(int viewportWidth, int viewportHeight, int viewportX,
 }
 
 void Renderer::Render(const Scene& scene) {
+	int activeCamera = scene.GetActiveCameraIndex();
+	glm::mat4 viewMatrix(1);
+	if (activeCamera != -1) {
+		viewMatrix = scene.getCamera(scene.GetActiveCameraIndex())->getReverseTransformation();
+	}
+	
 	for (int i = 0; i < scene.GetModelCount(); i++) {
 		auto model = scene.getModel(i);
 		auto points = applyTransfrom(model->getVertices(), model->GetObjectTransformation());
 		points = applyTransfrom(points, model->GetWorldTransformation());
+		points = applyTransfrom(points, viewMatrix);
 		this->drawModel(model->getFaces(), points, model->GetColor());
+	}
+
+	for (int i = 0; i < scene.GetCameraCount(); i++) {
+		if (i != scene.GetActiveCameraIndex()) {
+			auto camera = scene.getCamera(i);
+			auto points = applyTransfrom(camera->getVertices(), camera->GetObjectTransformation());
+			points = applyTransfrom(points, camera->GetWorldTransformation());
+			points = applyTransfrom(points, viewMatrix);
+			this->drawModel(camera->getFaces(), points, camera->GetColor());
+		}
 	}
 }
 

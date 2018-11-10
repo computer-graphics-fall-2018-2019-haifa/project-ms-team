@@ -2,6 +2,7 @@
 #include <memory>
 #include <glm/glm.hpp>
 #include "MeshModel.h"
+#include "Utils.h"
 
 /*
  * Camera class. This class takes care of all the camera transformations and manipulations.
@@ -11,15 +12,15 @@
  * Make the Camera class be a subclass of MeshModel, so you can easily and elegantly render 
  * the cameras you have added to the scene.
  */
-class Camera
-{
+class Camera : public MeshModel {
 private:
 	glm::mat4x4 viewTransformation;
+	glm::mat4x4 reverseTransformation;
 	glm::mat4x4 projectionTransformation;
 	float zoom;
 
 public:
-	Camera(const glm::vec4& eye, const glm::vec4& at, const glm::vec4& up);
+	Camera(const glm::vec3& eye, const glm::vec3& at, const glm::vec3& up, const MeshModel& cameraModel);
 	~Camera();
 
 	void SetCameraLookAt(const glm::vec3& eye, const glm::vec3& at, const glm::vec3& up);
@@ -38,5 +39,6 @@ public:
 
 	void SetZoom(const float zoom);
 
+	glm::mat4x4 getReverseTransformation();
 	// Add more methods/functionality as needed...
 };

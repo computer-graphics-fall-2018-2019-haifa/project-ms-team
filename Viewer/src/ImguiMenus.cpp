@@ -14,15 +14,16 @@
 #include <random>
 
 bool showDemoWindow = false;
-bool showAnotherWindow = false;
 bool showScaleError = false;
 
 glm::vec4 clearColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
 glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.00f);
 
 int activeModel = 0;
+int cameraIndex = 0;
 static int trasformType = 0;
 std::vector<std::string> models;
+std::vector<std::string> cameras;
 
 const glm::vec4& GetClearColor() {
 	return clearColor;
@@ -41,23 +42,36 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		static float scale[3] = { 1.0f, 1.0f, 1.0f };
 		static float translation[3] = { 0.0f, 0.0f, 0.0f };
 		static float rotation[3] = { 0.0f, 0.0f, 0.0f };
+		static float eye[3] = { 0.0f, 0.0f, 0.0f };
+		static float at[3] = { 0.0f, 0.0f, 0.0f };
+		static float up[3] = { 0.0f, 1.0f, 0.0f };
 		static int counter = 0;
+		static int cameraNum = 1;
 
-		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+		ImGui::Begin("Graphics");								// Create a window called "Hello, world!" and append into it.
 
-		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
 		ImGui::Checkbox("Demo Window", &showDemoWindow);        // Edit bools storing our window open/close state
-		ImGui::Checkbox("Another Window", &showAnotherWindow);
 
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
 		ImGui::ColorEdit3("clear color", (float*)&clearColor);  // Edit 3 floats representing a color
+		
+		ImGui::InputFloat3("Camera Eye", eye, 2);
+		ImGui::InputFloat3("Camera At", at, 2);
+		ImGui::InputFloat3("Camera Up", up, 2);
+		if (ImGui::Button("Add Camera")) {
+			scene.AddCamera(std::make_shared<Camera>(Camera(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(at[0], at[1], at[2]), glm::vec3(up[0], up[1], up[2]), Utils::LoadMeshModel("C:\\Users\\makol\\Documents\\GitHub\\project-ms-team\\Data\\camera.obj"))));
+			scene.SetActiveCameraIndex(scene.GetCameraCount() - 1);
+			scene.getCamera(scene.GetActiveCameraIndex())->SetCameraLookAt(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(at[0], at[1], at[2]), glm::vec3(up[0], up[1], up[2]));
+			std::string s = "Camera ";
+			cameras.push_back(s.append(std::to_string(scene.GetCameraCount())));
+		}
+		
+		cameraIndex = scene.GetActiveCameraIndex();
+		if (ImGui::ListBox("Cameras", &cameraIndex, Utils::convertStringVectorToCharArray(cameras), (int)cameras.size())) {
+			scene.SetActiveCameraIndex(cameraIndex);
+		}
 
-		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-			counter++;
-		ImGui::SameLine();
-		ImGui::Text("counter = %d", counter);
 		activeModel = scene.GetActiveModelIndex();
-		if (ImGui::ListBox("Models", &activeModel, Utils::convertStringVectorToCharArray(models), models.size())) {
+		if (ImGui::ListBox("Models", &activeModel, Utils::convertStringVectorToCharArray(models), (int)models.size())) {
 			scene.SetActiveModelIndex(activeModel);
 		}
 		if (activeModel != -1) {
@@ -125,17 +139,6 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		ImGui::End();
 	}
 
-	// 3. Show another simple window.
-	if (showAnotherWindow)
-	{
-		ImGui::Begin("Another Window", &showAnotherWindow);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-		ImGui::Text("Hello from another window!");
-		if (ImGui::Button("Close Me")) {
-			showAnotherWindow = false;
-		}
-		ImGui::End();
-	}
-
 	// 4. Demonstrate creating a fullscreen menu bar and populating it.
 	{
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoFocusOnAppearing;
@@ -161,7 +164,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 				}
 				ImGui::EndMenu();
 			}
-			ImGui::EndMainMenuBar();
+		ImGui::EndMainMenuBar();
 		}
 	}
 
