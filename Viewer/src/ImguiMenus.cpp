@@ -18,11 +18,12 @@ bool showModelWindow = false;
 bool showCameraWindow = false;
 bool showScaleError = false;
 
+MeshModel* cameraModel = nullptr;
 glm::vec4 clearColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
 glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.00f);
 
-int activeModel = 0;
-int cameraIndex = 0;
+int activeModel = -1;
+int cameraIndex = -1;
 std::vector<std::string> models;
 std::vector<std::string> cameras;
 
@@ -62,14 +63,26 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				if (ImGui::MenuItem("Load Model...", "CTRL+O"))
-				{
+				if (ImGui::MenuItem("Load Model...", "CTRL+O")) {
 					nfdchar_t *outPath = NULL;
 					nfdresult_t result = NFD_OpenDialog("obj;png,jpg", NULL, &outPath);
 					if (result == NFD_OKAY) {
 						scene.AddModel(std::make_shared<MeshModel>(Utils::LoadMeshModel(outPath)));
 						scene.SetActiveModelIndex(scene.GetModelCount() - 1);
 						models.push_back(scene.getModel(scene.GetActiveModelIndex())->GetModelName());
+						free(outPath);
+					}
+					else if (result == NFD_CANCEL) {
+					}
+					else {
+					}
+
+				}
+				if (ImGui::MenuItem("Load Camera Model...", "CTRL+1")) {
+					nfdchar_t *outPath = NULL;
+					nfdresult_t result = NFD_OpenDialog("obj;png,jpg", NULL, &outPath);
+					if (result == NFD_OKAY) {
+						cameraModel = &Utils::LoadMeshModel(outPath);
 						free(outPath);
 					}
 					else if (result == NFD_CANCEL) {
@@ -104,22 +117,26 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		static float cameraTranslation[3] = { 0.0f, 0.0f, 0.0f };
 		static float cameraRotation[3] = { 0.0f, 0.0f, 0.0f };
 
-		ImGui::InputFloat3("Camera Eye", eye, 2);
-		ImGui::InputFloat3("Camera At", at, 2);
-		ImGui::InputFloat3("Camera Up", up, 2);
-		if (ImGui::Button("Add Camera")) {
-			scene.AddCamera(std::make_shared<Camera>(Camera(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(at[0], at[1], at[2]), glm::vec3(up[0], up[1], up[2]), Utils::LoadMeshModel("C:\\Users\\makol\\Documents\\GitHub\\project-ms-team\\Data\\camera.obj"))));
-			scene.SetActiveCameraIndex(scene.GetCameraCount() - 1);
-			scene.getCamera(scene.GetActiveCameraIndex())->SetCameraLookAt(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(at[0], at[1], at[2]), glm::vec3(up[0], up[1], up[2]));
-			std::string s = "Camera ";
-			cameras.push_back(s.append(std::to_string(scene.GetCameraCount())));
-		}
+		if (cameraModel != nullptr) {
+			ImGui::InputFloat3("Camera Eye", eye, 2);
+			ImGui::InputFloat3("Camera At", at, 2);
+			ImGui::InputFloat3("Camera Up", up, 2);
+			if (ImGui::Button("Add Camera")) {
+				scene.AddCamera(std::make_shared<Camera>(Camera(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(at[0], at[1], at[2]), glm::vec3(up[0], up[1], up[2]), *cameraModel)));
+				scene.SetActiveCameraIndex(scene.GetCameraCount() - 1);
+				scene.getCamera(scene.GetActiveCameraIndex())->SetCameraLookAt(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(at[0], at[1], at[2]), glm::vec3(up[0], up[1], up[2]));
+				std::string s = "Camera ";
+				cameras.push_back(s.append(std::to_string(scene.GetCameraCount())));
+			}
 
-		cameraIndex = scene.GetActiveCameraIndex();
-		if (ImGui::ListBox("Cameras", &cameraIndex, Utils::convertStringVectorToCharArray(cameras), (int)cameras.size())) {
-			scene.SetActiveCameraIndex(cameraIndex);
+			cameraIndex = scene.GetActiveCameraIndex();
+			if (ImGui::ListBox("Cameras", &cameraIndex, Utils::convertStringVectorToCharArray(cameras), (int)cameras.size())) {
+				scene.SetActiveCameraIndex(cameraIndex);
+			}
 		}
-
+		else {
+			ImGui::Text("Load a camera model before adding a camera");
+		}
 		if (cameraIndex != -1) {
 			auto m = scene.getCamera(cameraIndex);
 			ImGui::RadioButton("Object", &cameraTrasformType, 0); ImGui::SameLine();

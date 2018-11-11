@@ -8,6 +8,7 @@ Camera::Camera(const glm::vec3& eye, const glm::vec3& at, const glm::vec3& up, c
 	MeshModel(cameraModel.getFaces(), cameraModel.getVertices(), cameraModel.getNormals(), "Camera"),
 	viewTransformation(1),
 	worldViewTransformation(1),
+	projectionTransformation(1),
 	zoom(1.0)
 {
 	this->SetCameraLookAt(eye, at, up);
@@ -97,6 +98,7 @@ void Camera::SetOrthographicProjection(
 	const float near,
 	const float far)
 {
+	float width = height * aspectRatio;
 
 }
 
