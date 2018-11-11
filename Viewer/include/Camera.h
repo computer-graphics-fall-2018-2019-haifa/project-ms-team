@@ -15,6 +15,7 @@
 class Camera : public MeshModel {
 private:
 	glm::mat4x4 viewTransformation;
+	glm::mat4x4 worldViewTransformation;
 	glm::mat4x4 projectionTransformation;
 	float zoom;
 
@@ -33,8 +34,6 @@ public:
 	void zRotateWorld(const float angle);
 	void translateWorld(const float* translation);
 	void scaleWorld(const float* scale);
-	void updateWorldTransorm();
-	void updateObjectTransorm();
 
 	void SetOrthographicProjection(
 		const float height,
