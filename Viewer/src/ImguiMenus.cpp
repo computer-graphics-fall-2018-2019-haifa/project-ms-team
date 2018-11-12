@@ -144,6 +144,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			if (ImGui::ColorEdit3("line color", (float*)&lineColor)) {
 				m->SetColor(lineColor);
 			}
+			if (ImGui::Button("Toggle Bounding Box")) {
+				m->setBounding(!m->isDrawBounding());
+			}
 			ImGui::InputFloat3("XYZ scale", cameraScale, 2);
 			if (ImGui::Button("Set scale")) {
 				if ((cameraScale[0] == 0.0f) || (cameraScale[1] == 0.0f) || (cameraScale[1] == 0.0f)) {
@@ -227,6 +230,11 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			if (ImGui::ColorEdit3("line color", (float*)&lineColor)) {
 				m->SetColor(lineColor);
 			}
+
+			if (ImGui::Button("Toggle Bounding Box")) {
+				m->setBounding(!m->isDrawBounding());
+			}
+
 			ImGui::InputFloat3("XYZ scale", scale, 2);
 			if (ImGui::Button("Set scale")) {
 				if ((scale[0] == 0.0f) || (scale[1] == 0.0f) || (scale[1] == 0.0f)) {

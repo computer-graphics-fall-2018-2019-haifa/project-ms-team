@@ -151,6 +151,14 @@ void Renderer::Render(const Scene& scene) {
 		points = applyTransfrom(points, model->GetWorldTransformation());
 		points = applyTransfrom(points, viewMatrix);
 		this->drawModel(model->getFaces(), points, model->GetColor());
+
+		if (model->isDrawBounding()) {
+			auto boundPoints = applyTransfrom(model->getBoundingVer(), model->GetObjectTransformation());
+			boundPoints = applyTransfrom(boundPoints, model->GetWorldTransformation());
+			boundPoints = applyTransfrom(boundPoints, viewMatrix);
+			this->drawBounding(boundPoints, model->GetColor());
+		}
+
 	}
 
 	for (int i = 0; i < scene.GetCameraCount(); i++) {
@@ -180,6 +188,24 @@ void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertice
 		this->drawLine(v1.x, v1.y, v2.x, v2.y, color);
 	}
 }
+
+void Renderer::drawBounding(std::vector<glm::vec3> v, glm::vec4 color) {
+
+	this->drawLine(v[0].x, v[0].y, v[1].x, v[1].y,color);
+	this->drawLine(v[0].x, v[0].y, v[2].x, v[2].y, color);
+	this->drawLine(v[0].x, v[0].y, v[4].x, v[4].y, color);
+	this->drawLine(v[1].x, v[1].y, v[3].x, v[3].y, color);
+	this->drawLine(v[1].x, v[1].y, v[5].x, v[5].y, color);
+	this->drawLine(v[2].x, v[2].y, v[3].x, v[3].y, color);
+	this->drawLine(v[2].x, v[2].y, v[6].x, v[6].y, color);
+	this->drawLine(v[3].x, v[3].y, v[7].x, v[7].y, color);
+	this->drawLine(v[4].x, v[4].y, v[5].x, v[5].y, color);
+	this->drawLine(v[4].x, v[4].y, v[6].x, v[6].y, color);
+	this->drawLine(v[5].x, v[5].y, v[7].x, v[7].y, color);
+	this->drawLine(v[6].x, v[6].y, v[7].x, v[7].y, color);
+
+}
+
 
 std::vector<glm::vec3> Renderer::applyTransfrom(std::vector<glm::vec3> ver, glm::mat4 mat) {
 	std::vector<glm::vec3> new_ver;

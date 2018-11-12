@@ -15,6 +15,7 @@ protected:
 	std::vector<Face> faces;
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
+	std::vector<glm::vec3> boundingVer;
 	glm::mat4x4 worldTransform;
 	glm::mat4x4 objectTransform;
 	glm::mat4x4 worldScaleTransform;
@@ -29,6 +30,7 @@ protected:
 	glm::mat4x4 zRotationTransform;
 	glm::vec4 color;
 	std::string modelName;
+	bool drawBounding;
 
 public:
 	MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::string& modelName = "");
@@ -60,5 +62,9 @@ public:
 	const std::vector<Face> getFaces() const;
 	const std::vector<glm::vec3> getVertices() const;
 	const std::vector<glm::vec3> getNormals() const;
+	const std::vector<glm::vec3> MeshModel::getBoundingVer() const;
+	const bool isDrawBounding() const;
+
+	void MeshModel::setBounding(bool drawBounding);
 	// Add more methods/functionality as needed...
 };

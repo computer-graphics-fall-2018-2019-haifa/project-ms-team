@@ -30,6 +30,7 @@ private:
 	void initOpenGLRendering();
 
 	void drawModel(std::vector<Face>, std::vector<glm::vec3>, glm::vec4 color);
+	
 	std::vector<glm::vec3> applyTransfrom(std::vector<glm::vec3> ver, glm::mat4 mat);
 
 public:
@@ -41,5 +42,6 @@ public:
 	void ClearColorBuffer(const glm::vec3& color);
 	void SetViewport(int viewportWidth, int viewportHeight, int viewportX = 0, int viewportY = 0);
 	void drawLine(float x1, float y1, float x2, float y2, glm::vec4 color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	void drawBounding(std::vector<glm::vec3> vertices, glm::vec4 color);
 	// Add more methods/functionality as needed...
 };

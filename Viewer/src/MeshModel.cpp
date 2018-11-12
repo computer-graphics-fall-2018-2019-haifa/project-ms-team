@@ -25,6 +25,34 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 	this->faces = faces;
 	this->vertices = vertices;
 	this->normals = normals;
+	this->drawBounding = false;
+
+	glm::vec3 min(vertices[0]);
+	glm::vec3 max(vertices[0]);
+
+	for (auto ver : vertices) {
+		if (ver.x < min.x)
+			min.x = ver.x;
+		if (ver.x > max.x)
+			max.x = ver.x;
+		if (ver.y < min.y)
+			min.y = ver.y;
+		if (ver.y > max.y)
+			max.y = ver.y;
+		if (ver.z < min.z)
+			min.z = ver.z;
+		if (ver.z > max.z)
+			max.z = ver.z;
+	}
+	
+	boundingVer.push_back(glm::vec3(min.x, min.y, min.z));
+	boundingVer.push_back(glm::vec3(max.x, min.y, min.z));
+	boundingVer.push_back(glm::vec3(min.x, max.y, min.z));
+	boundingVer.push_back(glm::vec3(max.x, max.y, min.z));
+	boundingVer.push_back(glm::vec3(min.x, min.y, max.z));
+	boundingVer.push_back(glm::vec3(max.x, min.y, max.z));
+	boundingVer.push_back(glm::vec3(min.x, max.y, max.z));
+	boundingVer.push_back(glm::vec3(max.x, max.y, max.z));
 }
 
 MeshModel::~MeshModel()
@@ -155,6 +183,21 @@ const std::vector<Face> MeshModel::getFaces() const
 const std::vector<glm::vec3> MeshModel::getVertices() const
 {
 	return this->vertices;
+}
+
+const std::vector<glm::vec3> MeshModel::getBoundingVer() const
+{
+	return this->boundingVer;
+}
+
+const bool MeshModel::isDrawBounding() const
+{
+	return this->drawBounding;
+}
+
+void MeshModel::setBounding(bool drawBounding)
+{
+	this->drawBounding = drawBounding;
 }
 
 const std::vector<glm::vec3> MeshModel::getNormals() const
