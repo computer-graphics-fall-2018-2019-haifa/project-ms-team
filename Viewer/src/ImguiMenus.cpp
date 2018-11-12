@@ -52,6 +52,10 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			showModelWindow = true;
 		}
 		
+		if (ImGui::Button("Rainbow mode!")) {
+			scene.toggleRainbow();
+		}
+
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();
 	}
@@ -145,7 +149,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 				m->SetColor(lineColor);
 			}
 			if (ImGui::Button("Toggle Bounding Box")) {
-				m->setBounding(!m->isDrawBounding());
+				m->toggleBounding();
 			}
 			ImGui::InputFloat3("XYZ scale", cameraScale, 2);
 			if (ImGui::Button("Set scale")) {
@@ -232,7 +236,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			}
 
 			if (ImGui::Button("Toggle Bounding Box")) {
-				m->setBounding(!m->isDrawBounding());
+				m->toggleBounding();
 			}
 
 			ImGui::InputFloat3("XYZ scale", scale, 2);

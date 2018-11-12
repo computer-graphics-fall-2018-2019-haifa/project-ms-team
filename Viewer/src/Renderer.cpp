@@ -150,7 +150,7 @@ void Renderer::Render(const Scene& scene) {
 		auto points = applyTransfrom(model->getVertices(), model->GetObjectTransformation());
 		points = applyTransfrom(points, model->GetWorldTransformation());
 		points = applyTransfrom(points, viewMatrix);
-		this->drawModel(model->getFaces(), points, model->GetColor());
+		this->drawModel(model->getFaces(), points, model->GetColor(), scene.getRainbow());
 
 		if (model->isDrawBounding()) {
 			auto boundPoints = applyTransfrom(model->getBoundingVer(), model->GetObjectTransformation());
@@ -173,12 +173,15 @@ void Renderer::Render(const Scene& scene) {
 }
 
 
-void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, glm::vec4 color) {
+void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, glm::vec4 color, bool rainbow) {
 	for (auto face : faces) {
 		glm::vec3 v0, v1, v2;		// the 3 points that make the triangle
 		v0 = vertices[face.GetVertexIndex(0)];
 		v1 = vertices[face.GetVertexIndex(1)];
 		v2 = vertices[face.GetVertexIndex(2)];
+		if (rainbow) {
+			color = glm::vec4((float)((int)(v0.x * 2 + v0.y * 3 + v0.z * 4) % 255) / 255, (float)((int)(v1.x * 3 + v1.y * 4 + v1.z * 5) % 255) / 255, (float)((int)(v2.x * 4 + v2.y * 5 + v2.z * 6) % 255) / 255, 1);
+		}
 		// draw the lines between each 2 points
 		// v0 - v1
 		this->drawLine(v0.x, v0.y, v1.x, v1.y, color);

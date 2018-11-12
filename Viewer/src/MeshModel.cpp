@@ -195,9 +195,9 @@ const bool MeshModel::isDrawBounding() const
 	return this->drawBounding;
 }
 
-void MeshModel::setBounding(bool drawBounding)
+void MeshModel::toggleBounding()
 {
-	this->drawBounding = drawBounding;
+	this->drawBounding = !this->drawBounding;
 }
 
 const std::vector<glm::vec3> MeshModel::getNormals() const

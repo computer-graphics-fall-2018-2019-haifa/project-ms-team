@@ -6,7 +6,7 @@ Scene::Scene() :
 	activeCameraIndex(-1),
 	activeModelIndex(-1)
 {
-
+	this->rainbowMode = false;
 }
 
 void Scene::AddModel(const std::shared_ptr<MeshModel>& model)
@@ -71,4 +71,14 @@ const std::shared_ptr<Camera> Scene::getCamera(int index) const
 		return this->cameras[index];
 	}
 	return nullptr;
+}
+
+void Scene::toggleRainbow()
+{
+	this->rainbowMode = !this->rainbowMode;
+}
+
+const bool Scene::getRainbow() const
+{
+	return this->rainbowMode;
 }

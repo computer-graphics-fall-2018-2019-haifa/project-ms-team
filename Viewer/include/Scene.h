@@ -19,6 +19,7 @@ private:
 
 	int activeCameraIndex;
 	int activeModelIndex;
+	bool rainbowMode;
 
 public:
 	Scene();
@@ -37,5 +38,8 @@ public:
 
 	const std::shared_ptr<MeshModel> getModel(int index) const;
 	const std::shared_ptr<Camera> getCamera(int index) const;
+
+	void toggleRainbow();
+	const bool getRainbow() const;
 	// Add more methods as needed...
 };

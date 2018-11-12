@@ -65,6 +65,6 @@ public:
 	const std::vector<glm::vec3> MeshModel::getBoundingVer() const;
 	const bool isDrawBounding() const;
 
-	void MeshModel::setBounding(bool drawBounding);
+	void MeshModel::toggleBounding();
 	// Add more methods/functionality as needed...
 };
