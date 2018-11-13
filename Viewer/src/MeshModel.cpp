@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <limits>
 
 MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::string& modelName) :
 	modelName(modelName),
@@ -27,8 +28,8 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 	this->normals = normals;
 	this->drawBounding = false;
 
-	glm::vec3 min(vertices[0]);
-	glm::vec3 max(vertices[0]);
+	glm::vec3 min(std::numeric_limits<int>::max());
+	glm::vec3 max(std::numeric_limits<int>::min());
 
 	for (auto ver : vertices) {
 		if (ver.x < min.x)

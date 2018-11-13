@@ -141,8 +141,10 @@ void Renderer::SetViewport(int viewportWidth, int viewportHeight, int viewportX,
 void Renderer::Render(const Scene& scene) {
 	int activeCamera = scene.GetActiveCameraIndex();
 	glm::mat4 viewMatrix(1);
+	glm::mat4 worldViewMatrix(1);
 	if (activeCamera != -1) {
 		viewMatrix = scene.getCamera(scene.GetActiveCameraIndex())->getViewTransformation();
+		worldViewMatrix = scene.getCamera(scene.GetActiveCameraIndex())->getWorldViewTransformation();
 	}
 	
 	for (int i = 0; i < scene.GetModelCount(); i++) {
@@ -180,7 +182,7 @@ void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertice
 		v1 = vertices[face.GetVertexIndex(1)];
 		v2 = vertices[face.GetVertexIndex(2)];
 		if (rainbow) {
-			color = glm::vec4((float)((int)(v0.x * 2 + v0.y * 3 + v0.z * 4) % 255) / 255, (float)((int)(v1.x * 3 + v1.y * 4 + v1.z * 5) % 255) / 255, (float)((int)(v2.x * 4 + v2.y * 5 + v2.z * 6) % 255) / 255, 1);
+			color = glm::vec4((float)((int)(v0.x * 2 + v0.y * 3 + v0.z * 4) % 256) / 256, (float)((int)(v1.x * 3 + v1.y * 4 + v1.z * 5) % 256) / 256, (float)((int)(v2.x * 4 + v2.y * 5 + v2.z * 6) % 256) / 256, 1);
 		}
 		// draw the lines between each 2 points
 		// v0 - v1

@@ -18,7 +18,7 @@ bool showModelWindow = false;
 bool showCameraWindow = false;
 bool showScaleError = false;
 
-MeshModel* cameraModel = nullptr;
+std::shared_ptr<MeshModel> cameraModel = nullptr;
 glm::vec4 clearColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
 glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.00f);
 
@@ -86,7 +86,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					nfdchar_t *outPath = NULL;
 					nfdresult_t result = NFD_OpenDialog("obj;png,jpg", NULL, &outPath);
 					if (result == NFD_OKAY) {
-						cameraModel = &Utils::LoadMeshModel(outPath);
+						cameraModel = std::make_shared<MeshModel>(Utils::LoadMeshModel(outPath));
 						free(outPath);
 					}
 					else if (result == NFD_CANCEL) {
@@ -128,7 +128,6 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			if (ImGui::Button("Add Camera")) {
 				scene.AddCamera(std::make_shared<Camera>(Camera(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(at[0], at[1], at[2]), glm::vec3(up[0], up[1], up[2]), *cameraModel)));
 				scene.SetActiveCameraIndex(scene.GetCameraCount() - 1);
-				scene.getCamera(scene.GetActiveCameraIndex())->SetCameraLookAt(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(at[0], at[1], at[2]), glm::vec3(up[0], up[1], up[2]));
 				std::string s = "Camera ";
 				cameras.push_back(s.append(std::to_string(scene.GetCameraCount())));
 			}

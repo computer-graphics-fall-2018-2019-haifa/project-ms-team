@@ -23,31 +23,29 @@ void Camera::SetCameraLookAt(const glm::vec3& eye, const glm::vec3& at, const gl
 	glm::vec3 x = glm::normalize(glm::cross(up, z));
 	glm::vec3 y = glm::normalize(glm::cross(z, x));
 	glm::mat4 mat(1);
-	mat[0][0] = x.x; mat[0][1] = x.y; mat[0][2] = x.z;
-	mat[1][0] = y.x; mat[1][1] = y.y; mat[1][2] = y.z;
-	mat[2][0] = z.x; mat[2][1] = z.y; mat[2][2] = z.z;
-	this->translationTransform = mat * Utils::getTranslationMatrix(-eye);
-	updateObjectTransorm();
-	this->worldTransform = glm::mat4(1);
-	this->viewTransformation = glm::inverse(this->objectTransform);
+	mat[0][0] = x.x; mat[0][1] = y.x; mat[0][2] = z.x; mat[3][0] = glm::dot(x, eye);
+	mat[1][0] = x.y; mat[1][1] = y.y; mat[1][2] = z.y; mat[3][1] = glm::dot(y, eye);
+	mat[2][0] = x.z; mat[2][1] = y.z; mat[2][2] = z.z; mat[3][2] = glm::dot(z, eye);
+	this->viewTransformation = mat;
+	this->objectTransform = glm::inverse(mat);
 }
 
 void Camera::xRotateObject(const float angle)
 {
 	MeshModel::xRotateObject(angle);
-	this->viewTransformation *= Utils::getRotationMatrix(angle, 'x');
+	this->viewTransformation *= Utils::getRotationMatrix(-angle, 'x');
 }
 
 void Camera::yRotateObject(const float angle)
 {
 	MeshModel::yRotateObject(angle);
-	this->viewTransformation *= Utils::getRotationMatrix(angle, 'y');
+	this->viewTransformation *= Utils::getRotationMatrix(-angle, 'y');
 }
 
 void Camera::zRotateObject(const float angle)
 {
 	MeshModel::zRotateObject(angle);
-	this->viewTransformation *= Utils::getRotationMatrix(angle, 'z');
+	this->viewTransformation *= Utils::getRotationMatrix(-angle, 'z');
 }
 
 void Camera::translateObject(const float * translation)
@@ -119,4 +117,9 @@ void Camera::SetZoom(const float zoom)
 glm::mat4x4 Camera::getViewTransformation()
 {
 	return this->worldViewTransformation * this->viewTransformation;
+}
+
+glm::mat4x4 Camera::getWorldViewTransformation()
+{
+	return this->worldViewTransformation;
 }

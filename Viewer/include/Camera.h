@@ -50,5 +50,6 @@ public:
 	void SetZoom(const float zoom);
 
 	glm::mat4x4 getViewTransformation();
+	glm::mat4x4 getWorldViewTransformation();
 	// Add more methods/functionality as needed...
 };
