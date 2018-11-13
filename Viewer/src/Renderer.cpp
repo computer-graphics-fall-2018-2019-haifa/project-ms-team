@@ -153,8 +153,8 @@ void Renderer::Render(const Scene& scene) {
 		auto model = scene.getModel(i);
 		auto points = applyTransfrom(model->getVertices(), model->GetObjectTransformation());
 		points = applyTransfrom(points, model->GetWorldTransformation());
-		points = applyTransfrom(points, viewMatrix);
 		points = applyTransfrom(points, worldViewMatrix);
+		points = applyTransfrom(points, viewMatrix);
 		points = applyTransfrom(points, projection);
 		points = applyTransfrom(points, Utils::getTranslationMatrix(glm::vec3(1,1,0)));
 		points = applyTransfrom(points, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 1)));
@@ -163,8 +163,8 @@ void Renderer::Render(const Scene& scene) {
 		if (model->isDrawBounding()) {
 			auto boundPoints = applyTransfrom(model->getBoundingVer(), model->GetObjectTransformation());
 			boundPoints = applyTransfrom(boundPoints, model->GetWorldTransformation());
-			boundPoints = applyTransfrom(boundPoints, viewMatrix);
 			boundPoints = applyTransfrom(boundPoints, worldViewMatrix);
+			boundPoints = applyTransfrom(boundPoints, viewMatrix);
 			boundPoints = applyTransfrom(boundPoints, projection);
 			boundPoints = applyTransfrom(boundPoints, Utils::getTranslationMatrix(glm::vec3(1, 1, 0)));
 			boundPoints = applyTransfrom(boundPoints, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 1)));
@@ -177,8 +177,8 @@ void Renderer::Render(const Scene& scene) {
 			auto camera = scene.getCamera(i);
 			auto points = applyTransfrom(camera->getVertices(), camera->GetObjectTransformation());
 			points = applyTransfrom(points, camera->GetWorldTransformation());
-			points = applyTransfrom(points, viewMatrix);
 			points = applyTransfrom(points, worldViewMatrix);
+			points = applyTransfrom(points, viewMatrix);
 			points = applyTransfrom(points, projection);
 			points = applyTransfrom(points, Utils::getTranslationMatrix(glm::vec3(1, 1, 0)));
 			points = applyTransfrom(points, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 1)));

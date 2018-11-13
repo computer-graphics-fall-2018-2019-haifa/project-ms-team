@@ -116,6 +116,8 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		static float eye[3] = { 0.0f, 0.0f, 0.0f };
 		static float at[3] = { 0.0f, 0.0f, 0.0f };
 		static float up[3] = { 0.0f, 1.0f, 0.0f };
+		static float z[2] = { 1.0f, 10.0f };
+		static float fovy[2] = { 45.0f, 1.0f };
 		static int cameraTrasformType = 0;
 		static float cameraScale[3] = { 1.0f, 1.0f, 1.0f };
 		static float cameraTranslation[3] = { 0.0f, 0.0f, 0.0f };
@@ -147,8 +149,14 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			if (ImGui::ColorEdit3("line color", (float*)&lineColor)) {
 				m->SetColor(lineColor);
 			}
+			ImGui::InputFloat2("Z near/Z far", z, 2);
+			ImGui::InputFloat2("fovy/height", fovy, 2);
 			if (ImGui::Button("Set prespective")) {
-				m->SetPerspectiveProjection(45, 16 / 9, 5, 100);
+				m->SetPerspectiveProjection(fovy[0], 16 / 9, z[0], z[1]);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Set orthographic")) {
+				m->SetOrthographicProjection(fovy[1], 16 / 9, z[0], z[1]);
 			}
 			if (ImGui::Button("Toggle Bounding Box")) {
 				m->toggleBounding();

@@ -97,7 +97,18 @@ void Camera::SetOrthographicProjection(
 	const float far)
 {
 	float width = height * aspectRatio;
-
+	float right = near * width;
+	float left = -right;
+	float top = near * height;
+	float bottom = -top;
+	glm::mat4 mat(1);
+	mat[0][0] = 2 / (right - left);
+	mat[1][1] = 2 / (top - bottom);
+	mat[2][2] = 2 / (near - far);
+	mat[3][0] = -(right + left) / (right - left);
+	mat[3][1] = -(top + bottom) / (top - bottom);
+	mat[3][2] = -(far + near) / (far - near);
+	this->projectionTransformation = mat;
 }
 
 void Camera::SetPerspectiveProjection(
