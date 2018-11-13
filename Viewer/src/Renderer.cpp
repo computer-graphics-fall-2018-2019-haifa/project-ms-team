@@ -142,9 +142,11 @@ void Renderer::Render(const Scene& scene) {
 	int activeCamera = scene.GetActiveCameraIndex();
 	glm::mat4 viewMatrix(1);
 	glm::mat4 worldViewMatrix(1);
+	glm::mat4 projection(1);
 	if (activeCamera != -1) {
 		viewMatrix = scene.getCamera(scene.GetActiveCameraIndex())->getViewTransformation();
 		worldViewMatrix = scene.getCamera(scene.GetActiveCameraIndex())->getWorldViewTransformation();
+		projection = scene.getCamera(scene.GetActiveCameraIndex())->getProjection();
 	}
 	
 	for (int i = 0; i < scene.GetModelCount(); i++) {
@@ -152,15 +154,22 @@ void Renderer::Render(const Scene& scene) {
 		auto points = applyTransfrom(model->getVertices(), model->GetObjectTransformation());
 		points = applyTransfrom(points, model->GetWorldTransformation());
 		points = applyTransfrom(points, viewMatrix);
+		points = applyTransfrom(points, worldViewMatrix);
+		points = applyTransfrom(points, projection);
+		points = applyTransfrom(points, Utils::getTranslationMatrix(glm::vec3(1,1,0)));
+		points = applyTransfrom(points, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 1)));
 		this->drawModel(model->getFaces(), points, model->GetColor(), scene.getRainbow());
 
 		if (model->isDrawBounding()) {
 			auto boundPoints = applyTransfrom(model->getBoundingVer(), model->GetObjectTransformation());
 			boundPoints = applyTransfrom(boundPoints, model->GetWorldTransformation());
 			boundPoints = applyTransfrom(boundPoints, viewMatrix);
+			boundPoints = applyTransfrom(boundPoints, worldViewMatrix);
+			boundPoints = applyTransfrom(boundPoints, projection);
+			boundPoints = applyTransfrom(boundPoints, Utils::getTranslationMatrix(glm::vec3(1, 1, 0)));
+			boundPoints = applyTransfrom(boundPoints, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 1)));
 			this->drawBounding(boundPoints, model->GetColor());
 		}
-
 	}
 
 	for (int i = 0; i < scene.GetCameraCount(); i++) {
@@ -169,6 +178,10 @@ void Renderer::Render(const Scene& scene) {
 			auto points = applyTransfrom(camera->getVertices(), camera->GetObjectTransformation());
 			points = applyTransfrom(points, camera->GetWorldTransformation());
 			points = applyTransfrom(points, viewMatrix);
+			points = applyTransfrom(points, worldViewMatrix);
+			points = applyTransfrom(points, projection);
+			points = applyTransfrom(points, Utils::getTranslationMatrix(glm::vec3(1, 1, 0)));
+			points = applyTransfrom(points, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 1)));
 			this->drawModel(camera->getFaces(), points, camera->GetColor());
 		}
 	}

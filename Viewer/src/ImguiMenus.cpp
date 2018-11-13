@@ -147,6 +147,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			if (ImGui::ColorEdit3("line color", (float*)&lineColor)) {
 				m->SetColor(lineColor);
 			}
+			if (ImGui::Button("Set prespective")) {
+				m->SetPerspectiveProjection(45, 16 / 9, 5, 100);
+			}
 			if (ImGui::Button("Toggle Bounding Box")) {
 				m->toggleBounding();
 			}

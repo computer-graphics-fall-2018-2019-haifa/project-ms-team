@@ -106,7 +106,21 @@ void Camera::SetPerspectiveProjection(
 	const float near,
 	const float far)
 {
-
+	float height = glm::tan(fovy /2);
+	float width = height * aspectRatio;
+	float right = width * near;
+	float left = -right;
+	float top = height * near;
+	float bottom = -top;
+	glm::mat4 mat(0);
+	mat[0][0] = (2 * near) / width;
+	mat[1][1] = -(2 * near) / height;
+	mat[2][2] = -(far + near) / (far - near);
+	mat[3][2] = -(2 * far * near) / (far - near);
+	mat[2][3] = -1;
+	mat[2][0] = (right + left) / (right - left);
+	mat[2][1] = (top + bottom) / (top - bottom);
+	this->projectionTransformation = mat;
 }
 
 void Camera::SetZoom(const float zoom)
@@ -122,4 +136,9 @@ glm::mat4x4 Camera::getViewTransformation()
 glm::mat4x4 Camera::getWorldViewTransformation()
 {
 	return this->worldViewTransformation;
+}
+
+glm::mat4x4 Camera::getProjection()
+{
+	return this->projectionTransformation;
 }

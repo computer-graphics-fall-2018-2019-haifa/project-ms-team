@@ -51,5 +51,6 @@ public:
 
 	glm::mat4x4 getViewTransformation();
 	glm::mat4x4 getWorldViewTransformation();
+	glm::mat4x4 getProjection();
 	// Add more methods/functionality as needed...
 };
