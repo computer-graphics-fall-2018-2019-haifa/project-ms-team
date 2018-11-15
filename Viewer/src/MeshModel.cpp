@@ -29,6 +29,7 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 	this->drawBounding = false;
 	this->drawNormals = false;
 	this->flipNormals = false;
+	this->flipFaceNormals = false;
 
 	glm::vec3 min(std::numeric_limits<int>::max());
 	glm::vec3 max(std::numeric_limits<int>::min());
@@ -208,6 +209,16 @@ const bool MeshModel::isFlipNormals() const
 	return this->flipNormals;
 }
 
+const bool MeshModel::isFlipFaceNormals() const
+{
+	return this->flipFaceNormals;
+}
+
+const bool MeshModel::isDrawFaceNormals() const
+{
+	return this->drawFaceNormals;
+}
+
 void MeshModel::toggleBounding()
 {
 	this->drawBounding = !this->drawBounding;
@@ -218,9 +229,19 @@ void MeshModel::toggleNormals()
 	this->drawNormals = !this->drawNormals;
 }
 
+void MeshModel::toggleFaceNormals()
+{
+	this->drawFaceNormals = !this->drawFaceNormals;
+}
+
 void MeshModel::toggleFlipNormals()
 {
 	this->flipNormals = !this->flipNormals;
+}
+
+void MeshModel::toggleFlipFaceNormals()
+{
+	this->flipFaceNormals = !this->flipFaceNormals;
 }
 
 const std::vector<glm::vec3> MeshModel::getNormals() const

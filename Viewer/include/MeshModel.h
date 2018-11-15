@@ -32,7 +32,9 @@ protected:
 	std::string modelName;
 	bool drawBounding;
 	bool drawNormals;
+	bool drawFaceNormals;
 	bool flipNormals;
+	bool flipFaceNormals;
 
 public:
 	MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::string& modelName = "");
@@ -67,10 +69,14 @@ public:
 	const std::vector<glm::vec3> MeshModel::getBoundingVer() const;
 	const bool isDrawBounding() const;
 	const bool isDrawNormals() const;
+	const bool isDrawFaceNormals() const;
 	const bool isFlipNormals() const;
+	const bool isFlipFaceNormals() const;
 
 	void toggleBounding();
 	void toggleNormals();
+	void toggleFaceNormals();
 	void toggleFlipNormals();
+	void toggleFlipFaceNormals();
 	// Add more methods/functionality as needed...
 };

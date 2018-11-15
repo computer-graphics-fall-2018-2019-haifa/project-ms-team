@@ -169,6 +169,9 @@ void Renderer::Render(const Scene& scene) {
 		if (model->isDrawNormals()) {
 			this->drawNormals(points, model->getFaces(), normals, model->isFlipNormals());
 		}
+		if (model->isDrawFaceNormals()) {
+			this->drawFaceNormals(points, model->getFaces(), model->isFlipFaceNormals());
+		}
 
 		if (model->isDrawBounding()) {
 			auto boundPoints = applyTransfrom(model->getBoundingVer(), model->GetObjectTransformation());
@@ -229,14 +232,36 @@ void Renderer::drawNormals(std::vector<glm::vec3> vertices, std::vector<Face> fa
 		n1 = normals[face.GetVertexIndex(1)];
 		n2 = normals[face.GetVertexIndex(2)];
 		if (flip) {
-			this->drawLine(v0.x, v0.y, 2 * v0.x - n0.x, 2 * v0.y - n0.y, glm::vec4(1, 0, 0, 1));
-			this->drawLine(v1.x, v1.y, 2 * v1.x - n1.x, 2 * v1.y - n0.y, glm::vec4(1, 0, 0, 1));
-			this->drawLine(v2.x, v2.y, 2 * v2.x - n2.x, 2 * v2.y - n2.y, glm::vec4(1, 0, 0, 1));
+			this->drawLine(v0.x, v0.y, 2 * v0.x - n0.x, 2 * v0.y - n0.y, glm::vec4(1, 0, 1, 1));
+			this->drawLine(v1.x, v1.y, 2 * v1.x - n1.x, 2 * v1.y - n0.y, glm::vec4(1, 0, 1, 1));
+			this->drawLine(v2.x, v2.y, 2 * v2.x - n2.x, 2 * v2.y - n2.y, glm::vec4(1, 0, 1, 1));
 		}
 		else {
 			this->drawLine(v0.x, v0.y, n0.x, n0.y, glm::vec4(0, 1, 0, 1));
 			this->drawLine(v1.x, v1.y, n1.x, n1.y, glm::vec4(0, 1, 0, 1));
 			this->drawLine(v2.x, v2.y, n2.x, n2.y, glm::vec4(0, 1, 0, 1));
+		}
+	}
+}
+
+void Renderer::drawFaceNormals(std::vector<glm::vec3> vertices, std::vector<Face> faces, bool flip) {
+	for (auto face : faces) {
+		glm::vec3 v0, v1, v2;
+		v0 = vertices[face.GetVertexIndex(0)];
+		v1 = vertices[face.GetVertexIndex(1)];
+		v2 = vertices[face.GetVertexIndex(2)];
+		float x = (v0.x + v1.x + v2.x) / 3;
+		float y = (v0.y + v1.y + v2.y) / 3;
+		glm::vec3 u, v;
+		u = v1 - v0;
+		v = v2 - v0;
+		if (flip) {
+			glm::vec3 normal = glm::cross(u, v);
+			this->drawLine(x, y, x + normal.x, y + normal.y, glm::vec4(0, 0, 1, 1));
+		}
+		else {
+			glm::vec3 normal = glm::cross(v, u);
+			this->drawLine(x, y, x + normal.x, y + normal.y, glm::vec4(1, 1, 0, 1));
 		}
 	}
 }

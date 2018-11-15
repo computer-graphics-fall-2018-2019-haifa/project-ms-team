@@ -253,8 +253,16 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 				m->toggleNormals();
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Toggle Flip Vertex Normals")) {
+			if (ImGui::Button("Flip Vertex Normals")) {
 				m->toggleFlipNormals();
+			}
+
+			if (ImGui::Button("Toggle Face Normals")) {
+				m->toggleFaceNormals();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Flip Face Normals")) {
+				m->toggleFlipFaceNormals();
 			}
 
 			ImGui::InputFloat3("XYZ scale", scale, 2);
