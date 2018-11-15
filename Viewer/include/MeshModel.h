@@ -28,6 +28,7 @@ protected:
 	glm::mat4x4 xRotationTransform;
 	glm::mat4x4 yRotationTransform;
 	glm::mat4x4 zRotationTransform;
+	glm::vec3 pos;
 	glm::vec4 color;
 	std::string modelName;
 	bool drawBounding;
@@ -58,6 +59,7 @@ public:
 	const glm::mat4x4& GetWorldTransformation() const;
 	const glm::mat4x4& GetObjectTransformation() const;
 
+	const glm::vec3& getPosition() const;
 	const glm::vec4& GetColor() const;
 	void SetColor(const glm::vec4& color);
 

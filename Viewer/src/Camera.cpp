@@ -28,6 +28,20 @@ void Camera::SetCameraLookAt(const glm::vec3& eye, const glm::vec3& at, const gl
 	mat[2][0] = x.z; mat[2][1] = y.z; mat[2][2] = z.z; mat[3][2] = glm::dot(z, eye);
 	this->viewTransformation = mat;
 	this->objectTransform = glm::inverse(mat);
+	// resetting all the transformations
+	this->worldViewTransformation = glm::mat4(1);
+	this->worldTransform = glm::mat4(1);
+	this->worldScaleTransform = glm::mat4(1);
+	this->worldTranslationTransform = glm::mat4(1);
+	this->worldxRotationTransform = glm::mat4(1);
+	this->worldzRotationTransform = glm::mat4(1);
+	this->worldyRotationTransform = glm::mat4(1);
+	this->scaleTransform = glm::mat4(1);
+	this->translationTransform = glm::mat4(1);
+	this->xRotationTransform = glm::mat4(1);
+	this->yRotationTransform = glm::mat4(1);
+	this->zRotationTransform = glm::mat4(1);
+	this->pos = eye;
 }
 
 void Camera::xRotateObject(const float angle)
@@ -134,9 +148,9 @@ void Camera::SetPerspectiveProjection(
 	this->projectionTransformation = mat;
 }
 
-void Camera::SetZoom(const float zoom)
-{
-
+void Camera::SetZoom(const float zoom) {
+	float z[3] = { zoom, zoom, zoom };
+	this->scaleObject(z);
 }
 
 glm::mat4x4 Camera::getViewTransformation()

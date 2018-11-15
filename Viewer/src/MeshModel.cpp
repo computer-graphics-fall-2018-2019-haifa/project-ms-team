@@ -21,12 +21,14 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 	translationTransform(glm::mat4x4(1)),
 	xRotationTransform(glm::mat4x4(1)),
 	yRotationTransform(glm::mat4x4(1)),
-	zRotationTransform(glm::mat4x4(1))
+	zRotationTransform(glm::mat4x4(1)),
+	pos(0, 0, 0)
 {
 	this->faces = faces;
 	this->vertices = vertices;
 	this->normals = normals;
 	this->drawBounding = false;
+	this->drawFaceNormals = false;
 	this->drawNormals = false;
 	this->flipNormals = false;
 	this->flipFaceNormals = false;
@@ -100,6 +102,7 @@ void MeshModel::translateObject(const float * translation)
 	auto m = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
 	this->translationTransform = m * this->translationTransform;
 	updateObjectTransorm();
+	this->pos.x += translation[0]; this->pos.y += translation[1]; this->pos.z += translation[2];
 }
 
 void MeshModel::scaleObject(const float * scale)
@@ -135,6 +138,7 @@ void MeshModel::translateWorld(const float * translation)
 	auto m = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
 	this->worldTranslationTransform = m * this->worldTranslationTransform;
 	updateWorldTransorm();
+	this->pos.x += translation[0]; this->pos.y += translation[1]; this->pos.z += translation[2];
 }
 
 void MeshModel::scaleWorld(const float * scale)
@@ -167,6 +171,11 @@ const glm::mat4x4 & MeshModel::GetObjectTransformation() const
 void MeshModel::SetColor(const glm::vec4& color)
 {
 	this->color = color;
+}
+
+const glm::vec3 & MeshModel::getPosition() const
+{
+	return this->pos;
 }
 
 const glm::vec4& MeshModel::GetColor() const

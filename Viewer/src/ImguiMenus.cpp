@@ -51,7 +51,14 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		if (ImGui::Button("Show Model Controls")) {
 			showModelWindow = true;
 		}
-		
+		if ((activeModel != -1) && (cameraIndex != -1)) {
+			if (ImGui::Button("Active Camera Look At Active Model")) {
+				auto cam = scene.getCamera(cameraIndex);
+				auto model = scene.getModel(activeModel);
+				cam->SetCameraLookAt(cam->getPosition(), model->getPosition(), glm::vec3(0, 1, 0));
+			}
+		}
+
 		if (ImGui::Button("Rainbow mode!")) {
 			scene.toggleRainbow();
 		}
@@ -72,7 +79,8 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					nfdresult_t result = NFD_OpenDialog("obj;png,jpg", NULL, &outPath);
 					if (result == NFD_OKAY) {
 						scene.AddModel(std::make_shared<MeshModel>(Utils::LoadMeshModel(outPath)));
-						scene.SetActiveModelIndex(scene.GetModelCount() - 1);
+						activeModel = scene.GetModelCount() - 1;
+						scene.SetActiveModelIndex(activeModel);
 						models.push_back(scene.getModel(scene.GetActiveModelIndex())->GetModelName());
 						free(outPath);
 					}
@@ -118,6 +126,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		static float up[3] = { 0.0f, 1.0f, 0.0f };
 		static float z[2] = { 1.0f, 10.0f };
 		static float fovy[2] = { 45.0f, 1.0f };
+		static float zoom = 1.0f;
 		static int cameraTrasformType = 0;
 		static float cameraScale[3] = { 1.0f, 1.0f, 1.0f };
 		static float cameraTranslation[3] = { 0.0f, 0.0f, 0.0f };
@@ -129,12 +138,20 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			ImGui::InputFloat3("Camera Up", up, 2);
 			if (ImGui::Button("Add Camera")) {
 				scene.AddCamera(std::make_shared<Camera>(Camera(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(at[0], at[1], at[2]), glm::vec3(up[0], up[1], up[2]), *cameraModel)));
-				scene.SetActiveCameraIndex(scene.GetCameraCount() - 1);
+				cameraIndex = scene.GetCameraCount() - 1;
+				scene.SetActiveCameraIndex(cameraIndex);
 				std::string s = "Camera ";
 				cameras.push_back(s.append(std::to_string(scene.GetCameraCount())));
 			}
 
 			cameraIndex = scene.GetActiveCameraIndex();
+			if (cameraIndex != -1) {
+				ImGui::SameLine();
+				if (ImGui::Button("Set Camera Look At")) {
+					auto m = scene.getCamera(cameraIndex);
+					m->SetCameraLookAt(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(at[0], at[1], at[2]), glm::vec3(up[0], up[1], up[2]));
+				}
+			}
 			if (ImGui::ListBox("Cameras", &cameraIndex, Utils::convertStringVectorToCharArray(cameras), (int)cameras.size())) {
 				scene.SetActiveCameraIndex(cameraIndex);
 			}
@@ -158,9 +175,12 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			if (ImGui::Button("Set orthographic")) {
 				m->SetOrthographicProjection(fovy[1], 16 / 9, z[0], z[1]);
 			}
-			if (ImGui::Button("Toggle Bounding Box")) {
-				m->toggleBounding();
+			
+			ImGui::InputFloat("Camera Zoom", &zoom, 0.1, 1, 2);
+			if (ImGui::Button("Set Zoom")) {
+				m->SetZoom(1/zoom);
 			}
+
 			ImGui::InputFloat3("XYZ scale", cameraScale, 2);
 			if (ImGui::Button("Set scale")) {
 				if ((cameraScale[0] == 0.0f) || (cameraScale[1] == 0.0f) || (cameraScale[1] == 0.0f)) {
