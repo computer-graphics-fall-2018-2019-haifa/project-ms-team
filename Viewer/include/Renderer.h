@@ -29,7 +29,8 @@ private:
 	void createOpenGLBuffer();
 	void initOpenGLRendering();
 
-	void drawModel(std::vector<Face>, std::vector<glm::vec3>, glm::vec4 color, bool rainbow = false);
+	void drawModel(std::vector<Face> faces, std::vector<glm::vec3>, glm::vec4 color, bool rainbow = false);
+	void drawNormals(std::vector<glm::vec3>, std::vector<Face> faces, std::vector<glm::vec3> normals, bool flip);
 	
 	std::vector<glm::vec3> applyTransfrom(std::vector<glm::vec3> ver, glm::mat4 mat);
 

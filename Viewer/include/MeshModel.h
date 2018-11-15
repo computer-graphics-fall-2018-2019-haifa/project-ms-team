@@ -31,6 +31,8 @@ protected:
 	glm::vec4 color;
 	std::string modelName;
 	bool drawBounding;
+	bool drawNormals;
+	bool flipNormals;
 
 public:
 	MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::string& modelName = "");
@@ -64,7 +66,11 @@ public:
 	const std::vector<glm::vec3> getNormals() const;
 	const std::vector<glm::vec3> MeshModel::getBoundingVer() const;
 	const bool isDrawBounding() const;
+	const bool isDrawNormals() const;
+	const bool isFlipNormals() const;
 
-	void MeshModel::toggleBounding();
+	void toggleBounding();
+	void toggleNormals();
+	void toggleFlipNormals();
 	// Add more methods/functionality as needed...
 };

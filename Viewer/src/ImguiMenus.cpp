@@ -249,6 +249,14 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 				m->toggleBounding();
 			}
 
+			if (ImGui::Button("Toggle Vertex Normals")) {
+				m->toggleNormals();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Toggle Flip Vertex Normals")) {
+				m->toggleFlipNormals();
+			}
+
 			ImGui::InputFloat3("XYZ scale", scale, 2);
 			if (ImGui::Button("Set scale")) {
 				if ((scale[0] == 0.0f) || (scale[1] == 0.0f) || (scale[1] == 0.0f)) {

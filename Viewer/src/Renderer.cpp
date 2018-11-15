@@ -152,13 +152,23 @@ void Renderer::Render(const Scene& scene) {
 	for (int i = 0; i < scene.GetModelCount(); i++) {
 		auto model = scene.getModel(i);
 		auto points = applyTransfrom(model->getVertices(), model->GetObjectTransformation());
+		auto normals = applyTransfrom(model->getNormals(), model->GetObjectTransformation());
 		points = applyTransfrom(points, model->GetWorldTransformation());
+		normals = applyTransfrom(normals, model->GetWorldTransformation());
 		points = applyTransfrom(points, worldViewMatrix);
+		normals = applyTransfrom(normals, worldViewMatrix);
 		points = applyTransfrom(points, viewMatrix);
+		normals = applyTransfrom(normals, viewMatrix);
 		points = applyTransfrom(points, projection);
+		normals = applyTransfrom(normals, projection);
 		points = applyTransfrom(points, Utils::getTranslationMatrix(glm::vec3(1,1,0)));
+		normals = applyTransfrom(normals, Utils::getTranslationMatrix(glm::vec3(1,1,0)));
 		points = applyTransfrom(points, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 1)));
+		normals = applyTransfrom(normals, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 1)));
 		this->drawModel(model->getFaces(), points, model->GetColor(), scene.getRainbow());
+		if (model->isDrawNormals()) {
+			this->drawNormals(points, model->getFaces(), normals, model->isFlipNormals());
+		}
 
 		if (model->isDrawBounding()) {
 			auto boundPoints = applyTransfrom(model->getBoundingVer(), model->GetObjectTransformation());
@@ -207,9 +217,32 @@ void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertice
 	}
 }
 
-void Renderer::drawBounding(std::vector<glm::vec3> v, glm::vec4 color) {
+void Renderer::drawNormals(std::vector<glm::vec3> vertices, std::vector<Face> faces, std::vector<glm::vec3> normals, bool flip)
+{
+	for (auto face : faces) {
+		glm::vec3 v0, v1, v2;
+		glm::vec3 n0, n1, n2;
+		v0 = vertices[face.GetVertexIndex(0)];
+		v1 = vertices[face.GetVertexIndex(1)];
+		v2 = vertices[face.GetVertexIndex(2)];
+		n0 = normals[face.GetVertexIndex(0)];
+		n1 = normals[face.GetVertexIndex(1)];
+		n2 = normals[face.GetVertexIndex(2)];
+		if (flip) {
+			this->drawLine(v0.x, v0.y, 2 * v0.x - n0.x, 2 * v0.y - n0.y, glm::vec4(1, 0, 0, 1));
+			this->drawLine(v1.x, v1.y, 2 * v1.x - n1.x, 2 * v1.y - n0.y, glm::vec4(1, 0, 0, 1));
+			this->drawLine(v2.x, v2.y, 2 * v2.x - n2.x, 2 * v2.y - n2.y, glm::vec4(1, 0, 0, 1));
+		}
+		else {
+			this->drawLine(v0.x, v0.y, n0.x, n0.y, glm::vec4(0, 1, 0, 1));
+			this->drawLine(v1.x, v1.y, n1.x, n1.y, glm::vec4(0, 1, 0, 1));
+			this->drawLine(v2.x, v2.y, n2.x, n2.y, glm::vec4(0, 1, 0, 1));
+		}
+	}
+}
 
-	this->drawLine(v[0].x, v[0].y, v[1].x, v[1].y,color);
+void Renderer::drawBounding(std::vector<glm::vec3> v, glm::vec4 color) {
+	this->drawLine(v[0].x, v[0].y, v[1].x, v[1].y, color);
 	this->drawLine(v[0].x, v[0].y, v[2].x, v[2].y, color);
 	this->drawLine(v[0].x, v[0].y, v[4].x, v[4].y, color);
 	this->drawLine(v[1].x, v[1].y, v[3].x, v[3].y, color);
@@ -221,7 +254,6 @@ void Renderer::drawBounding(std::vector<glm::vec3> v, glm::vec4 color) {
 	this->drawLine(v[4].x, v[4].y, v[6].x, v[6].y, color);
 	this->drawLine(v[5].x, v[5].y, v[7].x, v[7].y, color);
 	this->drawLine(v[6].x, v[6].y, v[7].x, v[7].y, color);
-
 }
 
 
