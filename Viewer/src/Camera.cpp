@@ -71,7 +71,7 @@ void Camera::translateObject(const float * translation)
 void Camera::scaleObject(const float * scale)
 {
 	MeshModel::scaleObject(scale);
-	this->viewTransformation *= Utils::getScaleMatrix(glm::vec3(1 / scale[0], 1 / scale[1], 1 / scale[2]));;
+	this->viewTransformation *= Utils::getScaleMatrix(glm::vec3(1 / scale[0], 1 / scale[1], 1 / scale[2]));
 }
 
 void Camera::xRotateWorld(const float angle)
@@ -101,7 +101,7 @@ void Camera::translateWorld(const float * translation)
 void Camera::scaleWorld(const float * scale)
 {
 	MeshModel::scaleWorld(scale);
-	this->worldViewTransformation *= Utils::getScaleMatrix(glm::vec3(1 / scale[0], 1 / scale[1], 1 / scale[2]));;
+	this->worldViewTransformation *= Utils::getScaleMatrix(glm::vec3(1 / scale[0], 1 / scale[1], 1 / scale[2]));
 }
 
 void Camera::SetOrthographicProjection(

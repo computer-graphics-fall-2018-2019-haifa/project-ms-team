@@ -33,8 +33,8 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 	this->flipNormals = false;
 	this->flipFaceNormals = false;
 
-	glm::vec3 min(std::numeric_limits<int>::max());
-	glm::vec3 max(std::numeric_limits<int>::min());
+	glm::vec3 min((float)std::numeric_limits<int>::max());
+	glm::vec3 max((float)std::numeric_limits<int>::min());
 
 	for (auto ver : vertices) {
 		if (ver.x < min.x)

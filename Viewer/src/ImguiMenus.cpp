@@ -176,7 +176,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 				m->SetOrthographicProjection(fovy[1], 16 / 9, z[0], z[1]);
 			}
 			
-			ImGui::InputFloat("Camera Zoom", &zoom, 0.1, 1, 2);
+			ImGui::InputFloat("Camera Zoom", &zoom, 0.1f, 1, 2);
 			if (ImGui::Button("Set Zoom")) {
 				m->SetZoom(1/zoom);
 			}
