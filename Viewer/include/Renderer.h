@@ -33,7 +33,7 @@ private:
 	void drawNormals(std::vector<glm::vec3>, std::vector<Face> faces, std::vector<glm::vec3> normals, bool flip);
 	void drawFaceNormals(std::vector<glm::vec3> vertices, std::vector<Face> faces, bool flip);
 	
-	std::vector<glm::vec3> applyTransfrom(std::vector<glm::vec3> ver, glm::mat4 mat);
+	std::vector<glm::vec3> applyTransfrom(const std::vector<glm::vec3>& ver, const glm::mat4& mat);
 
 public:
 	Renderer(int viewportWidth, int viewportHeight, int viewportX = 0, int viewportY = 0);

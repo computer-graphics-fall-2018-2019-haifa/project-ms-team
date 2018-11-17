@@ -233,7 +233,7 @@ void Renderer::drawNormals(std::vector<glm::vec3> vertices, std::vector<Face> fa
 		n2 = normals[face.GetVertexIndex(2)];
 		if (flip) {
 			this->drawLine(v0.x, v0.y, 2 * v0.x - n0.x, 2 * v0.y - n0.y, glm::vec4(1, 0, 1, 1));
-			this->drawLine(v1.x, v1.y, 2 * v1.x - n1.x, 2 * v1.y - n0.y, glm::vec4(1, 0, 1, 1));
+			this->drawLine(v1.x, v1.y, 2 * v1.x - n1.x, 2 * v1.y - n1.y, glm::vec4(1, 0, 1, 1));
 			this->drawLine(v2.x, v2.y, 2 * v2.x - n2.x, 2 * v2.y - n2.y, glm::vec4(1, 0, 1, 1));
 		}
 		else {
@@ -282,7 +282,7 @@ void Renderer::drawBounding(std::vector<glm::vec3> v, glm::vec4 color) {
 }
 
 
-std::vector<glm::vec3> Renderer::applyTransfrom(std::vector<glm::vec3> ver, glm::mat4 mat) {
+std::vector<glm::vec3> Renderer::applyTransfrom(const std::vector<glm::vec3>& ver, const glm::mat4& mat) {
 	std::vector<glm::vec3> new_ver;
 	for (auto v : ver) {
 		glm::vec4 temp(v.x, v.y, v.z, 1);
