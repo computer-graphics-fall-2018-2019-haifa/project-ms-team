@@ -8,9 +8,13 @@ Camera::Camera(const glm::vec3& eye, const glm::vec3& at, const glm::vec3& up, c
 	MeshModel(cameraModel.getFaces(), cameraModel.getVertices(), cameraModel.getNormals(), "Camera"),
 	viewTransformation(1),
 	worldViewTransformation(1),
-	projectionTransformation(1),
-	zoom(1.0)
+	projectionTransformation(1)
 {
+	this->znear = 0;
+	this->zfar = 0;
+	this->aspect = 1;
+	this->param1 = 1;
+	this->activeView = -1;
 	this->SetCameraLookAt(eye, at, up);
 }
 
@@ -22,13 +26,8 @@ void Camera::SetCameraLookAt(const glm::vec3& eye, const glm::vec3& at, const gl
 	glm::vec3 z = glm::normalize(eye - at);
 	glm::vec3 x = glm::normalize(glm::cross(up, z));
 	glm::vec3 y = glm::normalize(glm::cross(z, x));
-	glm::mat4 mat(1);
-	mat[0][0] = x.x; mat[0][1] = y.x; mat[0][2] = z.x; mat[3][0] = glm::dot(x, eye);
-	mat[1][0] = x.y; mat[1][1] = y.y; mat[1][2] = z.y; mat[3][1] = glm::dot(y, eye);
-	mat[2][0] = x.z; mat[2][1] = y.z; mat[2][2] = z.z; mat[3][2] = glm::dot(z, eye);
-	this->viewTransformation = mat;
-	this->objectTransform = glm::inverse(mat);
-	// resetting all the transformations
+	this->viewTransformation = glm::lookAt(eye, at, up);
+	this->objectTransform = glm::inverse(this->viewTransformation);
 	this->worldViewTransformation = glm::mat4(1);
 	this->worldTransform = glm::mat4(1);
 	this->worldScaleTransform = glm::mat4(1);
@@ -115,14 +114,12 @@ void Camera::SetOrthographicProjection(
 	float left = -right;
 	float top = near * height;
 	float bottom = -top;
-	glm::mat4 mat(1);
-	mat[0][0] = 2 / (right - left);
-	mat[1][1] = 2 / (top - bottom);
-	mat[2][2] = 2 / (near - far);
-	mat[3][0] = -(right + left) / (right - left);
-	mat[3][1] = -(top + bottom) / (top - bottom);
-	mat[3][2] = -(far + near) / (far - near);
-	this->projectionTransformation = mat;
+	this->zfar = far;
+	this->znear = near;
+	this->aspect = aspectRatio;
+	this->param1 = height;
+	this->projectionTransformation = glm::ortho(left, right, bottom, top);
+	this->activeView = 0;
 }
 
 void Camera::SetPerspectiveProjection(
@@ -131,31 +128,26 @@ void Camera::SetPerspectiveProjection(
 	const float near,
 	const float far)
 {
-	float height = glm::tan(fovy /2);
-	float width = height * aspectRatio;
-	float right = width * near;
-	float left = -right;
-	float top = height * near;
-	float bottom = -top;
-	glm::mat4 mat(0);
-	mat[0][0] = (2 * near) / width;
-	mat[1][1] = -(2 * near) / height;
-	mat[2][2] = -(far + near) / (far - near);
-	mat[3][2] = -(2 * far * near) / (far - near);
-	mat[2][3] = -1;
-	mat[2][0] = (right + left) / (right - left);
-	mat[2][1] = (top + bottom) / (top - bottom);
-	this->projectionTransformation = mat;
+	this->zfar = far;
+	this->znear = near;
+	this->aspect = aspectRatio;
+	this->param1 = fovy;
+	this->projectionTransformation = glm::perspective(fovy, aspectRatio, near, far);
+	this->activeView = 1;
 }
 
 void Camera::SetZoom(const float zoom) {
-	float z[3] = { zoom, zoom, zoom };
-	this->scaleObject(z);
+	if (this->activeView == 0) {
+		this->SetOrthographicProjection(this->param1 * zoom, this->aspect, this->znear, this->zfar);
+	}
+	else if (this->activeView == 1) {
+		this->SetPerspectiveProjection(this->param1 * zoom, this->aspect, this->znear, this->zfar);
+	}
 }
 
 glm::mat4x4 Camera::getViewTransformation()
 {
-	return this->worldViewTransformation * this->viewTransformation;
+	return this->viewTransformation * Utils::getTranslationMatrix(pos);
 }
 
 glm::mat4x4 Camera::getWorldViewTransformation()

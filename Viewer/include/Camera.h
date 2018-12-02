@@ -17,7 +17,11 @@ private:
 	glm::mat4x4 viewTransformation;
 	glm::mat4x4 worldViewTransformation;
 	glm::mat4x4 projectionTransformation;
-	float zoom;
+	float znear;
+	float zfar;
+	float aspect;
+	float param1;
+	int activeView;
 
 public:
 	Camera(const glm::vec3& eye, const glm::vec3& at, const glm::vec3& up, const MeshModel& cameraModel);
