@@ -23,9 +23,6 @@ Camera::~Camera()
 }
 
 void Camera::SetCameraLookAt(const glm::vec3& eye, const glm::vec3& at, const glm::vec3& up) {
-	glm::vec3 z = glm::normalize(eye - at);
-	glm::vec3 x = glm::normalize(glm::cross(up, z));
-	glm::vec3 y = glm::normalize(glm::cross(z, x));
 	this->viewTransformation = glm::lookAt(eye, at, up);
 	this->objectTransform = glm::inverse(this->viewTransformation);
 	this->worldViewTransformation = glm::mat4(1);
@@ -147,7 +144,7 @@ void Camera::SetZoom(const float zoom) {
 
 glm::mat4x4 Camera::getViewTransformation()
 {
-	return this->viewTransformation * Utils::getTranslationMatrix(pos);
+	return this->viewTransformation;// * Utils::getTranslationMatrix(pos);
 }
 
 glm::mat4x4 Camera::getWorldViewTransformation()

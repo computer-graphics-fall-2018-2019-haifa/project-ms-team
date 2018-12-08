@@ -6,8 +6,10 @@
 #include <imgui/imgui.h>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 
 #define INDEX(width,x,y,c) ((x)+(y)*(width))*3+(c)
+#define ZINDEX(width,x,y) ((x)+(y)*(width))
 
 Renderer::Renderer(int viewportWidth, int viewportHeight, int viewportX, int viewportY) :
 	colorBuffer(nullptr),
@@ -19,28 +21,32 @@ Renderer::Renderer(int viewportWidth, int viewportHeight, int viewportX, int vie
 
 Renderer::~Renderer()
 {
-	if (colorBuffer)
-	{
+	if (colorBuffer) {
 		delete[] colorBuffer;
+	}
+	if (zBuffer) {
+		delete[] zBuffer;
 	}
 }
 
-void Renderer::putPixel(int i, int j, const glm::vec3& color)
-{
+void Renderer::putPixel(int i, int j, float z, const glm::vec3& color) {
 	if (i < 0) return; if (i >= viewportWidth) return;
 	if (j < 0) return; if (j >= viewportHeight) return;
-	colorBuffer[INDEX(viewportWidth, i, j, 0)] = color.x;
-	colorBuffer[INDEX(viewportWidth, i, j, 1)] = color.y;
-	colorBuffer[INDEX(viewportWidth, i, j, 2)] = color.z;
+	if (zBuffer[ZINDEX(viewportWidth, i, j)] > z) {
+		colorBuffer[INDEX(viewportWidth, i, j, 0)] = color.x;
+		colorBuffer[INDEX(viewportWidth, i, j, 1)] = color.y;
+		colorBuffer[INDEX(viewportWidth, i, j, 2)] = color.z;
+		zBuffer[ZINDEX(viewportWidth, i, j)] = z;
+	}
 }
 
-void Renderer::drawLine(float x1, float y1, float x2, float y2, glm::vec4 color) {
+void Renderer::drawLine(float x1, float y1, float z1, float x2, float y2, float z2, glm::vec4 color) {
 	if (x2 - x1 == 0) {			// need to draw a vertical line
 		if (y1 >= y2) {			// switch y1 and y2 if needed
 			std::swap(y1, y2);
 		}
 		while (y1 <= y2) {
-			this->putPixel((int)x1, (int)y1, color);
+			this->putPixel((int)x1, (int)y1, z1, color);
 			y1++;
 		}
 		return;
@@ -61,7 +67,7 @@ void Renderer::drawLine(float x1, float y1, float x2, float y2, glm::vec4 color)
 				if (e > 0) {
 					x1++; e += deltaY;
 				}
-				this->putPixel((int)x1, (int)y1, color);
+				this->putPixel((int)x1, (int)y1, z1, color);
 				y1--; e += deltaX;
 			}
 		}
@@ -71,7 +77,7 @@ void Renderer::drawLine(float x1, float y1, float x2, float y2, glm::vec4 color)
 				if (e > 0) {
 					y1--; e -= deltaX;
 				}
-				this->putPixel((int)x1, (int)y1, color);
+				this->putPixel((int)x1, (int)y1, z1, color);
 				x1++; e -= deltaY;
 			}
 		}
@@ -83,7 +89,7 @@ void Renderer::drawLine(float x1, float y1, float x2, float y2, glm::vec4 color)
 				if (e > 0) {
 					x1++; e -= deltaY;
 				}
-				this->putPixel((int)x1, (int)y1, color);
+				this->putPixel((int)x1, (int)y1, z1, color);
 				y1++; e += deltaX;
 			}
 		}
@@ -93,7 +99,7 @@ void Renderer::drawLine(float x1, float y1, float x2, float y2, glm::vec4 color)
 				if (e > 0) {
 					y1++; e -= deltaX;
 				}
-				this->putPixel((int)x1, (int)y1, color);
+				this->putPixel((int)x1, (int)y1, z1, color);
 				x1++; e += deltaY;
 			}
 		}
@@ -102,28 +108,26 @@ void Renderer::drawLine(float x1, float y1, float x2, float y2, glm::vec4 color)
 
 void Renderer::createBuffers(int viewportWidth, int viewportHeight)
 {
-	if (colorBuffer)
-	{
+	if (colorBuffer) {
 		delete[] colorBuffer;
 	}
-
+	if (zBuffer) {
+		delete[] zBuffer;
+	}
 	colorBuffer = new float[3 * viewportWidth * viewportHeight];
-	for (int x = 0; x < viewportWidth; x++)
-	{
-		for (int y = 0; y < viewportHeight; y++)
-		{
-			putPixel(x, y, glm::vec3(0.0f, 0.0f, 0.0f));
+	zBuffer = new float[viewportWidth * viewportHeight];
+	for (int x = 0; x < viewportWidth; x++) {
+		for (int y = 0; y < viewportHeight; y++) {
+			putPixel(x, y, std::numeric_limits<float>::max(), glm::vec3(0.0f, 0.0f, 0.0f));
 		}
 	}
 }
 
 void Renderer::ClearColorBuffer(const glm::vec3& color)
 {
-	for (int i = 0; i < viewportWidth; i++)
-	{
-		for (int j = 0; j < viewportHeight; j++)
-		{
-			putPixel(i, j, color);
+	for (int i = 0; i < viewportWidth; i++) {
+		for (int j = 0; j < viewportHeight; j++) {
+			putPixel(i, j, std::numeric_limits<float>::max() - 1, color);
 		}
 	}
 }
@@ -210,13 +214,24 @@ void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertice
 		if (rainbow) {
 			color = glm::vec4((float)((int)(v0.x * 2 + v0.y * 3 + v0.z * 4) % 256) / 256, (float)((int)(v1.x * 3 + v1.y * 4 + v1.z * 5) % 256) / 256, (float)((int)(v2.x * 4 + v2.y * 5 + v2.z * 6) % 256) / 256, 1);
 		}
-		// draw the lines between each 2 points
-		// v0 - v1
-		this->drawLine(v0.x, v0.y, v1.x, v1.y, color);
-		// v0 - v2
-		this->drawLine(v0.x, v0.y, v2.x, v2.y, color);
-		// v1 - v2
-		this->drawLine(v1.x, v1.y, v2.x, v2.y, color);
+		int top = (int) std::max(v2.y, std::max(v0.y, v1.y));
+		int bottom = (int) std::min(v2.y, std::min(v0.y, v1.y));
+		int right = (int) std::max(v2.x, std::max(v0.x, v1.x));
+		int left = (int) std::min(v2.x, std::min(v0.x, v1.x));
+		float s1 = v2.y - v0.y;
+		float s2 = v2.x - v0.x;
+		float s3 = v1.y - v0.y;
+		for (int i = left-1; i < right+1; ++i) {
+			for (int j = bottom-1; j < top+1; ++j) {
+				float s4 = j - v0.y;
+				float w1 = (v0.x *s1 + s4 * s2 - i * s1) / (s3 *s2 - (v1.x - v0.x)*s1);
+				float w2 = (s4 - w1 * s3) / s1;
+				if ((w1 >= 0) && (w2 >= 0) && (w1 + w2 <= 1)) {
+					float z = v0.z + w2 * (v2.z - v0.z) + w1 * (v1.z - v0.z);
+					putPixel(i, j, z, color);
+				}
+			}
+		}
 	}
 }
 
@@ -232,14 +247,14 @@ void Renderer::drawNormals(std::vector<glm::vec3> vertices, std::vector<Face> fa
 		n1 = normals[face.GetVertexIndex(1)];
 		n2 = normals[face.GetVertexIndex(2)];
 		if (flip) {
-			this->drawLine(v0.x, v0.y, 2 * v0.x - n0.x, 2 * v0.y - n0.y, glm::vec4(1, 0, 1, 1));
-			this->drawLine(v1.x, v1.y, 2 * v1.x - n1.x, 2 * v1.y - n1.y, glm::vec4(1, 0, 1, 1));
-			this->drawLine(v2.x, v2.y, 2 * v2.x - n2.x, 2 * v2.y - n2.y, glm::vec4(1, 0, 1, 1));
+			this->drawLine(v0.x, v0.y, v0.z, 2 * v0.x - n0.x, 2 * v0.y - n0.y, 2 * v0.z - n0.z, glm::vec4(1, 0, 1, 1));
+			this->drawLine(v1.x, v1.y, v1.z, 2 * v1.x - n1.x, 2 * v1.y - n1.y, 2 * v0.z - n1.z, glm::vec4(1, 0, 1, 1));
+			this->drawLine(v2.x, v2.y, v2.z, 2 * v2.x - n2.x, 2 * v2.y - n2.y, 2 * v0.z - n2.z, glm::vec4(1, 0, 1, 1));
 		}
 		else {
-			this->drawLine(v0.x, v0.y, n0.x, n0.y, glm::vec4(0, 1, 0, 1));
-			this->drawLine(v1.x, v1.y, n1.x, n1.y, glm::vec4(0, 1, 0, 1));
-			this->drawLine(v2.x, v2.y, n2.x, n2.y, glm::vec4(0, 1, 0, 1));
+			this->drawLine(v0.x, v0.y, v0.z, n0.x, n0.y, n0.z, glm::vec4(0, 1, 0, 1));
+			this->drawLine(v1.x, v1.y, v1.z, n1.x, n1.y, n1.z, glm::vec4(0, 1, 0, 1));
+			this->drawLine(v2.x, v2.y, v2.z, n2.x, n2.y, n2.z, glm::vec4(0, 1, 0, 1));
 		}
 	}
 }
@@ -252,33 +267,34 @@ void Renderer::drawFaceNormals(std::vector<glm::vec3> vertices, std::vector<Face
 		v2 = vertices[face.GetVertexIndex(2)];
 		float x = (v0.x + v1.x + v2.x) / 3;
 		float y = (v0.y + v1.y + v2.y) / 3;
+		float z = (v0.z + v1.z + v2.z) / 3;
 		glm::vec3 u, v;
 		u = v1 - v0;
 		v = v2 - v0;
 		if (flip) {
 			glm::vec3 normal = glm::cross(u, v);
-			this->drawLine(x, y, x + normal.x, y + normal.y, glm::vec4(0, 0, 1, 1));
+			this->drawLine(x, y, z, x + normal.x, y + normal.y, z + normal.z, glm::vec4(0, 0, 1, 1));
 		}
 		else {
 			glm::vec3 normal = glm::cross(v, u);
-			this->drawLine(x, y, x + normal.x, y + normal.y, glm::vec4(1, 1, 0, 1));
+			this->drawLine(x, y, z, x + normal.x, y + normal.y, z + normal.z, glm::vec4(1, 1, 0, 1));
 		}
 	}
 }
 
 void Renderer::drawBounding(std::vector<glm::vec3> v, glm::vec4 color) {
-	this->drawLine(v[0].x, v[0].y, v[1].x, v[1].y, color);
-	this->drawLine(v[0].x, v[0].y, v[2].x, v[2].y, color);
-	this->drawLine(v[0].x, v[0].y, v[4].x, v[4].y, color);
-	this->drawLine(v[1].x, v[1].y, v[3].x, v[3].y, color);
-	this->drawLine(v[1].x, v[1].y, v[5].x, v[5].y, color);
-	this->drawLine(v[2].x, v[2].y, v[3].x, v[3].y, color);
-	this->drawLine(v[2].x, v[2].y, v[6].x, v[6].y, color);
-	this->drawLine(v[3].x, v[3].y, v[7].x, v[7].y, color);
-	this->drawLine(v[4].x, v[4].y, v[5].x, v[5].y, color);
-	this->drawLine(v[4].x, v[4].y, v[6].x, v[6].y, color);
-	this->drawLine(v[5].x, v[5].y, v[7].x, v[7].y, color);
-	this->drawLine(v[6].x, v[6].y, v[7].x, v[7].y, color);
+	this->drawLine(v[0].x, v[0].y, v[0].z, v[1].x, v[1].y, v[1].z, color);
+	this->drawLine(v[0].x, v[0].y, v[0].z, v[2].x, v[2].y, v[2].z, color);
+	this->drawLine(v[0].x, v[0].y, v[0].z, v[4].x, v[4].y, v[4].z, color);
+	this->drawLine(v[1].x, v[1].y, v[1].z, v[3].x, v[3].y, v[3].z, color);
+	this->drawLine(v[1].x, v[1].y, v[1].z, v[5].x, v[5].y, v[5].z, color);
+	this->drawLine(v[2].x, v[2].y, v[2].z, v[3].x, v[3].y, v[3].z, color);
+	this->drawLine(v[2].x, v[2].y, v[2].z, v[6].x, v[6].y, v[6].z, color);
+	this->drawLine(v[3].x, v[3].y, v[3].z, v[7].x, v[7].y, v[7].z, color);
+	this->drawLine(v[4].x, v[4].y, v[4].z, v[5].x, v[5].y, v[5].z, color);
+	this->drawLine(v[4].x, v[4].y, v[4].z, v[6].x, v[6].y, v[6].z, color);
+	this->drawLine(v[5].x, v[5].y, v[5].z, v[7].x, v[7].y, v[7].z, color);
+	this->drawLine(v[6].x, v[6].y, v[6].z, v[7].x, v[7].y, v[7].z, color);
 }
 
 

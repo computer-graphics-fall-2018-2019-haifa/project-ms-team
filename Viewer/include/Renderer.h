@@ -20,7 +20,7 @@ private:
 	int viewportX;
 	int viewportY;
 
-	void putPixel(int x, int y, const glm::vec3& color);
+	void putPixel(int x, int y, float z, const glm::vec3& color);
 	void createBuffers(int viewportWidth, int viewportHeight);
 
 	GLuint glScreenTex;
@@ -43,7 +43,6 @@ public:
 	void SwapBuffers();
 	void ClearColorBuffer(const glm::vec3& color);
 	void SetViewport(int viewportWidth, int viewportHeight, int viewportX = 0, int viewportY = 0);
-	void drawLine(float x1, float y1, float x2, float y2, glm::vec4 color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	void drawLine(float x1, float y1, float z1, float x2, float y2, float z2, glm::vec4 color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	void drawBounding(std::vector<glm::vec3> vertices, glm::vec4 color);
-	// Add more methods/functionality as needed...
 };
