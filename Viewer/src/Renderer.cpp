@@ -118,7 +118,12 @@ void Renderer::createBuffers(int viewportWidth, int viewportHeight)
 	zBuffer = new float[viewportWidth * viewportHeight];
 	for (int x = 0; x < viewportWidth; x++) {
 		for (int y = 0; y < viewportHeight; y++) {
-			putPixel(x, y, std::numeric_limits<float>::max(), glm::vec3(0.0f, 0.0f, 0.0f));
+			putPixel(x, y, -1, glm::vec3(0.0f, 0.0f, 0.0f));
+		}
+	}
+	for (int x = 0; x < viewportWidth; x++) {
+		for (int y = 0; y < viewportHeight; y++) {
+			zBuffer[ZINDEX(viewportWidth, x, y)] = std::numeric_limits<float>::max();
 		}
 	}
 }
@@ -127,7 +132,9 @@ void Renderer::ClearColorBuffer(const glm::vec3& color)
 {
 	for (int i = 0; i < viewportWidth; i++) {
 		for (int j = 0; j < viewportHeight; j++) {
-			putPixel(i, j, std::numeric_limits<float>::max() - 1, color);
+			colorBuffer[INDEX(viewportWidth, i, j, 0)] = color.x;
+			colorBuffer[INDEX(viewportWidth, i, j, 1)] = color.y;
+			colorBuffer[INDEX(viewportWidth, i, j, 2)] = color.z;
 		}
 	}
 }
