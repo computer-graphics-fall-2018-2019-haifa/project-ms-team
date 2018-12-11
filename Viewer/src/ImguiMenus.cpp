@@ -7,6 +7,7 @@
 #include <cmath>
 #include <memory>
 #include <stdio.h>
+#include <iostream>
 #include <string>
 #include <sstream>
 #include <stdlib.h>
@@ -16,6 +17,7 @@
 bool showDemoWindow = false;
 bool showModelWindow = false;
 bool showCameraWindow = false;
+bool showLightWindow = false;
 bool showScaleError = false;
 
 std::shared_ptr<MeshModel> cameraModel = nullptr;
@@ -24,8 +26,10 @@ glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.00f);
 
 int activeModel = -1;
 int cameraIndex = -1;
+int lightIndex = -1;
 std::vector<std::string> models;
 std::vector<std::string> cameras;
+std::vector<std::string> lights;
 
 const glm::vec4& GetClearColor() {
 	return clearColor;
@@ -50,6 +54,10 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 
 		if (ImGui::Button("Show Model Controls")) {
 			showModelWindow = true;
+		}
+		
+		if (ImGui::Button("Show Light Controls")) {
+			showLightWindow = true;
 		}
 		if ((activeModel != -1) && (cameraIndex != -1)) {
 			if (ImGui::Button("Active Camera Look At Active Model")) {
@@ -344,6 +352,96 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		}
 		if (ImGui::Button("Close")) {
 			showModelWindow = false;
+		}
+		ImGui::End();
+	}
+
+	if (showLightWindow) {
+		ImGui::Begin("Light Control Window", &showLightWindow);
+		static int lightType = 0;
+		static int trasformType = 0;
+		static float translation[3] = { 0.0f, 0.0f, 0.0f };
+		static float rotation[3] = { 0.0f, 0.0f, 0.0f };
+
+		lightIndex = scene.GetActiveLightIndex();
+		if (ImGui::ListBox("Lights", &lightIndex, Utils::convertStringVectorToCharArray(lights), (int)lights.size())) {
+			scene.SetActiveLightIndex(lightIndex);
+		}
+
+		if (ImGui::Button("Add light")) {
+			scene.AddLight(std::make_shared<Light>(Light(lightType, "light")));
+			lightIndex = scene.GetLightCount() - 1;
+			scene.SetActiveLightIndex(lightIndex);
+			std::string s = "Light ";
+			lights.push_back(s.append(std::to_string(lightIndex)));
+		}
+
+		if (lightIndex != -1) {
+			auto l = scene.getLight(lightIndex);
+			bool typeChange = false;
+			typeChange = ImGui::RadioButton("Ambient", &lightType, 0);
+			ImGui::SameLine();
+			typeChange |= ImGui::RadioButton("Parallel", &lightType, 1);
+			ImGui::SameLine();
+			typeChange |= ImGui::RadioButton("Point", &lightType, 2);
+			if (typeChange) {
+				l->setType(lightType);
+			}
+			lightType = l->getType();
+
+			ImGui::RadioButton("Object", &trasformType, 0); ImGui::SameLine();
+			ImGui::RadioButton("World", &trasformType, 1);
+
+			if (ImGui::ColorEdit3("Color", (float*)&lineColor)) {
+				l->SetColor(lineColor);
+			}
+
+			if (lightType != 0) {
+				ImGui::InputFloat3("XYZ translation", translation, 2);
+				if (ImGui::Button("Set translation")) {
+					if (trasformType) {
+						l->translateWorld(translation);
+					}
+					else {
+						l->translateObject(translation);
+					}
+				}
+			}
+			if ((lightType == 1) || ((lightType == 2) && (trasformType))) {
+				ImGui::InputFloat("X rotation", &rotation[0], 2);
+				if (ImGui::Button("Set X rotation")) {
+					if (trasformType) {
+						l->xRotateWorld(rotation[0]);
+					}
+					else {
+						l->xRotateObject(rotation[0]);
+					}
+				}
+				ImGui::InputFloat("Y rotation", &rotation[1], 2);
+				if (ImGui::Button("Set Y rotation")) {
+					if (trasformType) {
+						l->yRotateWorld(rotation[1]);
+					}
+					else {
+						l->yRotateObject(rotation[1]);
+					}
+				}
+				ImGui::InputFloat("Z rotation", &rotation[2], 2);
+				if (ImGui::Button("Set Z rotation")) {
+					if (trasformType) {
+						l->zRotateWorld(rotation[2]);
+					}
+					else {
+						l->zRotateObject(rotation[2]);
+					}
+				}
+			}
+		}
+		else {
+			ImGui::Text("Add a light to show light controls");
+		}
+		if (ImGui::Button("Close")) {
+			showLightWindow = false;
 		}
 		ImGui::End();
 	}

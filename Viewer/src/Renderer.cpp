@@ -121,17 +121,13 @@ void Renderer::createBuffers(int viewportWidth, int viewportHeight)
 			putPixel(x, y, -1, glm::vec3(0.0f, 0.0f, 0.0f));
 		}
 	}
-	for (int x = 0; x < viewportWidth; x++) {
-		for (int y = 0; y < viewportHeight; y++) {
-			zBuffer[ZINDEX(viewportWidth, x, y)] = std::numeric_limits<float>::max();
-		}
-	}
 }
 
 void Renderer::ClearColorBuffer(const glm::vec3& color)
 {
 	for (int i = 0; i < viewportWidth; i++) {
 		for (int j = 0; j < viewportHeight; j++) {
+			zBuffer[ZINDEX(viewportWidth, i, j)] = std::numeric_limits<float>::max();
 			colorBuffer[INDEX(viewportWidth, i, j, 0)] = color.x;
 			colorBuffer[INDEX(viewportWidth, i, j, 1)] = color.y;
 			colorBuffer[INDEX(viewportWidth, i, j, 2)] = color.z;
@@ -233,6 +229,7 @@ void Renderer::drawModel(std::vector<Face> faces, std::vector<glm::vec3> vertice
 				float s4 = j - v0.y;
 				float w1 = (v0.x *s1 + s4 * s2 - i * s1) / (s3 *s2 - (v1.x - v0.x)*s1);
 				float w2 = (s4 - w1 * s3) / s1;
+				float w3 = 1 - w1 - w2;			//third lambada
 				if ((w1 >= 0) && (w2 >= 0) && (w1 + w2 <= 1)) {
 					float z = v0.z + w2 * (v2.z - v0.z) + w1 * (v1.z - v0.z);
 					putPixel(i, j, z, color);

@@ -69,7 +69,7 @@ const int Scene::GetActiveModelIndex() const
 
 void Scene::SetActiveLightIndex(int index)
 {
-	if (index >= 0 && index < models.size())
+	if (index >= 0 && index < lights.size())
 	{
 		activeLightIndex = index;
 	}

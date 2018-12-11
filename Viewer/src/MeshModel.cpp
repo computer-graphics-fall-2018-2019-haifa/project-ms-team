@@ -138,7 +138,7 @@ void MeshModel::translateWorld(const float * translation)
 	auto m = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
 	this->worldTranslationTransform = m * this->worldTranslationTransform;
 	updateWorldTransorm();
-	this->pos.x += translation[0]; this->pos.y += translation[1]; this->pos.z += translation[2];
+//	this->pos.x += translation[0]; this->pos.y += translation[1]; this->pos.z += translation[2];
 }
 
 void MeshModel::scaleWorld(const float * scale)
@@ -175,7 +175,11 @@ void MeshModel::SetColor(const glm::vec4& color)
 
 const glm::vec3 & MeshModel::getPosition() const
 {
-	return this->pos;
+	glm::vec4 homPos(1);
+	homPos.x = this->pos.x;
+	homPos.y = this->pos.y;
+	homPos.z = this->pos.z;
+	return worldTranslationTransform * worldzRotationTransform * worldyRotationTransform * worldxRotationTransform * worldScaleTransform * homPos;
 }
 
 const glm::vec4& MeshModel::GetColor() const

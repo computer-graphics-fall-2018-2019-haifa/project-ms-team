@@ -1,21 +1,13 @@
 #include "Light.h"
 
-
-
-Light::Light(int type, glm::vec3 pos, glm::vec3 direction)
+Light::Light(int type, std::string name) : MeshModel(std::vector<Face>(), std::vector<glm::vec3>(), std::vector<glm::vec3>(), name)
 {
 	this->type = type;
-	this->pos = pos;
-	this->direction = direction;
+	this->direction = glm::vec3(0);
 }
 
 Light::~Light()
 {
-}
-
-glm::vec3 Light::getPos()
-{
-	return this->pos;
 }
 
 glm::vec3 Light::getDirection()
@@ -28,17 +20,8 @@ int Light::getType()
 	return this->type;
 }
 
-void Light::setPos(glm::vec3 pos)
-{
-	this->pos = pos;
-}
-
-void Light::setDirection(glm::vec3 direction)
-{
-	this->direction = direction;
-}
-
 void Light::setType(int type)
 {
 	this->type = type;
 }
+

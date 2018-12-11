@@ -41,23 +41,23 @@ public:
 	MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::string& modelName = "");
 	virtual ~MeshModel();
 
-	void SetWorldTransformation(const glm::mat4x4& worldTransform);
-	void SetObjectTransformation(const glm::mat4x4& objectTransform);
-	void xRotateObject(const float angle);
-	void yRotateObject(const float angle);
-	void zRotateObject(const float angle);
-	void translateObject(const float* translation);
-	void scaleObject(const float* scale);
-	void xRotateWorld(const float angle);
-	void yRotateWorld(const float angle);
-	void zRotateWorld(const float angle);
-	void translateWorld(const float* translation);
-	void scaleWorld(const float* scale);
-	void updateWorldTransorm();
-	void updateObjectTransorm();
+	virtual void SetWorldTransformation(const glm::mat4x4& worldTransform);
+	virtual void SetObjectTransformation(const glm::mat4x4& objectTransform);
+	virtual void xRotateObject(const float angle);
+	virtual void yRotateObject(const float angle);
+	virtual void zRotateObject(const float angle);
+	virtual void translateObject(const float* translation);
+	virtual void scaleObject(const float* scale);
+	virtual void xRotateWorld(const float angle);
+	virtual void yRotateWorld(const float angle);
+	virtual void zRotateWorld(const float angle);
+	virtual void translateWorld(const float* translation);
+	virtual void scaleWorld(const float* scale);
+	virtual void updateWorldTransorm();
+	virtual void updateObjectTransorm();
 
-	const glm::mat4x4& GetWorldTransformation() const;
-	const glm::mat4x4& GetObjectTransformation() const;
+	virtual const glm::mat4x4& GetWorldTransformation() const;
+	virtual const glm::mat4x4& GetObjectTransformation() const;
 
 	const glm::vec3& getPosition() const;
 	const glm::vec4& GetColor() const;
