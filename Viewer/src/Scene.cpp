@@ -1,10 +1,12 @@
 #include "Scene.h"
 #include "MeshModel.h"
+#include "Light.h"
 #include <string>
 
 Scene::Scene() :
 	activeCameraIndex(-1),
-	activeModelIndex(-1)
+	activeModelIndex(-1),
+	activeLightIndex(-1)
 {
 	this->rainbowMode = false;
 }
@@ -29,9 +31,18 @@ const int Scene::GetCameraCount() const
 	return (int)cameras.size();
 }
 
+void Scene::AddLight(const std::shared_ptr<Light>& light)
+{
+	lights.push_back(light);
+}
+
+const int Scene::GetLightCount() const
+{
+	return (int)lights.size();
+}
+
 void Scene::SetActiveCameraIndex(int index)
 {
-	// implementation suggestion...
 	if (index >= 0 && index < cameras.size())
 	{
 		activeCameraIndex = index;
@@ -45,7 +56,6 @@ const int Scene::GetActiveCameraIndex() const
 
 void Scene::SetActiveModelIndex(int index)
 {
-	// implementation suggestion...
 	if (index >= 0 && index < models.size())
 	{
 		activeModelIndex = index;
@@ -55,6 +65,19 @@ void Scene::SetActiveModelIndex(int index)
 const int Scene::GetActiveModelIndex() const
 {
 	return activeModelIndex;
+}
+
+void Scene::SetActiveLightIndex(int index)
+{
+	if (index >= 0 && index < models.size())
+	{
+		activeLightIndex = index;
+	}
+}
+
+const int Scene::GetActiveLightIndex() const
+{
+	return activeLightIndex;
 }
 
 const std::shared_ptr<MeshModel> Scene::getModel(int index) const
@@ -69,6 +92,14 @@ const std::shared_ptr<Camera> Scene::getCamera(int index) const
 {
 	if (index >= 0 && index < cameras.size()) {
 		return this->cameras[index];
+	}
+	return nullptr;
+}
+
+const std::shared_ptr<Light> Scene::getLight(int index) const
+{
+	if (index >= 0 && index < lights.size()) {
+		return this->lights[index];
 	}
 	return nullptr;
 }
