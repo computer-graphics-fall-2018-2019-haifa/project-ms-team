@@ -48,7 +48,8 @@ public:
 	const std::shared_ptr<Camera> getCamera(int index) const;
 	const std::shared_ptr<Light> getLight(int index) const;
 
+	const std::vector<std::shared_ptr<Light>> getLights() const;
+
 	void toggleRainbow();
 	const bool getRainbow() const;
-	// Add more methods as needed...
 };

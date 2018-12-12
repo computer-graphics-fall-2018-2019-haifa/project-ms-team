@@ -33,6 +33,11 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 	this->flipNormals = false;
 	this->flipFaceNormals = false;
 
+	this->KA = 1;
+	this->KD = 1;
+	this->KS = 1;
+
+
 	glm::vec3 min((float)std::numeric_limits<int>::max());
 	glm::vec3 max((float)std::numeric_limits<int>::min());
 
@@ -227,9 +232,39 @@ const bool MeshModel::isFlipFaceNormals() const
 	return this->flipFaceNormals;
 }
 
+const float MeshModel::getKAmbient() const
+{
+	return this->KA;
+}
+
+const float MeshModel::getKDiffuse() const
+{
+	return KD;
+}
+
+const float MeshModel::getKSpecular() const
+{
+	return this->KS;
+}
+
 const bool MeshModel::isDrawFaceNormals() const
 {
 	return this->drawFaceNormals;
+}
+
+void MeshModel::setKAmbient(float k)
+{
+	this->KA = k;
+}
+
+void MeshModel::setKDiffuse(float k)
+{
+	this->KD = k;
+}
+
+void MeshModel::setKSpecular(float k)
+{
+	this->KS = k;
 }
 
 void MeshModel::toggleBounding()

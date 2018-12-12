@@ -22,7 +22,6 @@ bool showScaleError = false;
 
 std::shared_ptr<MeshModel> cameraModel = nullptr;
 glm::vec4 clearColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
-glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.00f);
 
 int activeModel = -1;
 int cameraIndex = -1;
@@ -169,6 +168,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		}
 		if (cameraIndex != -1) {
 			auto m = scene.getCamera(cameraIndex);
+			static glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.00f);
 			ImGui::RadioButton("Object", &cameraTrasformType, 0); ImGui::SameLine();
 			ImGui::RadioButton("World", &cameraTrasformType, 1);
 			if (ImGui::ColorEdit3("line color", (float*)&lineColor)) {
@@ -259,6 +259,10 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		static float scale[3] = { 1.0f, 1.0f, 1.0f };
 		static float translation[3] = { 0.0f, 0.0f, 0.0f };
 		static float rotation[3] = { 0.0f, 0.0f, 0.0f };
+		static float k1 = 1.0f;
+		static float k2 = 1.0f;
+		static float k3 = 1.0f;
+		static glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.00f);
 
 		activeModel = scene.GetActiveModelIndex();
 		if (ImGui::ListBox("Models", &activeModel, Utils::convertStringVectorToCharArray(models), (int)models.size())) {
@@ -346,6 +350,16 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					m->zRotateObject(rotation[2]);
 				}
 			}
+			if (ImGui::SliderFloat("Ambient K", &k1, 0.0f, 1.0f)) {
+				m->setKAmbient(k1);
+			}
+			if (ImGui::SliderFloat("Diffuse K", &k2, 0.0f, 1.0f)) {
+				m->setKDiffuse(k2);
+			}
+			if (ImGui::SliderFloat("Specualr K", &k3, 0.0f, 1.0f)) {
+				m->setKSpecular(k3);
+			}
+
 		}
 		else {
 			ImGui::Text("Add a model to show model transformations");
@@ -362,6 +376,8 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		static int trasformType = 0;
 		static float translation[3] = { 0.0f, 0.0f, 0.0f };
 		static float rotation[3] = { 0.0f, 0.0f, 0.0f };
+		static float direction[3] = { 0.0f, 0.0f, 0.0f };
+		static glm::vec4 lineColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.00f);
 
 		lightIndex = scene.GetActiveLightIndex();
 		if (ImGui::ListBox("Lights", &lightIndex, Utils::convertStringVectorToCharArray(lights), (int)lights.size())) {
@@ -407,7 +423,12 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					}
 				}
 			}
-			if ((lightType == 1) || ((lightType == 2) && (trasformType))) {
+			if (lightType == 1) {
+				if (ImGui::InputFloat3("Light Direction", direction, 2)) {
+					l->setDirection(glm::vec3(direction[0], direction[1], direction[2]));
+				}
+			}
+			if ((lightType == 2) && (trasformType)) {
 				ImGui::InputFloat("X rotation", &rotation[0], 2);
 				if (ImGui::Button("Set X rotation")) {
 					if (trasformType) {

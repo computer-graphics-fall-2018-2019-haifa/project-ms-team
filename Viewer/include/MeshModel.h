@@ -36,6 +36,9 @@ protected:
 	bool drawFaceNormals;
 	bool flipNormals;
 	bool flipFaceNormals;
+	float KA;
+	float KD;
+	float KS;
 
 public:
 	MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::string& modelName = "");
@@ -74,6 +77,15 @@ public:
 	const bool isDrawFaceNormals() const;
 	const bool isFlipNormals() const;
 	const bool isFlipFaceNormals() const;
+
+	const float getKAmbient() const;
+	const float getKDiffuse() const;
+	const float getKSpecular() const;
+
+	void setKAmbient(float k);
+	void setKDiffuse(float k);
+	void setKSpecular(float k);
+
 
 	void toggleBounding();
 	void toggleNormals();

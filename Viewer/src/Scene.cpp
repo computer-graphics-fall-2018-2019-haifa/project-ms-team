@@ -104,6 +104,11 @@ const std::shared_ptr<Light> Scene::getLight(int index) const
 	return nullptr;
 }
 
+const std::vector<std::shared_ptr<Light>> Scene::getLights() const
+{
+	return this->lights;
+}
+
 void Scene::toggleRainbow()
 {
 	this->rainbowMode = !this->rainbowMode;

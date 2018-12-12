@@ -11,8 +11,9 @@ private:
 public:
 	Light(int type, std::string name);
 	~Light();
-	glm::vec3 getDirection();
-	int getType();
+	glm::vec3 getDirection() const;
+	void setDirection(glm::vec3 direction);
+	int getType() const;
 	void setType(int type);
 };
 

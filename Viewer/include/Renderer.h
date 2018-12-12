@@ -29,9 +29,12 @@ private:
 	void createOpenGLBuffer();
 	void initOpenGLRendering();
 
-	void drawModel(std::vector<Face> faces, std::vector<glm::vec3>, glm::vec4 color, bool rainbow = false);
-	void drawNormals(std::vector<glm::vec3>, std::vector<Face> faces, std::vector<glm::vec3> normals, bool flip);
-	void drawFaceNormals(std::vector<glm::vec3> vertices, std::vector<Face> faces, bool flip);
+	void drawModel(const std::vector<Face>& faces, const std::vector<glm::vec3>&, const glm::vec4& color,
+		const std::vector<std::shared_ptr<Light>>& lights, const std::vector<glm::vec3>& normals,
+		float KA, float KD, float KS, const glm::vec3& cameraPos, bool rainbow = false);
+
+	void drawNormals(const std::vector<glm::vec3>&, const std::vector<Face>& faces, const std::vector<glm::vec3>& normals, bool flip);
+	void drawFaceNormals(const std::vector<glm::vec3>& vertices, const std::vector<Face>& faces, bool flip);
 	
 	std::vector<glm::vec3> applyTransfrom(const std::vector<glm::vec3>& ver, const glm::mat4& mat);
 
@@ -44,5 +47,5 @@ public:
 	void ClearColorBuffer(const glm::vec3& color);
 	void SetViewport(int viewportWidth, int viewportHeight, int viewportX = 0, int viewportY = 0);
 	void drawLine(float x1, float y1, float z1, float x2, float y2, float z2, glm::vec4 color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	void drawBounding(std::vector<glm::vec3> vertices, glm::vec4 color);
+	void drawBounding(const std::vector<glm::vec3>& vertices, const glm::vec4& color);
 };
