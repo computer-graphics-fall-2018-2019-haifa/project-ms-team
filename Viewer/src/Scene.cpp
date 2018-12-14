@@ -112,9 +112,21 @@ const std::vector<std::shared_ptr<Light>> Scene::getLights() const
 void Scene::toggleRainbow()
 {
 	this->rainbowMode = !this->rainbowMode;
+	this->circlesMode = this->circlesMode & !this->rainbowMode;
+}
+
+void Scene::toggleCircles()
+{
+	this->circlesMode = !this->circlesMode;
+	this->rainbowMode = this->rainbowMode & !this->circlesMode;
 }
 
 const bool Scene::getRainbow() const
 {
 	return this->rainbowMode;
+}
+
+const bool Scene::getCircles() const
+{
+	return this->circlesMode;
 }

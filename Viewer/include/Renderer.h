@@ -31,7 +31,7 @@ private:
 
 	void drawModel(const std::vector<Face>& faces, const std::vector<glm::vec3>&, const glm::vec4& color,
 		const std::vector<std::shared_ptr<Light>>& lights, const std::vector<glm::vec3>& normals,
-		float KA, float KD, float KS, const glm::vec3& cameraPos, bool rainbow = false);
+		float KA, float KD, float KS, const glm::vec3& cameraPos, bool rainbow = false, bool circles = false);
 
 	void drawNormals(const std::vector<glm::vec3>&, const std::vector<Face>& faces, const std::vector<glm::vec3>& normals, bool flip);
 	void drawFaceNormals(const std::vector<glm::vec3>& vertices, const std::vector<Face>& faces, bool flip);

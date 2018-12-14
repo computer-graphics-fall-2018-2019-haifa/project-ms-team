@@ -22,6 +22,7 @@ private:
 	int activeModelIndex;
 	int activeLightIndex;
 	bool rainbowMode;
+	bool circlesMode;
 
 public:
 	Scene();
@@ -51,5 +52,7 @@ public:
 	const std::vector<std::shared_ptr<Light>> getLights() const;
 
 	void toggleRainbow();
+	void toggleCircles();
 	const bool getRainbow() const;
+	const bool getCircles() const;
 };

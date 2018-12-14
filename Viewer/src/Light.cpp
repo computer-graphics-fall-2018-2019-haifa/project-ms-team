@@ -4,6 +4,7 @@ Light::Light(int type, std::string name) : MeshModel(std::vector<Face>(), std::v
 {
 	this->type = type;
 	this->direction = glm::vec3(1);
+	this->color = glm::vec4(1.0f);
 }
 
 Light::~Light()

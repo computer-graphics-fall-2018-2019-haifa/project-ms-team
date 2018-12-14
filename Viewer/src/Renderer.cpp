@@ -5,6 +5,7 @@
 #include "MeshModel.h"
 #include <imgui/imgui.h>
 #include <vector>
+#include <iostream>
 #include <cmath>
 #include <algorithm>
 
@@ -173,9 +174,9 @@ void Renderer::Render(const Scene& scene) {
 		normals = applyTransfrom(normals, projection);
 		points = applyTransfrom(points, Utils::getTranslationMatrix(glm::vec3(1,1,0)));
 		normals = applyTransfrom(normals, Utils::getTranslationMatrix(glm::vec3(1,1,0)));
-		points = applyTransfrom(points, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 1)));
-		normals = applyTransfrom(normals, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 1)));
-		this->drawModel(model->getFaces(), points, model->GetColor(), lights, normals, model->getKAmbient(), model->getKDiffuse(), model->getKSpecular(), cameraPos, scene.getRainbow());
+		points = applyTransfrom(points, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 100)));
+		normals = applyTransfrom(normals, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 100)));
+		this->drawModel(model->getFaces(), points, model->GetColor(), lights, normals, model->getKAmbient(), model->getKDiffuse(), model->getKSpecular(), cameraPos, scene.getRainbow(), scene.getCircles());
 		if (model->isDrawNormals()) {
 			this->drawNormals(points, model->getFaces(), normals, model->isFlipNormals());
 		}
@@ -190,7 +191,7 @@ void Renderer::Render(const Scene& scene) {
 			boundPoints = applyTransfrom(boundPoints, viewMatrix);
 			boundPoints = applyTransfrom(boundPoints, projection);
 			boundPoints = applyTransfrom(boundPoints, Utils::getTranslationMatrix(glm::vec3(1, 1, 0)));
-			boundPoints = applyTransfrom(boundPoints, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 1)));
+			boundPoints = applyTransfrom(boundPoints, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 100)));
 			this->drawBounding(boundPoints, model->GetColor());
 		}
 	}
@@ -210,63 +211,76 @@ void Renderer::Render(const Scene& scene) {
 			normals = applyTransfrom(normals, projection);
 			points = applyTransfrom(points, Utils::getTranslationMatrix(glm::vec3(1, 1, 0)));
 			normals = applyTransfrom(normals, Utils::getTranslationMatrix(glm::vec3(1, 1, 0)));
-			points = applyTransfrom(points, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 1)));
-			normals = applyTransfrom(normals, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 1)));
+			points = applyTransfrom(points, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 100)));
+			normals = applyTransfrom(normals, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 100)));
 			this->drawModel(camera->getFaces(), points, camera->GetColor(), lights, normals, camera->getKAmbient(), camera->getKDiffuse(), camera->getKSpecular(), cameraPos);
 		}
 	}
 }
 
 
-void Renderer::drawModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const glm::vec4& color, const std::vector<std::shared_ptr<Light>>& lights, const std::vector<glm::vec3>& normals, float KA, float KD, float KS, const glm::vec3& cameraPos, bool rainbow) {
+void Renderer::drawModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const glm::vec4& color, const std::vector<std::shared_ptr<Light>>& lights, const std::vector<glm::vec3>& normals, float KA, float KD, float KS, const glm::vec3& cameraPos, bool rainbow, bool circles) {
 	for (auto face : faces) {
-		glm::vec3 v0, v1, v2;		// the 3 points that make the triangle
+		glm::vec3 v1, v2, v3;		// the 3 points that make the triangle
 		glm::vec4 trueColor(color);
-		v0 = vertices[face.GetVertexIndex(0)];
-		v1 = vertices[face.GetVertexIndex(1)];
-		v2 = vertices[face.GetVertexIndex(2)];
-		glm::vec3 n0, n1, n2;
-		n0 = normals[face.GetNormalIndex(0)] - v0;
-		n1 = normals[face.GetNormalIndex(1)] - v1;
-		n2 = normals[face.GetNormalIndex(2)] - v2;
-		if (rainbow) {
-			trueColor = glm::vec4((float)((int)(v0.x * 2 + v0.y * 3 + v0.z * 4) % 256) / 256, (float)((int)(v1.x * 3 + v1.y * 4 + v1.z * 5) % 256) / 256, (float)((int)(v2.x * 4 + v2.y * 5 + v2.z * 6) % 256) / 256, 1);
-		}
-		int top = (int) std::max(v2.y, std::max(v0.y, v1.y));
-		int bottom = (int) std::min(v2.y, std::min(v0.y, v1.y));
-		int right = (int) std::max(v2.x, std::max(v0.x, v1.x));
-		int left = (int) std::min(v2.x, std::min(v0.x, v1.x));
-		float s1 = v2.y - v0.y;
-		float s2 = v2.x - v0.x;
-		float s3 = v1.y - v0.y;
+		v1 = vertices[face.GetVertexIndex(0)];
+		v2 = vertices[face.GetVertexIndex(1)];
+		v3 = vertices[face.GetVertexIndex(2)];
+		glm::vec3 n1, n2, n3;
+		n1 = normals[face.GetNormalIndex(0)] - v1;
+		n2 = normals[face.GetNormalIndex(1)] - v2;
+		n3 = normals[face.GetNormalIndex(2)] - v3;
+		int top = (int) std::max(v2.y, std::max(v3.y, v1.y));
+		int bottom = (int) std::min(v2.y, std::min(v3.y, v1.y));
+		int right = (int) std::max(v2.x, std::max(v3.x, v1.x));
+		int left = (int) std::min(v2.x, std::min(v3.x, v1.x));
+		float s1 = v2.y - v3.y;
+		float s2 = v3.y - v1.y;
+		float s3 = v3.x - v2.x;
+		float s4 = v1.x - v3.x;
+		float denominator = (s1 * s4 + s3 * -s2);
 		for (int i = left-1; i < right+1; ++i) {
 			for (int j = bottom-1; j < top+1; ++j) {
-				glm::vec4 finalColor(0);
-				float s4 = j - v0.y;
-				float w1 = (v0.x *s1 + s4 * s2 - i * s1) / (s3 *s2 - (v1.x - v0.x)*s1);
-				float w2 = (s4 - w1 * s3) / s1;
+				float s5 = j - v3.y;
+				float s6 = i - v3.x;
+				float w1 = (s1 * s6 + s3 * s5) / denominator;
+				float w2 = (s2 * s6 + s4 * s5) / denominator;
 				float w3 = 1 - w1 - w2;			//third lambada
-				if ((w1 >= 0) && (w2 >= 0) && (w1 + w2 <= 1)) {
-					float z = v0.z + w2 * (v2.z - v0.z) + w1 * (v1.z - v0.z);
-					glm::vec3 normalCamera = glm::normalize(-cameraPos + glm::vec3(i, j, z));
+				if ((w1 >= 0) && (w2 >= 0) && (w3 >= 0)) {
+					float z = w1 * v1.z + w2 * v2.z + w3 * v3.z;
+					glm::vec4 finalColor(0);
+					glm::vec3 normalCamera = glm::normalize(cameraPos - glm::vec3(i, j, z));
+					//glm::vec3 pNormal = (n1 * w1 + n2 * w2 + n3 * w3);
+					glm::vec3 pNormal = glm::cross(v2 - v1, v3 - v1);
+					//glm::vec3 pNormal = glm::cross(w2 * v2 - w1 * v1, w3 * v3 - w1 * v1);
 					for (auto light : lights) {
+						if (rainbow) {
+							trueColor = glm::vec4((float)((int)(i * w1 + j * w1 + z * w1) % 256) / 256, (float)((int)(i * w2 + j * w2 + z * w2) % 256) / 256, (float)((int)(i * w3 + j * w3 + z * w3) % 256) / 256, 1);
+						}
+						if (circles) {
+							trueColor = glm::vec4((float)((int)(i * i + i * j + i * z) % 256) / 256, (float)((int)(j * i + j * j + j * z) % 256) / 256, (float)((int)(z * i + z * j + z * z) % 256) / 256, 1);
+						}
 						float theta = 0.0f;
 						glm::vec4 lightColor = light->GetColor();
-						glm::vec3 pNormal = glm::normalize(n0 * w1 + n1 * w2 + n2 * w3);
 						glm::vec4 normalColor(trueColor.x * lightColor.x, trueColor.y * lightColor.y, trueColor.z * lightColor.z, trueColor.w * lightColor.w);
 						switch (light->getType()) {
 						case(0):
 							finalColor += KA * normalColor;
 							break;
 						case(1):
-							theta = std::max(0.0f, glm::dot(pNormal, light->getDirection()));
+							theta = glm::clamp((glm::dot(pNormal, light->getDirection()))/ (glm::length(pNormal)*glm::length(light->getDirection())), 0.0f, 1.0f);
 							finalColor += KD * theta * normalColor;
 							break;
 						case(2):
-							glm::vec3 reflection = glm::reflect(-light->getPosition() + glm::vec3(i, j, z), pNormal);
-							theta = std::max(0.0f, glm::dot(reflection, normalCamera));
+							glm::vec3 lightPos = light->getPosition();
+							glm::vec3 lightDirection = glm::normalize(glm::vec3(lightPos.x - i, lightPos.y - j, lightPos.z - z));
+							glm::vec3 reflection = glm::reflect(lightDirection, pNormal);
+							theta = glm::dot(reflection, normalCamera);
+							theta = glm::clamp(std::abs(theta), 0.0f, 1.0f);
 							finalColor += KS * theta * normalColor;
 							break;
+						default:
+							finalColor = normalColor;
 						}
 						
 					}
@@ -327,6 +341,7 @@ void Renderer::drawFaceNormals(const std::vector<glm::vec3>& vertices, const std
 		}
 	}
 }
+
 
 void Renderer::drawBounding(const std::vector<glm::vec3>& v, const glm::vec4& color) {
 	this->drawLine(v[0].x, v[0].y, v[0].z, v[1].x, v[1].y, v[1].z, color);

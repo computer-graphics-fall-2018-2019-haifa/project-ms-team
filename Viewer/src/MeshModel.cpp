@@ -155,6 +155,12 @@ void MeshModel::scaleWorld(const float * scale)
 
 void MeshModel::updateWorldTransorm()
 {
+	glm::vec4 homPos(1);
+	homPos.x = this->pos.x;
+	homPos.y = this->pos.y;
+	homPos.z = this->pos.z;
+	homPos = worldTranslationTransform * worldzRotationTransform * worldyRotationTransform * worldxRotationTransform * worldScaleTransform * homPos;
+	this->pos = glm::vec3(homPos.x / homPos.w, homPos.y / homPos.w, homPos.z / homPos.w);
 	this->worldTransform = worldTranslationTransform * worldzRotationTransform * worldyRotationTransform * worldxRotationTransform * worldScaleTransform;
 }
 
@@ -180,11 +186,7 @@ void MeshModel::SetColor(const glm::vec4& color)
 
 const glm::vec3 & MeshModel::getPosition() const
 {
-	glm::vec4 homPos(1);
-	homPos.x = this->pos.x;
-	homPos.y = this->pos.y;
-	homPos.z = this->pos.z;
-	return worldTranslationTransform * worldzRotationTransform * worldyRotationTransform * worldxRotationTransform * worldScaleTransform * homPos;
+	return this->pos;
 }
 
 const glm::vec4& MeshModel::GetColor() const

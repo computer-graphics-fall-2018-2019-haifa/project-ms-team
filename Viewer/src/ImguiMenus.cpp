@@ -69,6 +69,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		if (ImGui::Button("Rainbow mode!")) {
 			scene.toggleRainbow();
 		}
+		if (ImGui::Button("Circles mode!")) {
+			scene.toggleCircles();
+		}
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();
@@ -412,7 +415,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 				l->SetColor(lineColor);
 			}
 
-			if (lightType != 0) {
+			if (lightType == 2) {
 				ImGui::InputFloat3("XYZ translation", translation, 2);
 				if (ImGui::Button("Set translation")) {
 					if (trasformType) {
