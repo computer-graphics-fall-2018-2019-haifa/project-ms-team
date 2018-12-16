@@ -9,6 +9,8 @@ Scene::Scene() :
 	activeLightIndex(-1)
 {
 	this->rainbowMode = false;
+	this->circlesMode = false;
+	this->aliasingMode = false;
 }
 
 void Scene::AddModel(const std::shared_ptr<MeshModel>& model)
@@ -121,6 +123,11 @@ void Scene::toggleCircles()
 	this->rainbowMode = this->rainbowMode & !this->circlesMode;
 }
 
+void Scene::toggleAliasing()
+{
+	this->aliasingMode = !this->aliasingMode;
+}
+
 const bool Scene::getRainbow() const
 {
 	return this->rainbowMode;
@@ -129,4 +136,9 @@ const bool Scene::getRainbow() const
 const bool Scene::getCircles() const
 {
 	return this->circlesMode;
+}
+
+const bool Scene::getAliasing() const
+{
+	return this->aliasingMode;
 }

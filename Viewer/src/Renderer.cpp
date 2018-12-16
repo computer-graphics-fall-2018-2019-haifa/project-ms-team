@@ -151,6 +151,9 @@ void Renderer::Render(const Scene& scene) {
 	glm::mat4 viewMatrix(1);
 	glm::mat4 worldViewMatrix(1);
 	glm::mat4 projection(1);
+	glm::mat4 middleTranslate = Utils::getTranslationMatrix(glm::vec3(1, 1, 0));
+	glm::mat4 scaleWindow = Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 100));
+
 	glm::vec3 cameraPos(0, 0, 1);
 	auto lights = scene.getLights();
 	if (activeCamera != -1) {
@@ -160,23 +163,17 @@ void Renderer::Render(const Scene& scene) {
 		cameraPos = scene.getCamera(scene.GetActiveCameraIndex())->getPosition();
 	}
 	
+	glm::mat4 totalMat = scaleWindow * (middleTranslate * (projection * (viewMatrix * worldViewMatrix)));
+
 	for (int i = 0; i < scene.GetModelCount(); i++) {
 		auto model = scene.getModel(i);
 		auto points = applyTransfrom(model->getVertices(), model->GetObjectTransformation());
 		auto normals = applyTransfrom(model->getNormals(), model->GetObjectTransformation());
 		points = applyTransfrom(points, model->GetWorldTransformation());
 		normals = applyTransfrom(normals, model->GetWorldTransformation());
-		points = applyTransfrom(points, worldViewMatrix);
-		normals = applyTransfrom(normals, worldViewMatrix);
-		points = applyTransfrom(points, viewMatrix);
-		normals = applyTransfrom(normals, viewMatrix);
-		points = applyTransfrom(points, projection);
-		normals = applyTransfrom(normals, projection);
-		points = applyTransfrom(points, Utils::getTranslationMatrix(glm::vec3(1,1,0)));
-		normals = applyTransfrom(normals, Utils::getTranslationMatrix(glm::vec3(1,1,0)));
-		points = applyTransfrom(points, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 100)));
-		normals = applyTransfrom(normals, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 100)));
-		this->drawModel(model->getFaces(), points, model->GetColor(), lights, normals, model->getKAmbient(), model->getKDiffuse(), model->getKSpecular(), cameraPos, scene.getRainbow(), scene.getCircles());
+		points = applyTransfrom(points, totalMat);
+		normals = applyTransfrom(normals, totalMat);
+		this->drawModel(model->getFaces(), points, model->GetColor(), lights, normals, model->getKAmbient(), model->getKDiffuse(), model->getKSpecular(), cameraPos, totalMat, scene.getRainbow(), scene.getCircles(), scene.getAliasing());
 		if (model->isDrawNormals()) {
 			this->drawNormals(points, model->getFaces(), normals, model->isFlipNormals());
 		}
@@ -187,11 +184,7 @@ void Renderer::Render(const Scene& scene) {
 		if (model->isDrawBounding()) {
 			auto boundPoints = applyTransfrom(model->getBoundingVer(), model->GetObjectTransformation());
 			boundPoints = applyTransfrom(boundPoints, model->GetWorldTransformation());
-			boundPoints = applyTransfrom(boundPoints, worldViewMatrix);
-			boundPoints = applyTransfrom(boundPoints, viewMatrix);
-			boundPoints = applyTransfrom(boundPoints, projection);
-			boundPoints = applyTransfrom(boundPoints, Utils::getTranslationMatrix(glm::vec3(1, 1, 0)));
-			boundPoints = applyTransfrom(boundPoints, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 100)));
+			boundPoints = applyTransfrom(boundPoints, totalMat);
 			this->drawBounding(boundPoints, model->GetColor());
 		}
 	}
@@ -203,33 +196,24 @@ void Renderer::Render(const Scene& scene) {
 			auto normals = applyTransfrom(camera->getNormals(), camera->GetObjectTransformation());
 			points = applyTransfrom(points, camera->GetWorldTransformation());
 			normals = applyTransfrom(normals, camera->GetWorldTransformation());
-			points = applyTransfrom(points, worldViewMatrix);
-			normals = applyTransfrom(normals, worldViewMatrix);
-			points = applyTransfrom(points, viewMatrix);
-			normals = applyTransfrom(normals, viewMatrix);
-			points = applyTransfrom(points, projection);
-			normals = applyTransfrom(normals, projection);
-			points = applyTransfrom(points, Utils::getTranslationMatrix(glm::vec3(1, 1, 0)));
-			normals = applyTransfrom(normals, Utils::getTranslationMatrix(glm::vec3(1, 1, 0)));
-			points = applyTransfrom(points, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 100)));
-			normals = applyTransfrom(normals, Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 100)));
-			this->drawModel(camera->getFaces(), points, camera->GetColor(), lights, normals, camera->getKAmbient(), camera->getKDiffuse(), camera->getKSpecular(), cameraPos);
+			points = applyTransfrom(points, totalMat);
+			normals = applyTransfrom(normals, totalMat);
+			this->drawModel(camera->getFaces(), points, camera->GetColor(), lights, normals, camera->getKAmbient(), camera->getKDiffuse(), camera->getKSpecular(), cameraPos, totalMat);
 		}
 	}
 }
 
 
-void Renderer::drawModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const glm::vec4& color, const std::vector<std::shared_ptr<Light>>& lights, const std::vector<glm::vec3>& normals, float KA, float KD, float KS, const glm::vec3& cameraPos, bool rainbow, bool circles) {
+void Renderer::drawModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const glm::vec4& color, const std::vector<std::shared_ptr<Light>>& lights, const std::vector<glm::vec3>& normals, float KA, float KD, float KS, const glm::vec3& cameraPos, const glm::mat4& mat, bool rainbow, bool circles, bool aliasing) {
 	for (auto face : faces) {
 		glm::vec3 v1, v2, v3;		// the 3 points that make the triangle
-		glm::vec4 trueColor(color);
 		v1 = vertices[face.GetVertexIndex(0)];
 		v2 = vertices[face.GetVertexIndex(1)];
 		v3 = vertices[face.GetVertexIndex(2)];
 		glm::vec3 n1, n2, n3;
-		n1 = normals[face.GetNormalIndex(0)] - v1;
-		n2 = normals[face.GetNormalIndex(1)] - v2;
-		n3 = normals[face.GetNormalIndex(2)] - v3;
+		n1 = normals[face.GetNormalIndex(0)];
+		n2 = normals[face.GetNormalIndex(1)];
+		n3 = normals[face.GetNormalIndex(2)];
 		int top = (int) std::max(v2.y, std::max(v3.y, v1.y));
 		int bottom = (int) std::min(v2.y, std::min(v3.y, v1.y));
 		int right = (int) std::max(v2.x, std::max(v3.x, v1.x));
@@ -239,61 +223,105 @@ void Renderer::drawModel(const std::vector<Face>& faces, const std::vector<glm::
 		float s3 = v3.x - v2.x;
 		float s4 = v1.x - v3.x;
 		float denominator = (s1 * s4 + s3 * -s2);
-		for (int i = left-1; i < right+1; ++i) {
-			for (int j = bottom-1; j < top+1; ++j) {
-				float s5 = j - v3.y;
-				float s6 = i - v3.x;
-				float w1 = (s1 * s6 + s3 * s5) / denominator;
-				float w2 = (s2 * s6 + s4 * s5) / denominator;
-				float w3 = 1 - w1 - w2;			//third lambada
-				if ((w1 >= 0) && (w2 >= 0) && (w3 >= 0)) {
-					float z = w1 * v1.z + w2 * v2.z + w3 * v3.z;
-					glm::vec4 finalColor(0);
-					glm::vec3 normalCamera = glm::normalize(cameraPos - glm::vec3(i, j, z));
-					//glm::vec3 pNormal = (n1 * w1 + n2 * w2 + n3 * w3);
-					glm::vec3 pNormal = glm::cross(v2 - v1, v3 - v1);
-					//glm::vec3 pNormal = glm::cross(w2 * v2 - w1 * v1, w3 * v3 - w1 * v1);
-					for (auto light : lights) {
-						if (rainbow) {
-							trueColor = glm::vec4((float)((int)(i * w1 + j * w1 + z * w1) % 256) / 256, (float)((int)(i * w2 + j * w2 + z * w2) % 256) / 256, (float)((int)(i * w3 + j * w3 + z * w3) % 256) / 256, 1);
-						}
-						if (circles) {
-							trueColor = glm::vec4((float)((int)(i * i + i * j + i * z) % 256) / 256, (float)((int)(j * i + j * j + j * z) % 256) / 256, (float)((int)(z * i + z * j + z * z) % 256) / 256, 1);
-						}
-						float theta = 0.0f;
-						glm::vec4 lightColor = light->GetColor();
-						glm::vec4 normalColor(trueColor.x * lightColor.x, trueColor.y * lightColor.y, trueColor.z * lightColor.z, trueColor.w * lightColor.w);
-						switch (light->getType()) {
-						case(0):
-							finalColor += KA * normalColor;
-							break;
-						case(1):
-							theta = glm::clamp((glm::dot(pNormal, light->getDirection()))/ (glm::length(pNormal)*glm::length(light->getDirection())), 0.0f, 1.0f);
-							finalColor += KD * theta * normalColor;
-							break;
-						case(2):
-							glm::vec3 lightPos = light->getPosition();
-							glm::vec3 lightDirection = glm::normalize(glm::vec3(lightPos.x - i, lightPos.y - j, lightPos.z - z));
-							glm::vec3 reflection = glm::reflect(lightDirection, pNormal);
-							theta = glm::dot(reflection, normalCamera);
-							theta = glm::clamp(std::abs(theta), 0.0f, 1.0f);
-							finalColor += KS * theta * normalColor;
-							break;
-						default:
-							finalColor = normalColor;
-						}
-						
+		for (int x = left-1; x < right+1; ++x) {
+			for (int y = bottom-1; y < top+1; ++y) {
+				glm::vec4 posColor(0);
+				float putAny = 0;
+				float i = (float) x;
+				float j = (float) y;
+				float w0[3] = { 0.0f, 0.0f, 0.0f };
+				float w1[3] = { 0.0f, 0.0f, 0.0f };
+				float w2[3] = { 0.0f, 0.0f, 0.0f };
+				float w3[3] = { 0.0f, 0.0f, 0.0f };
+				getBaryW(i, j, i - v3.x, j - v3.y, s1, s2, s3, s4, denominator, w0);
+				getBaryW(i + 0.5f, j, i + 0.5f - v3.x, j - v3.y, s1, s2, s3, s4, denominator, w1);
+				getBaryW(i, j + 0.5f, i - v3.x, j + 0.5f - v3.y, s1, s2, s3, s4, denominator, w2);
+				getBaryW(i + 0.5f, j + 0.5f, i + 0.5f - v3.x, j + 0.5f - v3.y, s1, s2, s3, s4, denominator, w3);
+				float w10 = w0[0]; float w11 = w1[0]; float w12 = w2[0]; float w13 = w3[0];
+				float w20 = w0[1]; float w21 = w1[1]; float w22 = w2[1]; float w23 = w3[1];
+				float w30 = w0[2]; float w31 = w1[2]; float w32 = w2[2]; float w33 = w3[2];
+				float trueZ = w10 * v1.z + w20 * v2.z + w30 * v3.z;
+				if ((w10 >= 0) && (w20 >= 0) && (w30 >= 0)) {
+					float z = w10 * v1.z + w20 * v2.z + w30 * v3.z;
+					posColor += getPosColor(i, j, z, cameraPos, v1, v2, v3, n1, n2, n3, lights, rainbow, circles, color, KA, KD, KS, w10, w20, w30, mat);
+					putAny++;
+				}
+				if (aliasing) {
+					if ((w11 >= 0) && (w21 >= 0) && (w31 >= 0)) {
+						float z = w11 * v1.z + w21 * v2.z + w31 * v3.z;
+						posColor += getPosColor(i, j, z, cameraPos, v1, v2, v3, n1, n2, n3, lights, rainbow, circles, color, KA, KD, KS, w11, w21, w31, mat);
+						putAny++;
 					}
-					finalColor.x = std::min(finalColor.x, 1.0f);
-					finalColor.y = std::min(finalColor.y, 1.0f);
-					finalColor.z = std::min(finalColor.z, 1.0f);
-					finalColor.w = std::min(finalColor.w, 1.0f);
-					putPixel(i, j, z, finalColor);
+					if ((w12 >= 0) && (w22 >= 0) && (w32 >= 0)) {
+						float z = w12 * v1.z + w22 * v2.z + w32 * v3.z;
+						posColor += getPosColor(i, j, z, cameraPos, v1, v2, v3, n1, n2, n3, lights, rainbow, circles, color, KA, KD, KS, w12, w22, w32, mat);
+						putAny++;
+					}
+					if ((w13 >= 0) && (w23 >= 0) && (w33 >= 0)) {
+						float z = w13 * v1.z + w23 * v2.z + w33 * v3.z;
+						posColor += getPosColor(i, j, z, cameraPos, v1, v2, v3, n1, n2, n3, lights, rainbow, circles, color, KA, KD, KS, w13, w23, w33, mat);
+						putAny++;
+					}
+				}
+				if (putAny) {
+					putPixel(x, y, trueZ, posColor * (1/putAny));
 				}
 			}
 		}
 	}
 }
+
+void Renderer::getBaryW(float i, float j, float s6, float s5, float s1, float s2, float s3, float s4, float denominator, float* w) {
+	w[0] = (s1 * s6 + s3 * s5) / denominator;
+	w[1] = (s2 * s6 + s4 * s5) / denominator;
+	w[2] = 1 - w[1] - w[0];
+}
+
+glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& cameraPos, const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3, const glm::vec3& n1, const glm::vec3& n2, const glm::vec3& n3,
+	const std::vector<std::shared_ptr<Light>>& lights, bool rainbow, bool circles, const glm::vec4& color, float KA, float KD, float KS, float w1, float w2, float w3, const glm::mat4& volMat) {
+	glm::vec4 finalColor(0);
+	glm::vec4 pColor(color);
+	glm::vec3 normalCamera = glm::normalize(cameraPos - glm::vec3(i, j, z));
+	glm::vec3 pNormal = glm::cross(v2 - v1, v3 - v1);								// this is for flat
+	//glm::vec3 pNormal = glm::cross(w2 * v2 - w1 * v1, w3 * v3 - w1 * v1);			// this is interesting
+	//glm::vec3 pNormal = w1 * n1 + w2 * n2 + w3 * n3;								// this is for phong
+	for (auto light : lights) {
+		if (rainbow) {
+			pColor = glm::vec4((float)((int)(i * w1 + j * w1 + z * w1) % 256) / 256, (float)((int)(i * w2 + j * w2 + z * w2) % 256) / 256, (float)((int)(i * w3 + j * w3 + z * w3) % 256) / 256, 1);
+		}
+		if (circles) {
+			pColor = glm::vec4((float)((int)(i * i + i * j + i * z) % 256) / 256, (float)((int)(j * i + j * j + j * z) % 256) / 256, (float)((int)(z * i + z * j + z * z) % 256) / 256, 1);
+		}
+		float theta = 0.0f;
+		glm::vec4 lightColor = light->GetColor();
+		glm::vec4 normalColor(pColor.x * lightColor.x, pColor.y * lightColor.y, pColor.z * lightColor.z, pColor.w * lightColor.w);
+		switch (light->getType()) {
+		case(0):
+			finalColor += KA * normalColor;
+			break;
+		case(1):
+			theta = glm::clamp((glm::dot(pNormal, light->getDirection(volMat))) / (glm::length(pNormal)*glm::length(light->getDirection(volMat))), 0.0f, 1.0f);
+			finalColor += KD * theta * normalColor;
+			break;
+		case(2):
+			glm::vec3 lightPos = light->getLightPos(volMat);
+			glm::vec3 lightDirection = glm::normalize(glm::vec3(lightPos.x - i, lightPos.y - j, lightPos.z - z));
+			glm::vec3 reflection = glm::reflect(lightDirection, pNormal);
+			theta = glm::dot(reflection, normalCamera);
+			theta = glm::clamp(theta, 0.0f, 1.0f);
+			finalColor += KS * theta * normalColor;
+			break;
+		default:
+			finalColor = normalColor;
+		}
+	}
+	finalColor.x = std::min(finalColor.x, 1.0f);
+	finalColor.y = std::min(finalColor.y, 1.0f);
+	finalColor.z = std::min(finalColor.z, 1.0f);
+	finalColor.w = std::min(finalColor.w, 1.0f);
+	return finalColor;
+}
+
 
 void Renderer::drawNormals(const std::vector<glm::vec3>& vertices, const std::vector<Face>& faces, const std::vector<glm::vec3>& normals, bool flip)
 {

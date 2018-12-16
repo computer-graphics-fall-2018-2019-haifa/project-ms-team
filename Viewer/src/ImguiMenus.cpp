@@ -62,8 +62,23 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			if (ImGui::Button("Active Camera Look At Active Model")) {
 				auto cam = scene.getCamera(cameraIndex);
 				auto model = scene.getModel(activeModel);
-				cam->SetCameraLookAt(cam->getPosition(), model->getPosition(), glm::vec3(0, 1, 0));
+
+				glm::vec3 camPos = cam->getPosition();
+				glm::vec4 homCamPos(camPos.x, camPos.y, camPos.z, 1);
+				homCamPos = cam->GetWorldTransformation() * (cam->GetObjectTransformation() * homCamPos);
+				camPos = glm::vec3(homCamPos.x, homCamPos.y, homCamPos.z) / homCamPos.z;
+
+				glm::vec3 modelPos = model->getPosition();
+				glm::vec4 homModelPos(modelPos.x, modelPos.y, modelPos.z, 1);
+				homModelPos = model->GetWorldTransformation() * (model->GetObjectTransformation() * homModelPos);
+				modelPos = glm::vec3(homModelPos.x, homModelPos.y, homModelPos.z) / homModelPos.z;
+
+				cam->SetCameraLookAt(camPos, modelPos, glm::vec3(0, 1, 0));
 			}
+		}
+
+		if (ImGui::Button("4X Aliasing")) {
+			scene.toggleAliasing();
 		}
 
 		if (ImGui::Button("Rainbow mode!")) {

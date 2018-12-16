@@ -37,7 +37,6 @@ void Camera::SetCameraLookAt(const glm::vec3& eye, const glm::vec3& at, const gl
 	this->xRotationTransform = glm::mat4(1);
 	this->yRotationTransform = glm::mat4(1);
 	this->zRotationTransform = glm::mat4(1);
-	this->pos = eye;
 }
 
 void Camera::xRotateObject(const float angle)

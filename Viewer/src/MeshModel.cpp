@@ -21,8 +21,7 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 	translationTransform(glm::mat4x4(1)),
 	xRotationTransform(glm::mat4x4(1)),
 	yRotationTransform(glm::mat4x4(1)),
-	zRotationTransform(glm::mat4x4(1)),
-	pos(0, 0, 0)
+	zRotationTransform(glm::mat4x4(1))
 {
 	this->faces = faces;
 	this->vertices = vertices;
@@ -107,7 +106,6 @@ void MeshModel::translateObject(const float * translation)
 	auto m = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
 	this->translationTransform = m * this->translationTransform;
 	updateObjectTransorm();
-	this->pos.x += translation[0]; this->pos.y += translation[1]; this->pos.z += translation[2];
 }
 
 void MeshModel::scaleObject(const float * scale)
@@ -143,7 +141,6 @@ void MeshModel::translateWorld(const float * translation)
 	auto m = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
 	this->worldTranslationTransform = m * this->worldTranslationTransform;
 	updateWorldTransorm();
-//	this->pos.x += translation[0]; this->pos.y += translation[1]; this->pos.z += translation[2];
 }
 
 void MeshModel::scaleWorld(const float * scale)
@@ -155,12 +152,6 @@ void MeshModel::scaleWorld(const float * scale)
 
 void MeshModel::updateWorldTransorm()
 {
-	glm::vec4 homPos(1);
-	homPos.x = this->pos.x;
-	homPos.y = this->pos.y;
-	homPos.z = this->pos.z;
-	homPos = worldTranslationTransform * worldzRotationTransform * worldyRotationTransform * worldxRotationTransform * worldScaleTransform * homPos;
-	this->pos = glm::vec3(homPos.x / homPos.w, homPos.y / homPos.w, homPos.z / homPos.w);
 	this->worldTransform = worldTranslationTransform * worldzRotationTransform * worldyRotationTransform * worldxRotationTransform * worldScaleTransform;
 }
 
@@ -186,7 +177,7 @@ void MeshModel::SetColor(const glm::vec4& color)
 
 const glm::vec3 & MeshModel::getPosition() const
 {
-	return this->pos;
+	return this->vertices[0];
 }
 
 const glm::vec4& MeshModel::GetColor() const

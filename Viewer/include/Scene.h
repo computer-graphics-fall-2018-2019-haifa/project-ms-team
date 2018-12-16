@@ -21,6 +21,7 @@ private:
 	int activeCameraIndex;
 	int activeModelIndex;
 	int activeLightIndex;
+	bool aliasingMode;
 	bool rainbowMode;
 	bool circlesMode;
 
@@ -53,6 +54,8 @@ public:
 
 	void toggleRainbow();
 	void toggleCircles();
+	void toggleAliasing();
 	const bool getRainbow() const;
 	const bool getCircles() const;
+	const bool getAliasing() const;
 };
