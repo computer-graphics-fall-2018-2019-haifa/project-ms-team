@@ -21,9 +21,16 @@ private:
 	int activeCameraIndex;
 	int activeModelIndex;
 	int activeLightIndex;
+	int fogType;
+
 	bool aliasingMode;
 	bool rainbowMode;
 	bool circlesMode;
+	int shadingModel;
+
+	float fogEnd;
+	float fogStart;
+	float fogDensity;
 
 public:
 	Scene();
@@ -58,4 +65,13 @@ public:
 	const bool getRainbow() const;
 	const bool getCircles() const;
 	const bool getAliasing() const;
+
+	void applyFog(glm::vec4& color, float z) const;
+	
+	int getShadingType() const;
+	void setShadingType(int type);
+	void setFogType(int type);
+
+	void setBeginEnd(float begin, float end);
+	void setDensity(float den);
 };

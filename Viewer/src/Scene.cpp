@@ -11,6 +11,8 @@ Scene::Scene() :
 	this->rainbowMode = false;
 	this->circlesMode = false;
 	this->aliasingMode = false;
+	this->fogType = 0;
+	this->shadingModel = 0;		// flat
 }
 
 void Scene::AddModel(const std::shared_ptr<MeshModel>& model)
@@ -141,4 +143,52 @@ const bool Scene::getCircles() const
 const bool Scene::getAliasing() const
 {
 	return this->aliasingMode;
+}
+
+void Scene::applyFog(glm::vec4& color, float z) const
+{
+	float f = 1.0f;
+	switch (fogType) {
+	case(0):
+		break;
+	case(1):
+		f = (this->fogEnd - z) / (this->fogEnd - this->fogStart);
+		break;
+	case(2):
+		f = std::exp(-z * this->fogDensity);
+		break;
+	case(3):
+		f = std::exp(-std::pow(z * this->fogDensity, 2));
+		break;
+	}
+	if (f < 1.0f) {
+		f = 1.0f;
+	}
+	color = (1/f) * color;
+}
+
+int Scene::getShadingType() const
+{
+	return this->shadingModel;
+}
+
+void Scene::setShadingType(int type)
+{
+	this->shadingModel = type;
+}
+
+void Scene::setFogType(int type)
+{
+	this->fogType = type;
+}
+
+void Scene::setBeginEnd(float begin, float end)
+{
+	this->fogStart = begin;
+	this->fogEnd = end;
+}
+
+void Scene::setDensity(float den)
+{
+	this->fogDensity = den;
 }

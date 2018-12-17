@@ -19,6 +19,7 @@ bool showModelWindow = false;
 bool showCameraWindow = false;
 bool showLightWindow = false;
 bool showScaleError = false;
+bool showFogWindow = false;
 
 std::shared_ptr<MeshModel> cameraModel = nullptr;
 glm::vec4 clearColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
@@ -26,6 +27,8 @@ glm::vec4 clearColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
 int activeModel = -1;
 int cameraIndex = -1;
 int lightIndex = -1;
+int shadingType = 0;
+int fogType = 0;	//no fog
 std::vector<std::string> models;
 std::vector<std::string> cameras;
 std::vector<std::string> lights;
@@ -58,6 +61,11 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		if (ImGui::Button("Show Light Controls")) {
 			showLightWindow = true;
 		}
+
+		if (ImGui::Button("Show Fog Controls")) {
+			showFogWindow = true;
+		}
+
 		if ((activeModel != -1) && (cameraIndex != -1)) {
 			if (ImGui::Button("Active Camera Look At Active Model")) {
 				auto cam = scene.getCamera(cameraIndex);
@@ -76,6 +84,12 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 				cam->SetCameraLookAt(camPos, modelPos, glm::vec3(0, 1, 0));
 			}
 		}
+
+		ImGui::RadioButton("Flat", &shadingType, 0); ImGui::SameLine();
+		ImGui::RadioButton("Gouraud", &shadingType, 1); ImGui::SameLine();
+		ImGui::RadioButton("Phong", &shadingType, 2);
+		scene.setShadingType(shadingType);
+
 
 		if (ImGui::Button("4X Aliasing")) {
 			scene.toggleAliasing();
@@ -481,6 +495,31 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		}
 		if (ImGui::Button("Close")) {
 			showLightWindow = false;
+		}
+		ImGui::End();
+	}
+	if (showFogWindow) {
+		static float beginEnd[2] = { 0.0f, 0.0f };
+		static float density = 0.0f;
+		ImGui::Begin("Fog Control Window", &showFogWindow);
+		
+		ImGui::RadioButton("No fog", &fogType, 0); ImGui::SameLine();
+		ImGui::RadioButton("Linear", &fogType, 1); ImGui::SameLine();
+		ImGui::RadioButton("Exp fog", &fogType, 2); ImGui::SameLine();
+		ImGui::RadioButton("Exp squared", &fogType, 3);
+		
+		scene.setFogType(fogType);
+
+		if (ImGui::InputFloat2("Fog Start/End", beginEnd, 2)) {
+			scene.setBeginEnd(beginEnd[0], beginEnd[1]);
+		}
+		
+		if (ImGui::InputFloat("Fog Density", &density, 2)) {
+			scene.setDensity(density);
+		}
+
+		if (ImGui::Button("Close")) {
+			showFogWindow = false;
 		}
 		ImGui::End();
 	}
