@@ -453,7 +453,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 				}
 			}
 			if ((lightType == 2) && (trasformType)) {
-				if (ImGui::InputFloat("X rotation", &rotation[0], 2)) {
+				if (ImGui::SliderFloat("X rotation", &rotation[0], 0.0f, 360.0f)) {
 					if (trasformType) {
 						l->xRotateWorld(rotation[0]);
 					}
@@ -461,7 +461,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						l->xRotateObject(rotation[0]);
 					}
 				}
-				if (ImGui::InputFloat("Y rotation", &rotation[1], 2)) {
+				if (ImGui::SliderFloat("Y rotation", &rotation[1], 0.0f, 360.0f)) {
 					if (trasformType) {
 						l->yRotateWorld(rotation[1]);
 					}
@@ -469,7 +469,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						l->yRotateObject(rotation[1]);
 					}
 				}
-				if (ImGui::InputFloat("Z rotation", &rotation[2], 2)) {
+				if (ImGui::SliderFloat("Z rotation", &rotation[2], 0.0f, 360.0f)) {
 					if (trasformType) {
 						l->zRotateWorld(rotation[2]);
 					}

@@ -211,9 +211,9 @@ void Renderer::drawModel(const std::vector<Face>& faces, const std::vector<glm::
 		v2 = vertices[face.GetVertexIndex(1)];
 		v3 = vertices[face.GetVertexIndex(2)];
 		glm::vec3 n1, n2, n3;
-		n1 = normals[face.GetNormalIndex(0)];
-		n2 = normals[face.GetNormalIndex(1)];
-		n3 = normals[face.GetNormalIndex(2)];
+		n1 = glm::normalize(normals[face.GetNormalIndex(0)]);
+		n2 = glm::normalize(normals[face.GetNormalIndex(1)]);
+		n3 = glm::normalize(normals[face.GetNormalIndex(2)]);
 		int top = (int) std::max(v2.y, std::max(v3.y, v1.y));
 		int bottom = (int) std::min(v2.y, std::min(v3.y, v1.y));
 		int right = (int) std::max(v2.x, std::max(v3.x, v1.x));
@@ -289,43 +289,93 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 		pNormal = glm::cross(v2 - v1, v3 - v1);
 		break;
 	case(1):		// gouraud
-		pNormal = glm::normalize(w1 * n1 + w2 * n2 + w3 * n3);
+		//pNormal = glm::normalize(w1 * n1 + w2 * n2 + w3 * n3);
 		break;
 	case(2):		// phong
-		pNormal = w1 * glm::normalize(n1) + w2 * glm::normalize(n2) + w3 * glm::normalize(n3);
+		pNormal = glm::normalize(w1 * n1 + w2 * n2 + w3 * n3);
 		break;
 	default:
 		pNormal = glm::cross(w2 * v2 - w1 * v1, w3 * v3 - w1 * v1);
 	}
-	for (auto light : lights) {
-		if (rainbow) {
-			pColor = glm::vec4((float)((int)(i * w1 + j * w1 + z * w1) % 256) / 256, (float)((int)(i * w2 + j * w2 + z * w2) % 256) / 256, (float)((int)(i * w3 + j * w3 + z * w3) % 256) / 256, 1);
+	if (shadingType == 0 || shadingType == 2) {
+		for (auto light : lights) {
+			if (rainbow) {
+				pColor = glm::vec4((float)((int)(i * w1 + j * w1 + z * w1) % 256) / 256, (float)((int)(i * w2 + j * w2 + z * w2) % 256) / 256, (float)((int)(i * w3 + j * w3 + z * w3) % 256) / 256, 1);
+			}
+			if (circles) {
+				pColor = glm::vec4((float)((int)(i * i + i * j + i * z) % 256) / 256, (float)((int)(j * i + j * j + j * z) % 256) / 256, (float)((int)(z * i + z * j + z * z) % 256) / 256, 1);
+			}
+			float theta = 0.0f;
+			glm::vec4 lightColor = light->GetColor();
+			glm::vec4 normalColor(pColor.x * lightColor.x, pColor.y * lightColor.y, pColor.z * lightColor.z, pColor.w * lightColor.w);
+			switch (light->getType()) {
+			case(0):
+				finalColor += KA * normalColor;
+				break;
+			case(1):
+				auto lDir = light->getDirection(volMat);
+				theta = glm::clamp((glm::dot(pNormal, lDir)) / (glm::length(pNormal)*glm::length(lDir)), 0.0f, 1.0f);
+				finalColor += KD * theta * normalColor;
+				break;
+			case(2):
+				glm::vec3 lightPos = light->getLightPos(volMat);
+				glm::vec3 lightDirection = glm::normalize(glm::vec3(lightPos.x - i, lightPos.y - j, lightPos.z - z));
+				glm::vec3 reflection = glm::reflect(lightDirection, pNormal);
+				theta = glm::dot(reflection, normalCamera);
+				theta = glm::clamp(theta, 0.0f, 1.0f);
+				finalColor += KS * theta * normalColor;
+				break;
+			default:
+				finalColor = normalColor;
+			}
 		}
-		if (circles) {
-			pColor = glm::vec4((float)((int)(i * i + i * j + i * z) % 256) / 256, (float)((int)(j * i + j * j + j * z) % 256) / 256, (float)((int)(z * i + z * j + z * z) % 256) / 256, 1);
-		}
-		float theta = 0.0f;
-		glm::vec4 lightColor = light->GetColor();
-		glm::vec4 normalColor(pColor.x * lightColor.x, pColor.y * lightColor.y, pColor.z * lightColor.z, pColor.w * lightColor.w);
-		switch (light->getType()) {
-		case(0):
-			finalColor += KA * normalColor;
-			break;
-		case(1):
-			auto lDir = light->getDirection(volMat);
-			theta = glm::clamp((glm::dot(pNormal, lDir)) / (glm::length(pNormal)*glm::length(lDir)), 0.0f, 1.0f);
-			finalColor += KD * theta * normalColor;
-			break;
-		case(2):
-			glm::vec3 lightPos = light->getLightPos(volMat);
-			glm::vec3 lightDirection = glm::normalize(glm::vec3(lightPos.x - i, lightPos.y - j, lightPos.z - z));
-			glm::vec3 reflection = glm::reflect(lightDirection, pNormal);
-			theta = glm::dot(reflection, normalCamera);
-			theta = glm::clamp(theta, 0.0f, 1.0f);
-			finalColor += KS * theta * normalColor;
-			break;
-		default:
-			finalColor = normalColor;
+	}
+	else if (shadingType == 1) {
+		for (auto light : lights) {
+			if (rainbow) {
+				pColor = glm::vec4((float)((int)(i * w1 + j * w1 + z * w1) % 256) / 256, (float)((int)(i * w2 + j * w2 + z * w2) % 256) / 256, (float)((int)(i * w3 + j * w3 + z * w3) % 256) / 256, 1);
+			}
+			if (circles) {
+				pColor = glm::vec4((float)((int)(i * i + i * j + i * z) % 256) / 256, (float)((int)(j * i + j * j + j * z) % 256) / 256, (float)((int)(z * i + z * j + z * z) % 256) / 256, 1);
+			}
+			glm::vec4 v1c(0.0f), v2c(0.0f), v3c(0.0f);		// colors at the vertixes
+			float theta = 0.0f;
+			glm::vec4 lightColor = light->GetColor();
+			glm::vec4 normalColor(pColor.x * lightColor.x, pColor.y * lightColor.y, pColor.z * lightColor.z, pColor.w * lightColor.w);
+			switch (light->getType()) {
+			case(0):
+				v1c = KA * normalColor;
+				v2c = KA * normalColor;
+				v3c = KA * normalColor;
+				break;
+			case(1):
+				auto lDir = light->getDirection(volMat);
+				theta = glm::clamp(glm::dot(n1, lDir), 0.0f, 1.0f);
+				v1c = KD * theta * normalColor;
+				theta = glm::clamp(glm::dot(n2, lDir), 0.0f, 1.0f);
+				v2c = KD * theta * normalColor;
+				theta = glm::clamp(glm::dot(n3, lDir), 0.0f, 1.0f);
+				v3c = KD * theta * normalColor;
+				break;
+			case(2):
+				glm::vec3 lightPos = light->getLightPos(volMat);
+				glm::vec3 lightDirection = glm::normalize(glm::vec3(lightPos.x - i, lightPos.y - j, lightPos.z - z));
+				glm::vec3 reflection1 = glm::reflect(lightDirection, n1);
+				glm::vec3 reflection2 = glm::reflect(lightDirection, n2);
+				glm::vec3 reflection3 = glm::reflect(lightDirection, n3);
+				theta = glm::clamp(glm::dot(reflection1, normalCamera), 0.0f, 1.0f);
+				v1c = KS * theta * normalColor;
+				theta = glm::clamp(glm::dot(reflection2, normalCamera), 0.0f, 1.0f);
+				v2c = KS * theta * normalColor;
+				theta = glm::clamp(glm::dot(reflection3, normalCamera), 0.0f, 1.0f);
+				v3c = KS * theta * normalColor;
+				break;
+			default:
+				v1c = normalColor;
+				v2c = normalColor;
+				v3c = normalColor;
+			}
+			finalColor += w1 * v1c + w2 * v2c + w3 * v3c;
 		}
 	}
 	finalColor.x = std::min(finalColor.x, 1.0f);
