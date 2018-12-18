@@ -220,7 +220,7 @@ void Renderer::drawModel(const std::vector<Face>& faces, const std::vector<glm::
 		for (int x = left-1; x < right+1; ++x) {
 			for (int y = bottom-1; y < top+1; ++y) {
 				glm::vec4 posColor(0);
-				float putAny = 0;
+				bool putAny = false;
 				float i = (float) x;
 				float j = (float) y;
 				float w0[3] = { 0.0f, 0.0f, 0.0f };
@@ -235,31 +235,35 @@ void Renderer::drawModel(const std::vector<Face>& faces, const std::vector<glm::
 				float w20 = w0[1]; float w21 = w1[1]; float w22 = w2[1]; float w23 = w3[1];
 				float w30 = w0[2]; float w31 = w1[2]; float w32 = w2[2]; float w33 = w3[2];
 				float trueZ = w10 * v1.z + w20 * v2.z + w30 * v3.z;
-				float z = w10 * v1.z + w20 * v2.z + w30 * v3.z;
 				if ((w10 >= 0) && (w20 >= 0) && (w30 >= 0)) {
-					posColor += getPosColor(i, j, z, cameraPos, v1, v2, v3, n1, n2, n3, lights, scene.getRainbow(), scene.getCircles(), color, KA, KD, KS, sExp, w10, w20, w30, mat, scene.getShadingType());
-					putAny++;
+					posColor += getPosColor(i, j, trueZ, cameraPos, v1, v2, v3, n1, n2, n3, lights, scene.getRainbow(), scene.getCircles(), color, KA, KD, KS, sExp, w10, w20, w30, mat, scene.getShadingType());
+					putAny = true;
 				}
 				if (scene.getAliasing()) {
 					if ((w11 >= 0) && (w21 >= 0) && (w31 >= 0)) {
 						float z = w11 * v1.z + w21 * v2.z + w31 * v3.z;
 						posColor += getPosColor(i, j, z, cameraPos, v1, v2, v3, n1, n2, n3, lights, scene.getRainbow(), scene.getCircles(), color, KA, KD, KS, sExp, w11, w21, w31, mat, scene.getShadingType());
-						putAny++;
+						putAny = true;
 					}
 					if ((w12 >= 0) && (w22 >= 0) && (w32 >= 0)) {
 						float z = w12 * v1.z + w22 * v2.z + w32 * v3.z;
 						posColor += getPosColor(i, j, z, cameraPos, v1, v2, v3, n1, n2, n3, lights, scene.getRainbow(), scene.getCircles(), color, KA, KD, KS, sExp, w12, w22, w32, mat, scene.getShadingType());
-						putAny++;
+						putAny = true;
 					}
 					if ((w13 >= 0) && (w23 >= 0) && (w33 >= 0)) {
 						float z = w13 * v1.z + w23 * v2.z + w33 * v3.z;
 						posColor += getPosColor(i, j, z, cameraPos, v1, v2, v3, n1, n2, n3, lights, scene.getRainbow(), scene.getCircles(), color, KA, KD, KS, sExp, w13, w23, w33, mat, scene.getShadingType());
-						putAny++;
+						putAny = true;
 					}
 				}
-				scene.applyFog(posColor, z);
+				scene.applyFog(posColor, trueZ);
 				if (putAny) {
-					putPixel(x, y, trueZ, posColor * (1/putAny));
+					if (scene.getAliasing()) {
+						putPixel(x, y, trueZ, posColor * 0.25f);
+					}
+					else {
+						putPixel(x, y, trueZ, posColor);
+					}
 				}
 			}
 		}
@@ -280,16 +284,15 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 	glm::vec3 pNormal(0.0f, 0.0f, 0.0f);
 	switch (shadingType) {
 	case(0):		// flat
-		pNormal = glm::cross(v2 - v1, v3 - v1);
+		pNormal = glm::normalize(glm::cross(v2 - v1, v3 - v1));
 		break;
 	case(1):		// gouraud
-		//pNormal = glm::normalize(w1 * n1 + w2 * n2 + w3 * n3);
 		break;
 	case(2):		// phong
 		pNormal = glm::normalize(w1 * n1 + w2 * n2 + w3 * n3);
 		break;
 	default:
-		pNormal = glm::cross(w2 * v2 - w1 * v1, w3 * v3 - w1 * v1);
+		pNormal = glm::normalize(glm::cross(w2 * v2 - w1 * v1, w3 * v3 - w1 * v1));
 	}
 	if (shadingType != 1) {
 		for (auto light : lights) {
@@ -309,14 +312,14 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 				finalColor += KA * normalColor;
 				break;
 			case(1):
-				auto lDir = light->getDirection(volMat);
-				theta = glm::clamp((glm::dot(pNormal, lDir)) / (glm::length(pNormal)*glm::length(lDir)), 0.0f, 1.0f);
+				auto lDir = glm::normalize(light->getDirection(volMat));
+				theta = glm::clamp((glm::dot(pNormal, lDir)), 0.0f, 1.0f);
 				finalColor += KD * theta * normalColor;
 				break;
 			case(2):
 				glm::vec3 lightPos = light->getLightPos(volMat);
 				glm::vec3 lightDirection = glm::normalize(glm::vec3(lightPos.x - i, lightPos.y - j, lightPos.z - z));
-				glm::vec3 reflection = glm::reflect(lightDirection, pNormal);
+				glm::vec3 reflection = glm::normalize(glm::reflect(lightDirection, pNormal));
 				theta = glm::pow(glm::dot(reflection, normalCamera), sExp);
 				theta = glm::clamp(theta, 0.0f, 1.0f);
 				finalColor += KS * theta * normalColor;
@@ -347,7 +350,7 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 				v3c = KA * normalColor;
 				break;
 			case(1):
-				auto lDir = light->getDirection(volMat);
+				auto lDir = glm::normalize(light->getDirection(volMat));
 				theta = glm::clamp(glm::dot(n1, lDir), 0.0f, 1.0f);
 				v1c = KD * theta * normalColor;
 				theta = glm::clamp(glm::dot(n2, lDir), 0.0f, 1.0f);
@@ -358,9 +361,9 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 			case(2):
 				glm::vec3 lightPos = light->getLightPos(volMat);
 				glm::vec3 lightDirection = glm::normalize(glm::vec3(lightPos.x - i, lightPos.y - j, lightPos.z - z));
-				glm::vec3 reflection1 = glm::reflect(lightDirection, n1);
-				glm::vec3 reflection2 = glm::reflect(lightDirection, n2);
-				glm::vec3 reflection3 = glm::reflect(lightDirection, n3);
+				glm::vec3 reflection1 = glm::normalize(glm::reflect(lightDirection, n1));
+				glm::vec3 reflection2 = glm::normalize(glm::reflect(lightDirection, n2));
+				glm::vec3 reflection3 = glm::normalize(glm::reflect(lightDirection, n3));
 				theta = glm::clamp(glm::pow(glm::dot(reflection1, normalCamera), sExp), 0.0f, 1.0f);
 				v1c = KS * theta * normalColor;
 				theta = glm::clamp(glm::pow(glm::dot(reflection2, normalCamera), sExp), 0.0f, 1.0f);
@@ -376,11 +379,7 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 			finalColor += w1 * v1c + w2 * v2c + w3 * v3c;
 		}
 	}
-	finalColor.x = std::min(finalColor.x, 1.0f);
-	finalColor.y = std::min(finalColor.y, 1.0f);
-	finalColor.z = std::min(finalColor.z, 1.0f);
-	finalColor.w = std::min(finalColor.w, 1.0f);
-	return finalColor;
+	return glm::clamp(finalColor, 0.0f, 1.0f);
 }
 
 
