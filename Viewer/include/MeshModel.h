@@ -38,13 +38,12 @@ protected:
 	float KA;
 	float KD;
 	float KS;
+	float sExp;
 
 public:
 	MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::string& modelName = "");
 	virtual ~MeshModel();
 
-	virtual void SetWorldTransformation(const glm::mat4x4& worldTransform);
-	virtual void SetObjectTransformation(const glm::mat4x4& objectTransform);
 	virtual void xRotateObject(const float angle);
 	virtual void yRotateObject(const float angle);
 	virtual void zRotateObject(const float angle);
@@ -80,10 +79,12 @@ public:
 	const float getKAmbient() const;
 	const float getKDiffuse() const;
 	const float getKSpecular() const;
+	const float getSpecularExp() const;
 
 	void setKAmbient(float k);
 	void setKDiffuse(float k);
 	void setKSpecular(float k);
+	void setSpecularExp(float k);
 
 
 	void toggleBounding();

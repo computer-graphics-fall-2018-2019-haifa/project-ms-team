@@ -216,8 +216,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 				m->SetOrthographicProjection(fovy[1], 16 / 9, z[0], z[1]);
 			}
 			
-			ImGui::InputFloat("Camera Zoom", &zoom, 0.1f, 1, 2);
-			if (ImGui::Button("Set Zoom")) {
+			if (ImGui::InputFloat("Camera Zoom", &zoom, 0.1f, 1, 2)) {
 				m->SetZoom(1/zoom);
 			}
 
@@ -238,8 +237,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					}
 				}
 			}
-			ImGui::InputFloat3("XYZ translation", cameraTranslation, 2);
-			if (ImGui::Button("Set translation")) {
+			if (ImGui::InputFloat3("XYZ translation", cameraTranslation, 2)) {
 				if (cameraTrasformType) {
 					m->translateWorld(cameraTranslation);
 				}
@@ -247,8 +245,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					m->translateObject(cameraTranslation);
 				}
 			}
-			ImGui::InputFloat("X rotation", &cameraRotation[0], 2);
-			if (ImGui::Button("Set X rotation")) {
+			if (ImGui::SliderFloat("X rotation", &cameraRotation[0], 0.0f, 360.0f)) {
 				if (cameraTrasformType) {
 					m->xRotateWorld(cameraRotation[0]);
 				}
@@ -256,8 +253,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					m->xRotateObject(cameraRotation[0]);
 				}
 			}
-			ImGui::InputFloat("Y rotation", &cameraRotation[1], 2);
-			if (ImGui::Button("Set Y rotation")) {
+			if (ImGui::SliderFloat("Y rotation", &cameraRotation[1], 0.0f, 360.0f)) {
 				if (cameraTrasformType) {
 					m->yRotateWorld(cameraRotation[1]);
 				}
@@ -265,8 +261,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					m->yRotateObject(cameraRotation[1]);
 				}
 			}
-			ImGui::InputFloat("Z rotation", &cameraRotation[2], 2);
-			if (ImGui::Button("Set Z rotation")) {
+			if (ImGui::SliderFloat("Z rotation", &cameraRotation[2], 0.0f, 360.0f)) {
 				if (cameraTrasformType) {
 					m->zRotateWorld(cameraRotation[2]);
 				}
@@ -294,6 +289,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		static float k1 = 1.0f;
 		static float k2 = 1.0f;
 		static float k3 = 1.0f;
+		static float k4 = 1.0f;
 		static glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.00f);
 
 		activeModel = scene.GetActiveModelIndex();
@@ -346,8 +342,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					}
 				}
 			}
-			ImGui::InputFloat3("XYZ translation", translation, 2);
-			if (ImGui::Button("Set translation")) {
+			if (ImGui::InputFloat3("XYZ translation", translation, 2)) {
 				if (trasformType) {
 					m->translateWorld(translation);
 				}
@@ -355,8 +350,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					m->translateObject(translation);
 				}
 			}
-			ImGui::InputFloat("X rotation", &rotation[0], 2);
-			if (ImGui::Button("Set X rotation")) {
+			if (ImGui::SliderFloat("X rotation", &rotation[0], 0.0f, 360.0f)) {
 				if (trasformType) {
 					m->xRotateWorld(rotation[0]);
 				}
@@ -364,8 +358,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					m->xRotateObject(rotation[0]);
 				}
 			}
-			ImGui::InputFloat("Y rotation", &rotation[1], 2);
-			if (ImGui::Button("Set Y rotation")) {
+			if (ImGui::SliderFloat("Y rotation", &rotation[1], 0.0f, 360.0f)) {
 				if (trasformType) {
 					m->yRotateWorld(rotation[1]);
 				}
@@ -373,8 +366,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					m->yRotateObject(rotation[1]);
 				}
 			}
-			ImGui::InputFloat("Z rotation", &rotation[2], 2);
-			if (ImGui::Button("Set Z rotation")) {
+			if (ImGui::SliderFloat("Z rotation", &rotation[2], 0.0f, 360.0f)) {
 				if (trasformType) {
 					m->zRotateWorld(rotation[2]);
 				}
@@ -390,6 +382,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			}
 			if (ImGui::SliderFloat("Specualr K", &k3, 0.0f, 1.0f)) {
 				m->setKSpecular(k3);
+			}
+			if (ImGui::InputFloat("Specualr Exponent", &k4, 0.5f)) {
+				m->setSpecularExp(k4);
 			}
 
 		}
@@ -427,10 +422,8 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		if (lightIndex != -1) {
 			auto l = scene.getLight(lightIndex);
 			bool typeChange = false;
-			typeChange = ImGui::RadioButton("Ambient", &lightType, 0);
-			ImGui::SameLine();
-			typeChange |= ImGui::RadioButton("Parallel", &lightType, 1);
-			ImGui::SameLine();
+			typeChange = ImGui::RadioButton("Ambient", &lightType, 0); ImGui::SameLine();
+			typeChange |= ImGui::RadioButton("Parallel", &lightType, 1); ImGui::SameLine();
 			typeChange |= ImGui::RadioButton("Point", &lightType, 2);
 			if (typeChange) {
 				l->setType(lightType);
@@ -445,8 +438,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			}
 
 			if (lightType == 2) {
-				ImGui::InputFloat3("XYZ translation", translation, 2);
-				if (ImGui::Button("Set translation")) {
+				if (ImGui::InputFloat3("XYZ translation", translation, 2)) {
 					if (trasformType) {
 						l->translateWorld(translation);
 					}
@@ -461,8 +453,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 				}
 			}
 			if ((lightType == 2) && (trasformType)) {
-				ImGui::InputFloat("X rotation", &rotation[0], 2);
-				if (ImGui::Button("Set X rotation")) {
+				if (ImGui::InputFloat("X rotation", &rotation[0], 2)) {
 					if (trasformType) {
 						l->xRotateWorld(rotation[0]);
 					}
@@ -470,8 +461,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						l->xRotateObject(rotation[0]);
 					}
 				}
-				ImGui::InputFloat("Y rotation", &rotation[1], 2);
-				if (ImGui::Button("Set Y rotation")) {
+				if (ImGui::InputFloat("Y rotation", &rotation[1], 2)) {
 					if (trasformType) {
 						l->yRotateWorld(rotation[1]);
 					}
@@ -479,8 +469,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						l->yRotateObject(rotation[1]);
 					}
 				}
-				ImGui::InputFloat("Z rotation", &rotation[2], 2);
-				if (ImGui::Button("Set Z rotation")) {
+				if (ImGui::InputFloat("Z rotation", &rotation[2], 2)) {
 					if (trasformType) {
 						l->zRotateWorld(rotation[2]);
 					}

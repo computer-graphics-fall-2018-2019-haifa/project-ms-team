@@ -39,66 +39,6 @@ void Camera::SetCameraLookAt(const glm::vec3& eye, const glm::vec3& at, const gl
 	this->zRotationTransform = glm::mat4(1);
 }
 
-void Camera::xRotateObject(const float angle)
-{
-	MeshModel::xRotateObject(angle);
-	this->viewTransformation *= Utils::getRotationMatrix(-angle, 'x');
-}
-
-void Camera::yRotateObject(const float angle)
-{
-	MeshModel::yRotateObject(angle);
-	this->viewTransformation *= Utils::getRotationMatrix(-angle, 'y');
-}
-
-void Camera::zRotateObject(const float angle)
-{
-	MeshModel::zRotateObject(angle);
-	this->viewTransformation *= Utils::getRotationMatrix(-angle, 'z');
-}
-
-void Camera::translateObject(const float * translation)
-{
-	MeshModel::translateObject(translation);
-	this->viewTransformation *= Utils::getTranslationMatrix(glm::vec3(-translation[0], -translation[1], -translation[2]));
-}
-
-void Camera::scaleObject(const float * scale)
-{
-	MeshModel::scaleObject(scale);
-	this->viewTransformation *= Utils::getScaleMatrix(glm::vec3(1 / scale[0], 1 / scale[1], 1 / scale[2]));
-}
-
-void Camera::xRotateWorld(const float angle)
-{
-	MeshModel::xRotateWorld(angle);
-	this->worldViewTransformation *= Utils::getRotationMatrix(-angle, 'x');
-}
-
-void Camera::yRotateWorld(const float angle)
-{
-	MeshModel::yRotateWorld(angle);
-	this->worldViewTransformation *= Utils::getRotationMatrix(-angle, 'y');
-}
-
-void Camera::zRotateWorld(const float angle)
-{
-	MeshModel::zRotateWorld(angle);
-	this->worldViewTransformation *= Utils::getRotationMatrix(-angle, 'z');
-}
-
-void Camera::translateWorld(const float * translation)
-{
-	MeshModel::translateWorld(translation);
-	this->worldViewTransformation *= Utils::getTranslationMatrix(glm::vec3(-translation[0], -translation[1], -translation[2]));
-}
-
-void Camera::scaleWorld(const float * scale)
-{
-	MeshModel::scaleWorld(scale);
-	this->worldViewTransformation *= Utils::getScaleMatrix(glm::vec3(1 / scale[0], 1 / scale[1], 1 / scale[2]));
-}
-
 void Camera::SetOrthographicProjection(
 	const float height,
 	const float aspectRatio,
@@ -143,7 +83,7 @@ void Camera::SetZoom(const float zoom) {
 
 glm::mat4x4 Camera::getViewTransformation()
 {
-	return this->viewTransformation;// * Utils::getTranslationMatrix(pos);
+	return this->viewTransformation;
 }
 
 glm::mat4x4 Camera::getWorldViewTransformation()
@@ -154,4 +94,16 @@ glm::mat4x4 Camera::getWorldViewTransformation()
 glm::mat4x4 Camera::getProjection()
 {
 	return this->projectionTransformation;
+}
+
+void Camera::updateWorldTransorm()
+{
+	MeshModel::updateWorldTransorm();
+	this->worldViewTransformation = glm::inverse(this->worldTransform);
+}
+
+void Camera::updateObjectTransorm()
+{
+	MeshModel::updateObjectTransorm();
+	this->viewTransformation = glm::inverse(this->objectTransform);
 }

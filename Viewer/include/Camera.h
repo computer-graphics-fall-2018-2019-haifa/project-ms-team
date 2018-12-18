@@ -28,16 +28,6 @@ public:
 	~Camera();
 
 	void SetCameraLookAt(const glm::vec3& eye, const glm::vec3& at, const glm::vec3& up);
-	void xRotateObject(const float angle);
-	void yRotateObject(const float angle);
-	void zRotateObject(const float angle);
-	void translateObject(const float* translation);
-	void scaleObject(const float* scale);
-	void xRotateWorld(const float angle);
-	void yRotateWorld(const float angle);
-	void zRotateWorld(const float angle);
-	void translateWorld(const float* translation);
-	void scaleWorld(const float* scale);
 
 	void SetOrthographicProjection(
 		const float height,
@@ -56,5 +46,7 @@ public:
 	glm::mat4x4 getViewTransformation();
 	glm::mat4x4 getWorldViewTransformation();
 	glm::mat4x4 getProjection();
-	// Add more methods/functionality as needed...
+
+	virtual void updateWorldTransorm();
+	virtual void updateObjectTransorm();
 };

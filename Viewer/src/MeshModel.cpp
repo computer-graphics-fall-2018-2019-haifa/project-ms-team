@@ -32,9 +32,10 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 	this->flipNormals = false;
 	this->flipFaceNormals = false;
 
-	this->KA = 1;
-	this->KD = 1;
-	this->KS = 1;
+	this->KA = 1.0f;
+	this->KD = 1.0f;
+	this->KS = 1.0f;
+	this->sExp = 1.0f;
 
 
 	glm::vec3 min((float)std::numeric_limits<int>::max());
@@ -70,41 +71,27 @@ MeshModel::~MeshModel()
 
 }
 
-void MeshModel::SetWorldTransformation(const glm::mat4x4& worldTransform)
-{
-	this->worldTransform = worldTransform;
-}
-
-void MeshModel::SetObjectTransformation(const glm::mat4x4& objectTransform)
-{
-	this->objectTransform = objectTransform;
-}
-
 void MeshModel::xRotateObject(const float angle)
 {
-	auto m = Utils::getRotationMatrix(angle, 'x');
-	this->xRotationTransform = m * this->xRotationTransform;
+	this->xRotationTransform = Utils::getRotationMatrix(angle, 'x');
 	updateObjectTransorm();
 }
 
 void MeshModel::yRotateObject(const float angle)
 {
-	auto m = Utils::getRotationMatrix(angle, 'y');
-	this->yRotationTransform = m * this->yRotationTransform;
+	this->yRotationTransform = Utils::getRotationMatrix(angle, 'y');
 	updateObjectTransorm();
 }
 
 void MeshModel::zRotateObject(const float angle)
 {
-	auto m = Utils::getRotationMatrix(angle, 'z');
-	this->zRotationTransform = m * this->zRotationTransform;
+	this->zRotationTransform = Utils::getRotationMatrix(angle, 'z');
 	updateObjectTransorm();
 }
 
 void MeshModel::translateObject(const float * translation)
 {
-	auto m = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
-	this->translationTransform = m * this->translationTransform;
+	this->translationTransform = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
 	updateObjectTransorm();
 }
 
@@ -117,29 +104,25 @@ void MeshModel::scaleObject(const float * scale)
 
 void MeshModel::xRotateWorld(const float angle)
 {
-	auto m = Utils::getRotationMatrix(angle, 'x');
-	this->worldxRotationTransform = m * this->worldxRotationTransform;
+	this->worldxRotationTransform = Utils::getRotationMatrix(angle, 'x');
 	updateWorldTransorm();
 }
 
 void MeshModel::yRotateWorld(const float angle)
 {
-	auto m = Utils::getRotationMatrix(angle, 'y');
-	this->worldyRotationTransform = m * this->worldyRotationTransform;
+	this->worldyRotationTransform = Utils::getRotationMatrix(angle, 'y');
 	updateWorldTransorm();
 }
 
 void MeshModel::zRotateWorld(const float angle)
 {
-	auto m = Utils::getRotationMatrix(angle, 'z');
-	this->worldzRotationTransform = m * this->worldzRotationTransform;
+	this->worldzRotationTransform = Utils::getRotationMatrix(angle, 'z');
 	updateWorldTransorm();
 }
 
 void MeshModel::translateWorld(const float * translation)
 {
-	auto m = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
-	this->worldTranslationTransform = m * this->worldTranslationTransform;
+	this->worldTranslationTransform = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
 	updateWorldTransorm();
 }
 
@@ -240,6 +223,11 @@ const float MeshModel::getKSpecular() const
 	return this->KS;
 }
 
+const float MeshModel::getSpecularExp() const
+{
+	return this->sExp;
+}
+
 const bool MeshModel::isDrawFaceNormals() const
 {
 	return this->drawFaceNormals;
@@ -258,6 +246,11 @@ void MeshModel::setKDiffuse(float k)
 void MeshModel::setKSpecular(float k)
 {
 	this->KS = k;
+}
+
+void MeshModel::setSpecularExp(float k)
+{
+	this->sExp = k;
 }
 
 void MeshModel::toggleBounding()
