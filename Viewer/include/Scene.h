@@ -22,6 +22,7 @@ private:
 	int activeModelIndex;
 	int activeLightIndex;
 	int fogType;
+	glm::vec4 fogColor;
 
 	bool aliasingMode;
 	bool rainbowMode;
@@ -71,7 +72,9 @@ public:
 	int getShadingType() const;
 	void setShadingType(int type);
 	void setFogType(int type);
+	void setFogColor(glm::vec4 color);
 
-	void setBeginEnd(float begin, float end);
+	void setFogBegin(float begin);
+	void setFogEnd(float end);
 	void setDensity(float den);
 };

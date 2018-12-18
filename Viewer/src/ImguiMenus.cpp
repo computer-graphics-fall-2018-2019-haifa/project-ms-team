@@ -245,7 +245,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					m->translateObject(cameraTranslation);
 				}
 			}
-			if (ImGui::SliderFloat("X rotation", &cameraRotation[0], 0.0f, 360.0f)) {
+			if (ImGui::SliderFloat("X rotation", &cameraRotation[0], -180.0f, 180.0f)) {
 				if (cameraTrasformType) {
 					m->xRotateWorld(cameraRotation[0]);
 				}
@@ -253,7 +253,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					m->xRotateObject(cameraRotation[0]);
 				}
 			}
-			if (ImGui::SliderFloat("Y rotation", &cameraRotation[1], 0.0f, 360.0f)) {
+			if (ImGui::SliderFloat("Y rotation", &cameraRotation[1], -180.0f, 180.0f)) {
 				if (cameraTrasformType) {
 					m->yRotateWorld(cameraRotation[1]);
 				}
@@ -261,7 +261,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					m->yRotateObject(cameraRotation[1]);
 				}
 			}
-			if (ImGui::SliderFloat("Z rotation", &cameraRotation[2], 0.0f, 360.0f)) {
+			if (ImGui::SliderFloat("Z rotation", &cameraRotation[2], -180.0f, 180.0f)) {
 				if (cameraTrasformType) {
 					m->zRotateWorld(cameraRotation[2]);
 				}
@@ -350,7 +350,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					m->translateObject(translation);
 				}
 			}
-			if (ImGui::SliderFloat("X rotation", &rotation[0], 0.0f, 360.0f)) {
+			if (ImGui::SliderFloat("X rotation", &rotation[0], -180.0f, 180.0f)) {
 				if (trasformType) {
 					m->xRotateWorld(rotation[0]);
 				}
@@ -358,7 +358,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					m->xRotateObject(rotation[0]);
 				}
 			}
-			if (ImGui::SliderFloat("Y rotation", &rotation[1], 0.0f, 360.0f)) {
+			if (ImGui::SliderFloat("Y rotation", &rotation[1], -180.0f, 180.0f)) {
 				if (trasformType) {
 					m->yRotateWorld(rotation[1]);
 				}
@@ -366,7 +366,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					m->yRotateObject(rotation[1]);
 				}
 			}
-			if (ImGui::SliderFloat("Z rotation", &rotation[2], 0.0f, 360.0f)) {
+			if (ImGui::SliderFloat("Z rotation", &rotation[2], -180.0f, 180.0f)) {
 				if (trasformType) {
 					m->zRotateWorld(rotation[2]);
 				}
@@ -453,7 +453,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 				}
 			}
 			if ((lightType == 2) && (trasformType)) {
-				if (ImGui::SliderFloat("X rotation", &rotation[0], 0.0f, 360.0f)) {
+				if (ImGui::SliderFloat("X rotation", &rotation[0], -180.0f, 180.0f)) {
 					if (trasformType) {
 						l->xRotateWorld(rotation[0]);
 					}
@@ -461,7 +461,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						l->xRotateObject(rotation[0]);
 					}
 				}
-				if (ImGui::SliderFloat("Y rotation", &rotation[1], 0.0f, 360.0f)) {
+				if (ImGui::SliderFloat("Y rotation", &rotation[1], -180.0f, 180.0f)) {
 					if (trasformType) {
 						l->yRotateWorld(rotation[1]);
 					}
@@ -469,7 +469,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						l->yRotateObject(rotation[1]);
 					}
 				}
-				if (ImGui::SliderFloat("Z rotation", &rotation[2], 0.0f, 360.0f)) {
+				if (ImGui::SliderFloat("Z rotation", &rotation[2], -180.0f, 180.0f)) {
 					if (trasformType) {
 						l->zRotateWorld(rotation[2]);
 					}
@@ -488,10 +488,16 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		ImGui::End();
 	}
 	if (showFogWindow) {
-		static float beginEnd[2] = { 0.0f, 0.0f };
-		static float density = 0.0f;
+		static float end = 2.0f;
+		static float begin = 0.0f;
+		static float density = 1.0f;
+		static glm::vec4 fogColor(0.0f, 0.0f, 0.0f, 1.00f);
 		ImGui::Begin("Fog Control Window", &showFogWindow);
 		
+		if (ImGui::ColorEdit3("Fog color", (float*)&fogColor)) {
+			scene.setFogColor(fogColor);
+		}
+
 		ImGui::RadioButton("No fog", &fogType, 0); ImGui::SameLine();
 		ImGui::RadioButton("Linear", &fogType, 1); ImGui::SameLine();
 		ImGui::RadioButton("Exp fog", &fogType, 2); ImGui::SameLine();
@@ -499,11 +505,15 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 		
 		scene.setFogType(fogType);
 
-		if (ImGui::InputFloat2("Fog Start/End", beginEnd, 2)) {
-			scene.setBeginEnd(beginEnd[0], beginEnd[1]);
+		if (ImGui::InputFloat("Fog Start", &begin, 1)) {
+			scene.setFogBegin(begin);
 		}
-		
-		if (ImGui::InputFloat("Fog Density", &density, 2)) {
+		if (ImGui::InputFloat("Fog End", &end, 1)) {
+			scene.setFogEnd(end);
+		}
+
+
+		if (ImGui::InputFloat("Fog Density", &density, 0.5)) {
 			scene.setDensity(density);
 		}
 
