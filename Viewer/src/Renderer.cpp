@@ -167,12 +167,9 @@ void Renderer::Render(const Scene& scene) {
 
 	for (int i = 0; i < scene.GetModelCount(); i++) {
 		auto model = scene.getModel(i);
-		auto points = applyTransfrom(model->getVertices(), model->GetObjectTransformation());
-		auto normals = applyTransfrom(model->getNormals(), model->GetObjectTransformation());
-		points = applyTransfrom(points, model->GetWorldTransformation());
-		normals = applyTransfrom(normals, model->GetWorldTransformation());
-		points = applyTransfrom(points, totalMat);
-		normals = applyTransfrom(normals, totalMat);
+		glm::mat4 modelTransform = totalMat * (model->GetWorldTransformation() * model->GetObjectTransformation());
+		auto points = applyTransfrom(model->getVertices(), modelTransform);
+		auto normals = applyTransfrom(model->getNormals(), modelTransform);
 		this->drawModel(model->getFaces(), points, model->GetColor(), lights, normals, model->getKAmbient(), model->getKDiffuse(), model->getKSpecular(), model->getSpecularExp(), cameraPos, totalMat, scene);
 		if (model->isDrawNormals()) {
 			this->drawNormals(points, model->getFaces(), normals, model->isFlipNormals());
@@ -192,12 +189,9 @@ void Renderer::Render(const Scene& scene) {
 	for (int i = 0; i < scene.GetCameraCount(); i++) {
 		if (i != scene.GetActiveCameraIndex()) {
 			auto camera = scene.getCamera(i);
-			auto points = applyTransfrom(camera->getVertices(), camera->GetObjectTransformation());
-			auto normals = applyTransfrom(camera->getNormals(), camera->GetObjectTransformation());
-			points = applyTransfrom(points, camera->GetWorldTransformation());
-			normals = applyTransfrom(normals, camera->GetWorldTransformation());
-			points = applyTransfrom(points, totalMat);
-			normals = applyTransfrom(normals, totalMat);
+			glm::mat4 cameraTransform = totalMat * (camera->GetWorldTransformation() * camera->GetObjectTransformation());
+			auto points = applyTransfrom(camera->getVertices(), cameraTransform);
+			auto normals = applyTransfrom(camera->getNormals(), cameraTransform);
 			this->drawModel(camera->getFaces(), points, camera->GetColor(), lights, normals, camera->getKAmbient(), camera->getKDiffuse(), camera->getKSpecular(), camera->getSpecularExp(), cameraPos, totalMat, scene);
 		}
 	}
@@ -297,7 +291,7 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 	default:
 		pNormal = glm::cross(w2 * v2 - w1 * v1, w3 * v3 - w1 * v1);
 	}
-	if (shadingType == 0 || shadingType == 2) {
+	if (shadingType != 1) {
 		for (auto light : lights) {
 			if (rainbow) {
 				pColor = glm::vec4((float)((int)(i * w1 + j * w1 + z * w1) % 256) / 256, (float)((int)(i * w2 + j * w2 + z * w2) % 256) / 256, (float)((int)(i * w3 + j * w3 + z * w3) % 256) / 256, 1);
@@ -338,7 +332,9 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 				pColor = glm::vec4((float)((int)(i * w1 + j * w1 + z * w1) % 256) / 256, (float)((int)(i * w2 + j * w2 + z * w2) % 256) / 256, (float)((int)(i * w3 + j * w3 + z * w3) % 256) / 256, 1);
 			}
 			if (circles) {
-				pColor = glm::vec4((float)((int)(i * i + i * j + i * z) % 256) / 256, (float)((int)(j * i + j * j + j * z) % 256) / 256, (float)((int)(z * i + z * j + z * z) % 256) / 256, 1);
+				KA = (float)((int)(i * i + j * j) % 256) / 256;
+				KD = (float)((int)(j * j + z * z) % 256) / 256;
+				KS = (float)((int)(i * i + z * z) % 256) / 256;
 			}
 			glm::vec4 v1c(0.0f), v2c(0.0f), v3c(0.0f);		// colors at the vertixes
 			float theta = 0.0f;

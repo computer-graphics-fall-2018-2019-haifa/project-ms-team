@@ -87,7 +87,8 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 
 		ImGui::RadioButton("Flat", &shadingType, 0); ImGui::SameLine();
 		ImGui::RadioButton("Gouraud", &shadingType, 1); ImGui::SameLine();
-		ImGui::RadioButton("Phong", &shadingType, 2);
+		ImGui::RadioButton("Phong", &shadingType, 2); ImGui::SameLine();
+		ImGui::RadioButton("Something", &shadingType, 3);
 		scene.setShadingType(shadingType);
 
 
@@ -237,7 +238,23 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					}
 				}
 			}
-			if (ImGui::InputFloat3("XYZ translation", cameraTranslation, 2)) {
+
+			if (ImGui::SliderFloat("X translation", &cameraTranslation[0], -10.0f, 10.f)) {
+				if (cameraTrasformType) {
+					m->translateWorld(cameraTranslation);
+				}
+				else {
+					m->translateObject(cameraTranslation);
+				}
+			}
+			if (ImGui::SliderFloat("Y translation", &cameraTranslation[1], -10.0f, 10.f)) {
+				if (cameraTrasformType) {
+					m->translateWorld(cameraTranslation);
+				}
+				else {
+					m->translateObject(cameraTranslation);
+				}
+			}if (ImGui::SliderFloat("Z translation", &cameraTranslation[2], -10.0f, 10.f)) {
 				if (cameraTrasformType) {
 					m->translateWorld(cameraTranslation);
 				}
@@ -342,7 +359,22 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					}
 				}
 			}
-			if (ImGui::InputFloat3("XYZ translation", translation, 2)) {
+			if (ImGui::SliderFloat("X translation", &translation[0], -10.0f, 10.f)) {
+				if (trasformType) {
+					m->translateWorld(translation);
+				}
+				else {
+					m->translateObject(translation);
+				}
+			}
+			if (ImGui::SliderFloat("Y translation", &translation[1], -10.0f, 10.f)) {
+				if (trasformType) {
+					m->translateWorld(translation);
+				}
+				else {
+					m->translateObject(translation);
+				}
+			}if (ImGui::SliderFloat("Z translation", &translation[2], -10.0f, 10.f)) {
 				if (trasformType) {
 					m->translateWorld(translation);
 				}
