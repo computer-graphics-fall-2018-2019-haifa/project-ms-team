@@ -37,7 +37,7 @@ const glm::vec4& GetClearColor() {
 	return clearColor;
 }
 
-void DrawImguiMenus(ImGuiIO& io, Scene& scene)
+void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 {
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
 	if (showDemoWindow) {
@@ -93,7 +93,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 
 
 		if (ImGui::Button("4X Aliasing")) {
-			scene.toggleAliasing();
+			renderer.toggleAliasing();
 		}
 
 		if (ImGui::Button("Rainbow mode!")) {

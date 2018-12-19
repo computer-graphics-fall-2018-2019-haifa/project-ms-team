@@ -14,7 +14,8 @@
 
 Renderer::Renderer(int viewportWidth, int viewportHeight, int viewportX, int viewportY) :
 	colorBuffer(nullptr),
-	zBuffer(nullptr)
+	zBuffer(nullptr),
+	aliasing(false)
 {
 	initOpenGLRendering();
 	SetViewport(viewportWidth, viewportHeight, viewportX, viewportY);
@@ -107,6 +108,11 @@ void Renderer::drawLine(float x1, float y1, float z1, float x2, float y2, float 
 	}
 }
 
+void Renderer::toggleAliasing()
+{
+	this->aliasing = !this->aliasing;
+}
+
 void Renderer::createBuffers(int viewportWidth, int viewportHeight)
 {
 	if (colorBuffer) {
@@ -142,7 +148,11 @@ void Renderer::SetViewport(int viewportWidth, int viewportHeight, int viewportX,
 	this->viewportY = viewportY;
 	this->viewportWidth = viewportWidth;
 	this->viewportHeight = viewportHeight;
-	createBuffers(viewportWidth, viewportHeight);
+	if (this->aliasing) {
+		this->viewportWidth *= 2;
+		this->viewportHeight *= 2;
+	}
+	createBuffers(this->viewportWidth, this->viewportHeight);
 	createOpenGLBuffer();
 }
 
@@ -220,50 +230,18 @@ void Renderer::drawModel(const std::vector<Face>& faces, const std::vector<glm::
 		for (int x = left-1; x < right+1; ++x) {
 			for (int y = bottom-1; y < top+1; ++y) {
 				glm::vec4 posColor(0);
-				bool putAny = false;
 				float i = (float) x;
 				float j = (float) y;
 				float w0[3] = { 0.0f, 0.0f, 0.0f };
-				float w1[3] = { 0.0f, 0.0f, 0.0f };
-				float w2[3] = { 0.0f, 0.0f, 0.0f };
-				float w3[3] = { 0.0f, 0.0f, 0.0f };
 				getBaryW(i, j, i - v3.x, j - v3.y, s1, s2, s3, s4, denominator, w0);
-				getBaryW(i + 0.5f, j, i + 0.5f - v3.x, j - v3.y, s1, s2, s3, s4, denominator, w1);
-				getBaryW(i, j + 0.5f, i - v3.x, j + 0.5f - v3.y, s1, s2, s3, s4, denominator, w2);
-				getBaryW(i + 0.5f, j + 0.5f, i + 0.5f - v3.x, j + 0.5f - v3.y, s1, s2, s3, s4, denominator, w3);
-				float w10 = w0[0]; float w11 = w1[0]; float w12 = w2[0]; float w13 = w3[0];
-				float w20 = w0[1]; float w21 = w1[1]; float w22 = w2[1]; float w23 = w3[1];
-				float w30 = w0[2]; float w31 = w1[2]; float w32 = w2[2]; float w33 = w3[2];
+				float w10 = w0[0];
+				float w20 = w0[1];
+				float w30 = w0[2];
 				float trueZ = w10 * v1.z + w20 * v2.z + w30 * v3.z;
 				if ((w10 >= 0) && (w20 >= 0) && (w30 >= 0)) {
-					posColor += getPosColor(i, j, trueZ, cameraPos, v1, v2, v3, n1, n2, n3, lights, scene.getRainbow(), scene.getCircles(), color, KA, KD, KS, sExp, w10, w20, w30, mat, scene.getShadingType());
-					putAny = true;
-				}
-				if (scene.getAliasing()) {
-					if ((w11 >= 0) && (w21 >= 0) && (w31 >= 0)) {
-						float z = w11 * v1.z + w21 * v2.z + w31 * v3.z;
-						posColor += getPosColor(i, j, z, cameraPos, v1, v2, v3, n1, n2, n3, lights, scene.getRainbow(), scene.getCircles(), color, KA, KD, KS, sExp, w11, w21, w31, mat, scene.getShadingType());
-						putAny = true;
-					}
-					if ((w12 >= 0) && (w22 >= 0) && (w32 >= 0)) {
-						float z = w12 * v1.z + w22 * v2.z + w32 * v3.z;
-						posColor += getPosColor(i, j, z, cameraPos, v1, v2, v3, n1, n2, n3, lights, scene.getRainbow(), scene.getCircles(), color, KA, KD, KS, sExp, w12, w22, w32, mat, scene.getShadingType());
-						putAny = true;
-					}
-					if ((w13 >= 0) && (w23 >= 0) && (w33 >= 0)) {
-						float z = w13 * v1.z + w23 * v2.z + w33 * v3.z;
-						posColor += getPosColor(i, j, z, cameraPos, v1, v2, v3, n1, n2, n3, lights, scene.getRainbow(), scene.getCircles(), color, KA, KD, KS, sExp, w13, w23, w33, mat, scene.getShadingType());
-						putAny = true;
-					}
-				}
-				scene.applyFog(posColor, trueZ);
-				if (putAny) {
-					if (scene.getAliasing()) {
-						putPixel(x, y, trueZ, posColor * 0.25f);
-					}
-					else {
-						putPixel(x, y, trueZ, posColor);
-					}
+					posColor = getPosColor(i, j, trueZ, cameraPos, v1, v2, v3, n1, n2, n3, lights, scene.getRainbow(), scene.getCircles(), color, KA, KD, KS, sExp, w10, w20, w30, mat, scene.getShadingType());
+					scene.applyFog(posColor, trueZ);
+					putPixel(x, y, trueZ, posColor);
 				}
 			}
 		}
@@ -446,7 +424,6 @@ void Renderer::drawBounding(const std::vector<glm::vec3>& v, const glm::vec4& co
 	this->drawLine(v[6].x, v[6].y, v[6].z, v[7].x, v[7].y, v[7].z, color);
 }
 
-
 std::vector<glm::vec3> Renderer::applyTransfrom(const std::vector<glm::vec3>& ver, const glm::mat4& mat) {
 	std::vector<glm::vec3> new_ver;
 	for (auto v : ver) {
@@ -544,8 +521,14 @@ void Renderer::createOpenGLBuffer()
 	glBindTexture(GL_TEXTURE_2D, glScreenTex);
 
 	// malloc for a texture on the gpu.
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, viewportWidth, viewportHeight, 0, GL_RGB, GL_FLOAT, NULL);
-	glViewport(0, 0, viewportWidth, viewportHeight);
+	if (this->aliasing) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, viewportWidth / 2, viewportHeight / 2, 0, GL_RGB, GL_FLOAT, NULL);
+		glViewport(0, 0, viewportWidth / 2, viewportHeight / 2);
+	}
+	else {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, viewportWidth, viewportHeight, 0, GL_RGB, GL_FLOAT, NULL);
+		glViewport(0, 0, viewportWidth, viewportHeight);
+	}
 }
 
 void Renderer::SwapBuffers()
@@ -556,9 +539,24 @@ void Renderer::SwapBuffers()
 	// Makes glScreenTex (which was allocated earlier) the current texture.
 	glBindTexture(GL_TEXTURE_2D, glScreenTex);
 
-	// memcopy's colorBuffer into the gpu.
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, viewportWidth, viewportHeight, GL_RGB, GL_FLOAT, colorBuffer);
-
+	if (this->aliasing) {
+		int tw = viewportWidth / 2;
+		int th = viewportHeight / 2;
+		float* cb = new float[3 * tw * th];
+		for (int x = 0; x < tw; ++x) {
+			for (int y = 0; y < th; ++y) {
+				cb[INDEX(tw, x, y, 0)] = (colorBuffer[INDEX(viewportWidth, 2 * x, 2 * y, 0)] + colorBuffer[INDEX(viewportWidth, 2 * x + 1, 2 * y, 0)] + colorBuffer[INDEX(viewportWidth, 2 * x, 2 * y + 1, 0)] + colorBuffer[INDEX(viewportWidth, 2 * x + 1, 2 * y + 1, 0)]) * 0.25f;
+				cb[INDEX(tw, x, y, 1)] = (colorBuffer[INDEX(viewportWidth, 2 * x, 2 * y, 1)] + colorBuffer[INDEX(viewportWidth, 2 * x + 1, 2 * y, 1)] + colorBuffer[INDEX(viewportWidth, 2 * x, 2 * y + 1, 1)] + colorBuffer[INDEX(viewportWidth, 2 * x + 1, 2 * y + 1, 1)]) * 0.25f;
+				cb[INDEX(tw, x, y, 2)] = (colorBuffer[INDEX(viewportWidth, 2 * x, 2 * y, 2)] + colorBuffer[INDEX(viewportWidth, 2 * x + 1, 2 * y, 2)] + colorBuffer[INDEX(viewportWidth, 2 * x, 2 * y + 1, 2)] + colorBuffer[INDEX(viewportWidth, 2 * x + 1, 2 * y + 1, 2)]) * 0.25f;
+			}
+		}
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, viewportWidth / 2, viewportHeight / 2, GL_RGB, GL_FLOAT, cb);
+		delete[] cb;
+	}
+	else {
+		// memcopy's colorBuffer into the gpu.
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, viewportWidth, viewportHeight, GL_RGB, GL_FLOAT, colorBuffer);
+	}
 	// Tells opengl to use mipmapping
 	glGenerateMipmap(GL_TEXTURE_2D);
 

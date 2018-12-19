@@ -11,7 +11,6 @@ Scene::Scene() :
 {
 	this->rainbowMode = false;
 	this->circlesMode = false;
-	this->aliasingMode = false;
 	this->fogType = 0;
 	this->shadingModel = 0;		// flat
 }
@@ -124,11 +123,6 @@ void Scene::toggleCircles()
 	this->circlesMode = !this->circlesMode;
 }
 
-void Scene::toggleAliasing()
-{
-	this->aliasingMode = !this->aliasingMode;
-}
-
 const bool Scene::getRainbow() const
 {
 	return this->rainbowMode;
@@ -139,10 +133,6 @@ const bool Scene::getCircles() const
 	return this->circlesMode;
 }
 
-const bool Scene::getAliasing() const
-{
-	return this->aliasingMode;
-}
 
 void Scene::applyFog(glm::vec4& color, float z) const
 {

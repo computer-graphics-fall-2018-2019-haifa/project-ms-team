@@ -24,7 +24,6 @@ private:
 	int fogType;
 	glm::vec4 fogColor;
 
-	bool aliasingMode;
 	bool rainbowMode;
 	bool circlesMode;
 	int shadingModel;
@@ -62,10 +61,8 @@ public:
 
 	void toggleRainbow();
 	void toggleCircles();
-	void toggleAliasing();
 	const bool getRainbow() const;
 	const bool getCircles() const;
-	const bool getAliasing() const;
 
 	void applyFog(glm::vec4& color, float z) const;
 	
