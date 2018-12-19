@@ -205,9 +205,9 @@ void Renderer::drawModel(const std::vector<Face>& faces, const std::vector<glm::
 		v2 = vertices[face.GetVertexIndex(1)];
 		v3 = vertices[face.GetVertexIndex(2)];
 		glm::vec3 n1, n2, n3;
-		n1 = glm::normalize(normals[face.GetNormalIndex(0)]);
-		n2 = glm::normalize(normals[face.GetNormalIndex(1)]);
-		n3 = glm::normalize(normals[face.GetNormalIndex(2)]);
+		n1 = normals[face.GetNormalIndex(0)];
+		n2 = normals[face.GetNormalIndex(1)];
+		n3 = normals[face.GetNormalIndex(2)];
 		int top = (int) std::max(v2.y, std::max(v3.y, v1.y));
 		int bottom = (int) std::min(v2.y, std::min(v3.y, v1.y));
 		int right = (int) std::max(v2.x, std::max(v3.x, v1.x));
@@ -280,7 +280,7 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 	const std::vector<std::shared_ptr<Light>>& lights, bool rainbow, bool circles, const glm::vec4& color, float KA, float KD, float KS, float sExp, float w1, float w2, float w3, const glm::mat4& volMat, int shadingType) {
 	glm::vec4 finalColor(0);
 	glm::vec4 pColor(color);
-	glm::vec3 normalCamera = glm::normalize(cameraPos - glm::vec3(i, j, z));
+	glm::vec3 normalCamera = cameraPos - glm::vec3(i, j, z);
 	glm::vec3 pNormal(0.0f, 0.0f, 0.0f);
 	switch (shadingType) {
 	case(0):		// flat
@@ -289,7 +289,7 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 	case(1):		// gouraud
 		break;
 	case(2):		// phong
-		pNormal = glm::normalize(w1 * n1 + w2 * n2 + w3 * n3);
+		pNormal = w1 * n1 + w2 * n2 + w3 * n3;
 		break;
 	default:
 		pNormal = glm::normalize(glm::cross(w2 * v2 - w1 * v1, w3 * v3 - w1 * v1));
@@ -312,15 +312,15 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 				finalColor += KA * normalColor;
 				break;
 			case(1):
-				auto lDir = glm::normalize(light->getDirection(volMat));
-				theta = glm::clamp((glm::dot(pNormal, lDir)), 0.0f, 1.0f);
+				auto lDir = light->getDirection(volMat);
+				theta = glm::clamp((glm::dot(pNormal, lDir) / (glm::length(lDir) * glm::length(pNormal))), 0.0f, 1.0f);
 				finalColor += KD * theta * normalColor;
 				break;
 			case(2):
 				glm::vec3 lightPos = light->getLightPos(volMat);
-				glm::vec3 lightDirection = glm::normalize(glm::vec3(lightPos.x - i, lightPos.y - j, lightPos.z - z));
-				glm::vec3 reflection = glm::normalize(glm::reflect(lightDirection, pNormal));
-				theta = glm::pow(glm::dot(reflection, normalCamera), sExp);
+				glm::vec3 lightDirection = glm::vec3(lightPos.x - i, lightPos.y - j, lightPos.z - z);
+				glm::vec3 reflection = glm::reflect(lightDirection, pNormal);
+				theta = glm::pow(glm::dot(reflection, normalCamera) / (glm::length(reflection) * glm::length(normalCamera)), sExp);
 				theta = glm::clamp(theta, 0.0f, 1.0f);
 				finalColor += KS * theta * normalColor;
 				break;
@@ -350,25 +350,25 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 				v3c = KA * normalColor;
 				break;
 			case(1):
-				auto lDir = glm::normalize(light->getDirection(volMat));
-				theta = glm::clamp(glm::dot(n1, lDir), 0.0f, 1.0f);
+				auto lDir = light->getDirection(volMat);
+				theta = glm::clamp(glm::dot(n1, lDir) / (glm::length(lDir) * glm::length(n1)), 0.0f, 1.0f);
 				v1c = KD * theta * normalColor;
-				theta = glm::clamp(glm::dot(n2, lDir), 0.0f, 1.0f);
+				theta = glm::clamp(glm::dot(n2, lDir) / (glm::length(lDir) * glm::length(n2)), 0.0f, 1.0f);
 				v2c = KD * theta * normalColor;
-				theta = glm::clamp(glm::dot(n3, lDir), 0.0f, 1.0f);
+				theta = glm::clamp(glm::dot(n3, lDir) / (glm::length(lDir) * glm::length(n3)), 0.0f, 1.0f);
 				v3c = KD * theta * normalColor;
 				break;
 			case(2):
 				glm::vec3 lightPos = light->getLightPos(volMat);
-				glm::vec3 lightDirection = glm::normalize(glm::vec3(lightPos.x - i, lightPos.y - j, lightPos.z - z));
-				glm::vec3 reflection1 = glm::normalize(glm::reflect(lightDirection, n1));
-				glm::vec3 reflection2 = glm::normalize(glm::reflect(lightDirection, n2));
-				glm::vec3 reflection3 = glm::normalize(glm::reflect(lightDirection, n3));
-				theta = glm::clamp(glm::pow(glm::dot(reflection1, normalCamera), sExp), 0.0f, 1.0f);
+				glm::vec3 lightDirection = glm::vec3(lightPos.x - i, lightPos.y - j, lightPos.z - z);
+				glm::vec3 reflection1 = glm::reflect(lightDirection, n1);
+				glm::vec3 reflection2 = glm::reflect(lightDirection, n2);
+				glm::vec3 reflection3 = glm::reflect(lightDirection, n3);
+				theta = glm::clamp(glm::pow(glm::dot(reflection1, normalCamera) / (glm::length(reflection1) * glm::length(normalCamera)), sExp), 0.0f, 1.0f);
 				v1c = KS * theta * normalColor;
-				theta = glm::clamp(glm::pow(glm::dot(reflection2, normalCamera), sExp), 0.0f, 1.0f);
+				theta = glm::clamp(glm::pow(glm::dot(reflection2, normalCamera) / (glm::length(reflection2) * glm::length(normalCamera)), sExp), 0.0f, 1.0f);
 				v2c = KS * theta * normalColor;
-				theta = glm::clamp(glm::pow(glm::dot(reflection3, normalCamera), sExp), 0.0f, 1.0f);
+				theta = glm::clamp(glm::pow(glm::dot(reflection3, normalCamera) / (glm::length(reflection3) * glm::length(normalCamera)), sExp), 0.0f, 1.0f);
 				v3c = KS * theta * normalColor;
 				break;
 			default:
