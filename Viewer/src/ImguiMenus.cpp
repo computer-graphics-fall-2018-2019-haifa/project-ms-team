@@ -49,7 +49,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 		ImGui::Begin("Graphics");								// Create a window called "Hello, world!" and append into it.
 		ImGui::Checkbox("Demo Window", &showDemoWindow);        // Edit bools storing our window open/close state
 		ImGui::ColorEdit3("background color", (float*)&clearColor);
-		
+
 		if (ImGui::Button("Show Camera Controls")) {
 			showCameraWindow = true;
 		}
@@ -57,7 +57,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 		if (ImGui::Button("Show Model Controls")) {
 			showModelWindow = true;
 		}
-		
+
 		if (ImGui::Button("Show Light Controls")) {
 			showLightWindow = true;
 		}
@@ -91,9 +91,11 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 		ImGui::RadioButton("Something", &shadingType, 3);
 		scene.setShadingType(shadingType);
 
-
 		if (ImGui::Button("4X Aliasing")) {
 			renderer.toggleAliasing();
+		}
+		if (ImGui::Button("Toggle Blur")) {
+			renderer.toggleBlur();
 		}
 
 		if (ImGui::Button("Rainbow mode!")) {
@@ -145,7 +147,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 				}
 				ImGui::EndMenu();
 			}
-		ImGui::EndMainMenuBar();
+			ImGui::EndMainMenuBar();
 		}
 	}
 
@@ -216,9 +218,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 			if (ImGui::Button("Set orthographic")) {
 				m->SetOrthographicProjection(fovy[1], 16 / 9, z[0], z[1]);
 			}
-			
+
 			if (ImGui::InputFloat("Camera Zoom", &zoom, 0.1f, 1, 2)) {
-				m->SetZoom(1/zoom);
+				m->SetZoom(1 / zoom);
 			}
 
 			ImGui::InputFloat3("XYZ scale", cameraScale, 2);
@@ -493,7 +495,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 					else {
 						l->translateObject(translation);
 					}
-				}				
+				}
 			}
 			if (lightType == 1) {
 				if (ImGui::InputFloat3("Light Direction", direction, 2)) {
@@ -541,7 +543,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 		static float density = 1.0f;
 		static glm::vec4 fogColor(0.0f, 0.0f, 0.0f, 1.00f);
 		ImGui::Begin("Fog Control Window", &showFogWindow);
-		
+
 		if (ImGui::ColorEdit3("Fog color", (float*)&fogColor)) {
 			scene.setFogColor(fogColor);
 		}
@@ -550,7 +552,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 		ImGui::RadioButton("Linear", &fogType, 1); ImGui::SameLine();
 		ImGui::RadioButton("Exp fog", &fogType, 2); ImGui::SameLine();
 		ImGui::RadioButton("Exp squared", &fogType, 3);
-		
+
 		scene.setFogType(fogType);
 
 		if (ImGui::SliderFloat("Fog Start", &begin, -10.0f, 10.0f)) {

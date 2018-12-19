@@ -15,7 +15,8 @@
 Renderer::Renderer(int viewportWidth, int viewportHeight, int viewportX, int viewportY) :
 	colorBuffer(nullptr),
 	zBuffer(nullptr),
-	aliasing(false)
+	aliasing(false),
+	blur(false)
 {
 	initOpenGLRendering();
 	SetViewport(viewportWidth, viewportHeight, viewportX, viewportY);
@@ -113,6 +114,11 @@ void Renderer::toggleAliasing()
 	this->aliasing = !this->aliasing;
 }
 
+void Renderer::toggleBlur()
+{
+	this->blur = !this->blur;
+}
+
 void Renderer::createBuffers(int viewportWidth, int viewportHeight)
 {
 	if (colorBuffer) {
@@ -172,7 +178,7 @@ void Renderer::Render(const Scene& scene) {
 		projection = scene.getCamera(scene.GetActiveCameraIndex())->getProjection();
 		cameraPos = scene.getCamera(scene.GetActiveCameraIndex())->getPosition();
 	}
-	
+
 	glm::mat4 totalMat = scaleWindow * (middleTranslate * (projection * (viewMatrix * worldViewMatrix)));
 
 	for (int i = 0; i < scene.GetModelCount(); i++) {
@@ -180,7 +186,8 @@ void Renderer::Render(const Scene& scene) {
 		glm::mat4 modelTransform = totalMat * (model->GetWorldTransformation() * model->GetObjectTransformation());
 		auto points = applyTransfrom(model->getVertices(), modelTransform);
 		auto normals = applyTransfrom(model->getNormals(), modelTransform);
-		this->drawModel(model->getFaces(), points, model->GetColor(), lights, normals, model->getKAmbient(), model->getKDiffuse(), model->getKSpecular(), model->getSpecularExp(), cameraPos, totalMat, scene);
+		this->drawModel(model->getFaces(), points, model->GetColor(), lights, normals, model->getKAmbient(), model->getKDiffuse(), model->getKSpecular(), model->getSpecularExp(),
+			cameraPos, totalMat, scene, model->isFlipFaceNormals(), model->isFlipNormals());
 		if (model->isDrawNormals()) {
 			this->drawNormals(points, model->getFaces(), normals, model->isFlipNormals());
 		}
@@ -202,36 +209,45 @@ void Renderer::Render(const Scene& scene) {
 			glm::mat4 cameraTransform = totalMat * (camera->GetWorldTransformation() * camera->GetObjectTransformation());
 			auto points = applyTransfrom(camera->getVertices(), cameraTransform);
 			auto normals = applyTransfrom(camera->getNormals(), cameraTransform);
-			this->drawModel(camera->getFaces(), points, camera->GetColor(), lights, normals, camera->getKAmbient(), camera->getKDiffuse(), camera->getKSpecular(), camera->getSpecularExp(), cameraPos, totalMat, scene);
+			this->drawModel(camera->getFaces(), points, camera->GetColor(), lights, normals, camera->getKAmbient(), camera->getKDiffuse(), camera->getKSpecular(), camera->getSpecularExp(),
+				cameraPos, totalMat, scene, camera->isFlipFaceNormals(), camera->isFlipNormals());
 		}
 	}
 }
 
 
-void Renderer::drawModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const glm::vec4& color, const std::vector<std::shared_ptr<Light>>& lights, const std::vector<glm::vec3>& normals, float KA, float KD, float KS, float sExp, const glm::vec3& cameraPos, const glm::mat4& mat, const Scene& scene) {
+void Renderer::drawModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const glm::vec4& color, const std::vector<std::shared_ptr<Light>>& lights, const std::vector<glm::vec3>& normals, float KA, float KD, float KS, float sExp,
+	const glm::vec3& cameraPos, const glm::mat4& mat, const Scene& scene, bool flipFaceNormals, bool flipVertexNormals) {
 	for (auto face : faces) {
 		glm::vec3 v1, v2, v3;		// the 3 points that make the triangle
 		v1 = vertices[face.GetVertexIndex(0)];
 		v2 = vertices[face.GetVertexIndex(1)];
 		v3 = vertices[face.GetVertexIndex(2)];
 		glm::vec3 n1, n2, n3;
-		n1 = normals[face.GetNormalIndex(0)];
-		n2 = normals[face.GetNormalIndex(1)];
-		n3 = normals[face.GetNormalIndex(2)];
-		int top = (int) std::max(v2.y, std::max(v3.y, v1.y));
-		int bottom = (int) std::min(v2.y, std::min(v3.y, v1.y));
-		int right = (int) std::max(v2.x, std::max(v3.x, v1.x));
-		int left = (int) std::min(v2.x, std::min(v3.x, v1.x));
+		if (flipVertexNormals) {
+			n1 = 2.0f * v1 - normals[face.GetNormalIndex(0)];
+			n2 = 2.0f * v2 - normals[face.GetNormalIndex(1)];
+			n3 = 2.0f * v3 - normals[face.GetNormalIndex(2)];
+		}
+		else {
+			n1 = normals[face.GetNormalIndex(0)];
+			n2 = normals[face.GetNormalIndex(1)];
+			n3 = normals[face.GetNormalIndex(2)];
+		}
+		int top = (int)std::max(v2.y, std::max(v3.y, v1.y));
+		int bottom = (int)std::min(v2.y, std::min(v3.y, v1.y));
+		int right = (int)std::max(v2.x, std::max(v3.x, v1.x));
+		int left = (int)std::min(v2.x, std::min(v3.x, v1.x));
 		float s1 = v2.y - v3.y;
 		float s2 = v3.y - v1.y;
 		float s3 = v3.x - v2.x;
 		float s4 = v1.x - v3.x;
 		float denominator = (s1 * s4 + s3 * -s2);
-		for (int x = left-1; x < right+1; ++x) {
-			for (int y = bottom-1; y < top+1; ++y) {
+		for (int x = left - 1; x < right + 1; ++x) {
+			for (int y = bottom - 1; y < top + 1; ++y) {
 				glm::vec4 posColor(0);
-				float i = (float) x;
-				float j = (float) y;
+				float i = (float)x;
+				float j = (float)y;
 				float w0[3] = { 0.0f, 0.0f, 0.0f };
 				getBaryW(i, j, i - v3.x, j - v3.y, s1, s2, s3, s4, denominator, w0);
 				float w10 = w0[0];
@@ -239,7 +255,7 @@ void Renderer::drawModel(const std::vector<Face>& faces, const std::vector<glm::
 				float w30 = w0[2];
 				float trueZ = w10 * v1.z + w20 * v2.z + w30 * v3.z;
 				if ((w10 >= 0) && (w20 >= 0) && (w30 >= 0)) {
-					posColor = getPosColor(i, j, trueZ, cameraPos, v1, v2, v3, n1, n2, n3, lights, scene.getRainbow(), scene.getCircles(), color, KA, KD, KS, sExp, w10, w20, w30, mat, scene.getShadingType());
+					posColor = getPosColor(i, j, trueZ, cameraPos, v1, v2, v3, n1, n2, n3, lights, scene.getRainbow(), scene.getCircles(), color, KA, KD, KS, sExp, w10, w20, w30, mat, scene.getShadingType(), flipFaceNormals);
 					scene.applyFog(posColor, trueZ);
 					putPixel(x, y, trueZ, posColor);
 				}
@@ -255,14 +271,19 @@ void Renderer::getBaryW(float i, float j, float s6, float s5, float s1, float s2
 }
 
 glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& cameraPos, const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3, const glm::vec3& n1, const glm::vec3& n2, const glm::vec3& n3,
-	const std::vector<std::shared_ptr<Light>>& lights, bool rainbow, bool circles, const glm::vec4& color, float KA, float KD, float KS, float sExp, float w1, float w2, float w3, const glm::mat4& volMat, int shadingType) {
+	const std::vector<std::shared_ptr<Light>>& lights, bool rainbow, bool circles, const glm::vec4& color, float KA, float KD, float KS, float sExp, float w1, float w2, float w3, const glm::mat4& volMat, int shadingType, bool flipFaceNormals) {
 	glm::vec4 finalColor(0);
 	glm::vec4 pColor(color);
 	glm::vec3 normalCamera = cameraPos - glm::vec3(i, j, z);
 	glm::vec3 pNormal(0.0f, 0.0f, 0.0f);
 	switch (shadingType) {
 	case(0):		// flat
-		pNormal = glm::normalize(glm::cross(v2 - v1, v3 - v1));
+		if (flipFaceNormals) {
+			pNormal = glm::normalize(glm::cross(v3 - v1, v2 - v1));
+		}
+		else {
+			pNormal = glm::normalize(glm::cross(v2 - v1, v3 - v1));
+		}
 		break;
 	case(1):		// gouraud
 		break;
@@ -461,7 +482,7 @@ void Renderer::initOpenGLRendering()
 	//	     | \ | <--- The exture is drawn over two triangles that stretch over the screen.
 	//	     |__\|
 	// (-1,-1)    (1,-1)
-	const GLfloat vtc[]={
+	const GLfloat vtc[] = {
 		-1, -1,
 		 1, -1,
 		-1,  1,
@@ -470,19 +491,19 @@ void Renderer::initOpenGLRendering()
 		 1,  1
 	};
 
-	const GLfloat tex[]={
+	const GLfloat tex[] = {
 		0,0,
 		1,0,
 		0,1,
 		0,1,
 		1,0,
-		1,1};
+		1,1 };
 
 	// Makes this buffer the current one.
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 
 	// This is the opengl way for doing malloc on the gpu. 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vtc)+sizeof(tex), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vtc) + sizeof(tex), NULL, GL_STATIC_DRAW);
 
 	// memcopy vtc to buffer[0,sizeof(vtc)-1]
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vtc), vtc);
@@ -491,25 +512,25 @@ void Renderer::initOpenGLRendering()
 	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vtc), sizeof(tex), tex);
 
 	// Loads and compiles a sheder.
-	GLuint program = InitShader( "vshader.glsl", "fshader.glsl" );
+	GLuint program = InitShader("vshader.glsl", "fshader.glsl");
 
 	// Make this program the current one.
 	glUseProgram(program);
 
 	// Tells the shader where to look for the vertex position data, and the data dimensions.
-	GLint  vPosition = glGetAttribLocation( program, "vPosition" );
-	glEnableVertexAttribArray( vPosition );
-	glVertexAttribPointer( vPosition,2,GL_FLOAT,GL_FALSE,0,0 );
+	GLint  vPosition = glGetAttribLocation(program, "vPosition");
+	glEnableVertexAttribArray(vPosition);
+	glVertexAttribPointer(vPosition, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
 	// Same for texture coordinates data.
-	GLint  vTexCoord = glGetAttribLocation( program, "vTexCoord" );
-	glEnableVertexAttribArray( vTexCoord );
-	glVertexAttribPointer( vTexCoord,2,GL_FLOAT,GL_FALSE,0,(GLvoid *)sizeof(vtc) );
+	GLint  vTexCoord = glGetAttribLocation(program, "vTexCoord");
+	glEnableVertexAttribArray(vTexCoord);
+	glVertexAttribPointer(vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid *)sizeof(vtc));
 
 	//glProgramUniform1i( program, glGetUniformLocation(program, "texture"), 0 );
 
 	// Tells the shader to use GL_TEXTURE0 as the texture id.
-	glUniform1i(glGetUniformLocation(program, "texture"),0);
+	glUniform1i(glGetUniformLocation(program, "texture"), 0);
 }
 
 void Renderer::createOpenGLBuffer()
