@@ -470,7 +470,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 			}
 
 			if (lightType == 2) {
-				if (ImGui::InputFloat3("XYZ translation", translation, 2)) {
+				if (ImGui::SliderFloat("X translation", &translation[0], -10.0f, 10.0f)) {
 					if (trasformType) {
 						l->translateWorld(translation);
 					}
@@ -478,6 +478,22 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 						l->translateObject(translation);
 					}
 				}
+				if (ImGui::SliderFloat("Y translation", &translation[1], -10.0f, 10.0f)) {
+					if (trasformType) {
+						l->translateWorld(translation);
+					}
+					else {
+						l->translateObject(translation);
+					}
+				}
+				if (ImGui::SliderFloat("Z translation", &translation[2], -10.0f, 10.0f)) {
+					if (trasformType) {
+						l->translateWorld(translation);
+					}
+					else {
+						l->translateObject(translation);
+					}
+				}				
 			}
 			if (lightType == 1) {
 				if (ImGui::InputFloat3("Light Direction", direction, 2)) {
@@ -537,15 +553,14 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 		
 		scene.setFogType(fogType);
 
-		if (ImGui::InputFloat("Fog Start", &begin, 1)) {
+		if (ImGui::SliderFloat("Fog Start", &begin, -10.0f, 10.0f)) {
 			scene.setFogBegin(begin);
 		}
-		if (ImGui::InputFloat("Fog End", &end, 1)) {
+		if (ImGui::SliderFloat("Fog End", &end, -5.0f, 20.0f)) {
 			scene.setFogEnd(end);
 		}
 
-
-		if (ImGui::InputFloat("Fog Density", &density, 0.5)) {
+		if (ImGui::SliderFloat("Fog Density", &density, -2.0f, 2.0f)) {
 			scene.setDensity(density);
 		}
 

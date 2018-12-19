@@ -162,7 +162,7 @@ void Renderer::Render(const Scene& scene) {
 	glm::mat4 worldViewMatrix(1);
 	glm::mat4 projection(1);
 	glm::mat4 middleTranslate = Utils::getTranslationMatrix(glm::vec3(1, 1, 0));
-	glm::mat4 scaleWindow = Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 100));
+	glm::mat4 scaleWindow = Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 10));
 
 	glm::vec3 cameraPos(0, 0, 1);
 	auto lights = scene.getLights();

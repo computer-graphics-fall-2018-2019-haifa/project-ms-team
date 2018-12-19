@@ -7,7 +7,7 @@ Scene::Scene() :
 	activeCameraIndex(-1),
 	activeModelIndex(-1),
 	activeLightIndex(-1),
-	fogColor((0.8f, 0.8f, 0.8f, 1.0f))
+	fogColor((0.5f, 0.5f, 0.5f, 1.0f))
 {
 	this->rainbowMode = false;
 	this->circlesMode = false;
@@ -150,8 +150,7 @@ void Scene::applyFog(glm::vec4& color, float z) const
 		f = std::exp(-std::pow(z * this->fogDensity, 2));
 		break;
 	}
-	glm::clamp(f, 0.0f, 1.0f);
-	color = glm::clamp(f * color + (1.0f - f) * this->fogColor, 0.0f, 1.0f);
+	color = f * color + (1.0f - f) * this->fogColor;
 }
 
 int Scene::getShadingType() const
