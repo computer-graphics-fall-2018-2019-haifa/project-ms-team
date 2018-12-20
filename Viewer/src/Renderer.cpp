@@ -168,7 +168,7 @@ void Renderer::Render(const Scene& scene) {
 	glm::mat4 worldViewMatrix(1);
 	glm::mat4 projection(1);
 	glm::mat4 middleTranslate = Utils::getTranslationMatrix(glm::vec3(1, 1, 0));
-	glm::mat4 scaleWindow = Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 10));
+	glm::mat4 scaleWindow = Utils::getScaleMatrix(glm::vec3(viewportWidth / 2, viewportHeight / 2, 1));
 
 	glm::vec3 cameraPos(0, 0, 1);
 	auto lights = scene.getLights();
@@ -299,9 +299,9 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 				pColor = glm::vec4((float)((int)(i * w1 + j * w1 + z * w1) % 256) / 256, (float)((int)(i * w2 + j * w2 + z * w2) % 256) / 256, (float)((int)(i * w3 + j * w3 + z * w3) % 256) / 256, 1);
 			}
 			if (circles) {
-				KA = (float)((int)(i * i + j * j) % 256) / 256;
-				KD = (float)((int)(j * j + z * z) % 256) / 256;
-				KS = (float)((int)(i * i + z * z) % 256) / 256;
+				KA = (float)((int)(2 * i * i + j * j) % 256) / 256;
+				KD = (float)((int)(2 * j * j + z * z) % 256) / 256;
+				KS = (float)((int)(i * i + 2 * z * z) % 256) / 256;
 			}
 			float theta = 0.0f;
 			glm::vec4 lightColor = light->GetColor();

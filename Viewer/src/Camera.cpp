@@ -104,6 +104,7 @@ void Camera::updateWorldTransorm()
 
 void Camera::updateObjectTransorm()
 {
-	MeshModel::updateObjectTransorm();
+
+	this->objectTransform = translationTransform * zRotationTransform * yRotationTransform * xRotationTransform * scaleTransform * this->viewTransformation;
 	this->viewTransformation = glm::inverse(this->objectTransform);
 }
