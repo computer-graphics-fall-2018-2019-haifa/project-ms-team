@@ -21,6 +21,7 @@ private:
 	int viewportY;
 	bool aliasing;
 	bool blur;
+	float mask[3][3];
 
 	void putPixel(int x, int y, float z, const glm::vec3& color);
 	void createBuffers(int viewportWidth, int viewportHeight);

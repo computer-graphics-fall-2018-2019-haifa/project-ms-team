@@ -20,6 +20,18 @@ Renderer::Renderer(int viewportWidth, int viewportHeight, int viewportX, int vie
 {
 	initOpenGLRendering();
 	SetViewport(viewportWidth, viewportHeight, viewportX, viewportY);
+	float sum = 0.0f;
+	for (int x = 0; x < 3; ++x) {
+		for (int y = 0; y < 3; ++y) {
+			mask[x][y] = (float)std::exp(-0.5f * (float)((x-1) * (x - 1) + (y-1) * (y - 1))) / (2.0f * (float)M_PI);
+			sum += mask[x][y];
+		}
+	}
+	for (int x = 0; x < 3; ++x) {
+		for (int y = 0; y < 3; ++y) {
+			mask[x][y] /= sum;
+		}
+	}
 }
 
 Renderer::~Renderer()
@@ -293,16 +305,18 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 	default:
 		pNormal = glm::normalize(glm::cross(w2 * v2 - w1 * v1, w3 * v3 - w1 * v1));
 	}
+
+	if (rainbow) {
+		pColor = glm::vec4((float)((int)(i * w1 + j * w1 + z * w1) % 256) / 256, (float)((int)(i * w2 + j * w2 + z * w2) % 256) / 256, (float)((int)(i * w3 + j * w3 + z * w3) % 256) / 256, 1);
+	}
+	if (circles) {
+		KA = (float)((int)(i * i * w1) % 256) / 256;
+		KD = (float)((int)(j * j * w2) % 256) / 256;
+		KS = (float)((int)(z * z * w3) % 256) / 256;
+	}
+
 	if (shadingType != 1) {
 		for (auto light : lights) {
-			if (rainbow) {
-				pColor = glm::vec4((float)((int)(i * w1 + j * w1 + z * w1) % 256) / 256, (float)((int)(i * w2 + j * w2 + z * w2) % 256) / 256, (float)((int)(i * w3 + j * w3 + z * w3) % 256) / 256, 1);
-			}
-			if (circles) {
-				KA = (float)((int)(2 * i * i + j * j) % 256) / 256;
-				KD = (float)((int)(2 * j * j + z * z) % 256) / 256;
-				KS = (float)((int)(i * i + 2 * z * z) % 256) / 256;
-			}
 			float theta = 0.0f;
 			glm::vec4 lightColor = light->GetColor();
 			glm::vec4 normalColor(pColor.x * lightColor.x, pColor.y * lightColor.y, pColor.z * lightColor.z, pColor.w * lightColor.w);
@@ -311,8 +325,11 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 				finalColor += KA * normalColor;
 				break;
 			case(1):
-				auto lDir = light->getDirection(volMat);
-				theta = glm::clamp((glm::dot(pNormal, lDir) / (glm::length(lDir) * glm::length(pNormal))), 0.0f, 1.0f);
+				glm::vec3 lDir = glm::normalize(light->getDirection(volMat));
+				theta = glm::dot(pNormal, lDir) / (glm::length(lDir) * glm::length(pNormal));
+				if (theta < 0) {
+					theta = 0.0f;
+				}
 				finalColor += KD * theta * normalColor;
 				break;
 			case(2):
@@ -330,14 +347,6 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 	}
 	else if (shadingType == 1) {
 		for (auto light : lights) {
-			if (rainbow) {
-				pColor = glm::vec4((float)((int)(i * w1 + j * w1 + z * w1) % 256) / 256, (float)((int)(i * w2 + j * w2 + z * w2) % 256) / 256, (float)((int)(i * w3 + j * w3 + z * w3) % 256) / 256, 1);
-			}
-			if (circles) {
-				KA = (float)((int)(i * i + j * j) % 256) / 256;
-				KD = (float)((int)(j * j + z * z) % 256) / 256;
-				KS = (float)((int)(i * i + z * z) % 256) / 256;
-			}
 			glm::vec4 v1c(0.0f), v2c(0.0f), v3c(0.0f);		// colors at the vertixes
 			float theta = 0.0f;
 			glm::vec4 lightColor = light->GetColor();
@@ -559,6 +568,42 @@ void Renderer::SwapBuffers()
 
 	// Makes glScreenTex (which was allocated earlier) the current texture.
 	glBindTexture(GL_TEXTURE_2D, glScreenTex);
+
+	if (this->blur) {
+		int tw = viewportWidth;
+		int th = viewportHeight;
+		float* cb = new float[3 * tw * th];
+
+		for (int x = 0; x < tw; ++x) {
+			for (int y = 0; y < th; ++y) {
+				cb[INDEX(tw, x, y, 0)] = 0.0f;
+				cb[INDEX(tw, x, y, 1)] = 0.0f;
+				cb[INDEX(tw, x, y, 2)] = 0.0f;
+			}
+		}
+
+		for (int x = 0; x < tw; ++x) {
+			for (int y = 0; y < th; ++y) {
+				for (int i = std::max(x - 1, 0); i < std::min(x + 2, tw); ++i) {
+					for (int j = std::max(y - 1, 0); j < std::min(y + 2, th); ++j) {
+						cb[INDEX(tw, x, y, 0)] += colorBuffer[INDEX(tw, i, j, 0)] * mask[i - x][j - y];
+						cb[INDEX(tw, x, y, 1)] += colorBuffer[INDEX(tw, i, j, 1)] * mask[i - x][j - y];
+						cb[INDEX(tw, x, y, 2)] += colorBuffer[INDEX(tw, i, j, 2)] * mask[i - x][j - y];
+					}
+				}
+			}
+		}
+		// copy filtered back
+		for (int x = 0; x < tw; ++x) {
+			for (int y = 0; y < th; ++y) {
+				colorBuffer[INDEX(tw, x, y, 0)] = cb[INDEX(tw, x, y, 0)];
+				colorBuffer[INDEX(tw, x, y, 1)] = cb[INDEX(tw, x, y, 1)];
+				colorBuffer[INDEX(tw, x, y, 2)] = cb[INDEX(tw, x, y, 2)];
+			}
+		}
+		delete[] cb;
+	}
+
 
 	if (this->aliasing) {
 		int tw = viewportWidth / 2;
