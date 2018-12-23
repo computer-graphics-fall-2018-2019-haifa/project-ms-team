@@ -319,7 +319,13 @@ glm::vec4 Renderer::shade(const std::vector<std::shared_ptr<Light>>& lights, flo
 	glm::vec4 I(0.0f);
 	for (auto light : lights) {
 		glm::vec4 iD(0.0f), iS(0.0f);
-		glm::vec4 lp = volMat * light->getLightPos();
+		glm::vec4 lp;
+		if (light->getType()) {
+			lp = volMat * light->getLightPos();
+		}
+		else {
+			lp = volMat * light->getDirection();
+		}
 		glm::vec3 LP(lp.x / lp.w, lp.y / lp.w, lp.z / lp.w);
 		glm::vec3 L = glm::normalize(LP - glm::vec3(i, j, z));
 		glm::vec3 R = glm::reflect(-L, normal);

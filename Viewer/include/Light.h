@@ -14,7 +14,7 @@ private:
 public:
 	Light(int type, std::string name);
 	~Light();
-	glm::vec3 getDirection() const;
+	glm::vec4 getDirection() const;
 	glm::vec4 getLightPos() const;
 	void setDirection(glm::vec3 direction);
 	void setXYZ(float* pos);

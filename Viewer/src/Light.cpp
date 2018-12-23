@@ -14,9 +14,9 @@ Light::~Light()
 {
 }
 
-glm::vec3 Light::getDirection() const
+glm::vec4 Light::getDirection() const
 {
-	return this->direction;
+	return glm::vec4(this->direction, 1.0f);
 }
 
 int Light::getType() const
