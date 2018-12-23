@@ -23,6 +23,7 @@ private:
 	int activeLightIndex;
 	int fogType;
 	glm::vec4 fogColor;
+	glm::vec4 ambientColor;
 
 	bool rainbowMode;
 	bool circlesMode;
@@ -74,4 +75,7 @@ public:
 	void setFogBegin(float begin);
 	void setFogEnd(float end);
 	void setDensity(float den);
+
+	void setAmbientColor(const glm::vec4& color);
+	const glm::vec4& getAmbientColor() const;
 };

@@ -23,6 +23,7 @@ bool showFogWindow = false;
 
 std::shared_ptr<MeshModel> cameraModel = nullptr;
 glm::vec4 clearColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
+glm::vec4 ambient = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
 
 int activeModel = -1;
 int cameraIndex = -1;
@@ -87,9 +88,13 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 
 		ImGui::RadioButton("Flat", &shadingType, 0); ImGui::SameLine();
 		ImGui::RadioButton("Gouraud", &shadingType, 1); ImGui::SameLine();
-		ImGui::RadioButton("Phong", &shadingType, 2); ImGui::SameLine();
-		ImGui::RadioButton("Something", &shadingType, 3);
+		ImGui::RadioButton("Phong", &shadingType, 2);
 		scene.setShadingType(shadingType);
+		
+		if (ImGui::ColorEdit3("Ambient Color", (float*)&ambient)) {
+			scene.setAmbientColor(ambient);
+		}
+
 
 		if (ImGui::Button("4X Aliasing")) {
 			renderer.toggleAliasing();
@@ -308,7 +313,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 		static float k1 = 1.0f;
 		static float k2 = 1.0f;
 		static float k3 = 1.0f;
-		static float k4 = 1.0f;
+		static int k4 = 1;
 		static glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.00f);
 
 		activeModel = scene.GetActiveModelIndex();
@@ -417,10 +422,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 			if (ImGui::SliderFloat("Specualr K", &k3, 0.0f, 1.0f)) {
 				m->setKSpecular(k3);
 			}
-			if (ImGui::InputFloat("Specualr Exponent", &k4, 0.5f)) {
-				m->setSpecularExp(k4);
+			if (ImGui::SliderInt("Specualr Exponent", &k4, 1, 100)) {
+				m->setSpecularExp((float)k4);
 			}
-
 		}
 		else {
 			ImGui::Text("Add a model to show model transformations");
@@ -434,11 +438,11 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 	if (showLightWindow) {
 		ImGui::Begin("Light Control Window", &showLightWindow);
 		static int lightType = 0;
-		static int trasformType = 0;
 		static float translation[3] = { 0.0f, 0.0f, 0.0f };
-		static float rotation[3] = { 0.0f, 0.0f, 0.0f };
 		static float direction[3] = { 0.0f, 0.0f, 0.0f };
 		static glm::vec4 lineColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.00f);
+		static float li(1.0f);
+
 
 		lightIndex = scene.GetActiveLightIndex();
 		if (ImGui::ListBox("Lights", &lightIndex, Utils::convertStringVectorToCharArray(lights), (int)lights.size())) {
@@ -456,76 +460,32 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 		if (lightIndex != -1) {
 			auto l = scene.getLight(lightIndex);
 			bool typeChange = false;
-			typeChange = ImGui::RadioButton("Ambient", &lightType, 0); ImGui::SameLine();
-			typeChange |= ImGui::RadioButton("Parallel", &lightType, 1); ImGui::SameLine();
-			typeChange |= ImGui::RadioButton("Point", &lightType, 2);
+			
+			typeChange |= ImGui::RadioButton("Parallel", &lightType, 0); ImGui::SameLine();
+			typeChange |= ImGui::RadioButton("Point", &lightType, 1);
 			if (typeChange) {
 				l->setType(lightType);
 			}
 			lightType = l->getType();
 
-			ImGui::RadioButton("Object", &trasformType, 0); ImGui::SameLine();
-			ImGui::RadioButton("World", &trasformType, 1);
-
-			if (ImGui::ColorEdit3("Color", (float*)&lineColor)) {
-				l->SetColor(lineColor);
+			if (ImGui::ColorEdit3("Intensity", (float*)&lineColor)) {
+				l->setIntensity(lineColor);
 			}
 
-			if (lightType == 2) {
+			if (lightType == 1) {
 				if (ImGui::SliderFloat("X translation", &translation[0], -10.0f, 10.0f)) {
-					if (trasformType) {
-						l->translateWorld(translation);
-					}
-					else {
-						l->translateObject(translation);
-					}
+					l->setXYZ(translation);
 				}
 				if (ImGui::SliderFloat("Y translation", &translation[1], -10.0f, 10.0f)) {
-					if (trasformType) {
-						l->translateWorld(translation);
-					}
-					else {
-						l->translateObject(translation);
-					}
+					l->setXYZ(translation);
 				}
 				if (ImGui::SliderFloat("Z translation", &translation[2], -10.0f, 10.0f)) {
-					if (trasformType) {
-						l->translateWorld(translation);
-					}
-					else {
-						l->translateObject(translation);
-					}
+					l->setXYZ(translation);
 				}
 			}
-			if (lightType == 1) {
+			if (lightType == 0) {
 				if (ImGui::InputFloat3("Light Direction", direction, 2)) {
 					l->setDirection(glm::vec3(direction[0], direction[1], direction[2]));
-				}
-			}
-			if ((lightType == 2) && (trasformType)) {
-				if (ImGui::SliderFloat("X rotation", &rotation[0], -180.0f, 180.0f)) {
-					if (trasformType) {
-						l->xRotateWorld(rotation[0]);
-					}
-					else {
-						l->xRotateObject(rotation[0]);
-					}
-				}
-				if (ImGui::SliderFloat("Y rotation", &rotation[1], -180.0f, 180.0f)) {
-					if (trasformType) {
-						l->yRotateWorld(rotation[1]);
-					}
-					else {
-						l->yRotateObject(rotation[1]);
-					}
-				}
-				if (ImGui::SliderFloat("Z rotation", &rotation[2], -180.0f, 180.0f)) {
-					if (trasformType) {
-						l->zRotateWorld(rotation[2]);
-					}
-					else {
-						l->zRotateObject(rotation[2]);
-					}
 				}
 			}
 		}
@@ -555,14 +515,14 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 
 		scene.setFogType(fogType);
 
-		if (ImGui::SliderFloat("Fog Start", &begin, -10.0f, 10.0f)) {
+		if (ImGui::SliderFloat("Fog Start", &begin, -10.0f, 100.0f)) {
 			scene.setFogBegin(begin);
 		}
-		if (ImGui::SliderFloat("Fog End", &end, -5.0f, 20.0f)) {
+		if (ImGui::SliderFloat("Fog End", &end, -5.0f, 200.0f)) {
 			scene.setFogEnd(end);
 		}
 
-		if (ImGui::SliderFloat("Fog Density", &density, -2.0f, 2.0f)) {
+		if (ImGui::SliderFloat("Fog Density", &density, -20.0f, 20.0f)) {
 			scene.setDensity(density);
 		}
 

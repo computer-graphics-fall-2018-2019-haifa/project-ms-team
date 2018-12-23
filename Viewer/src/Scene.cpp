@@ -7,7 +7,8 @@ Scene::Scene() :
 	activeCameraIndex(-1),
 	activeModelIndex(-1),
 	activeLightIndex(-1),
-	fogColor((0.5f, 0.5f, 0.5f, 1.0f))
+	fogColor((0.5f, 0.5f, 0.5f, 1.0f)),
+	ambientColor((0.8f, 0.8f, 0.8f, 1.0f))
 {
 	this->rainbowMode = false;
 	this->circlesMode = false;
@@ -186,4 +187,14 @@ void Scene::setFogEnd(float end)
 void Scene::setDensity(float den)
 {
 	this->fogDensity = den;
+}
+
+void Scene::setAmbientColor(const glm::vec4 & color)
+{
+	this->ambientColor = color;
+}
+
+const glm::vec4 & Scene::getAmbientColor() const
+{
+	return this->ambientColor;
 }

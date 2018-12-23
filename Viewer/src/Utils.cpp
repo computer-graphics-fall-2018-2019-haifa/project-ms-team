@@ -110,6 +110,15 @@ glm::mat4 Utils::getScaleMatrix(const glm::vec3 vec)
 	return mat;
 }
 
+glm::vec4 Utils::pointProduct(const glm::vec4& v1, const glm::vec4& v2) {
+	glm::vec4 r;
+	r.x = v1.x * v2.x;
+	r.y = v1.y * v2.y;
+	r.z = v1.z * v2.z;
+	r.w = v1.w * v2.w;
+	return r;
+}
+
 char ** Utils::convertStringVectorToCharArray(std::vector<std::string> vec)
 {
 	int i = 0;
