@@ -75,12 +75,12 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 				glm::vec3 camPos = cam->getPosition();
 				glm::vec4 homCamPos(camPos.x, camPos.y, camPos.z, 1);
 				homCamPos = cam->GetWorldTransformation() * (cam->GetObjectTransformation() * homCamPos);
-				camPos = glm::vec3(homCamPos.x, homCamPos.y, homCamPos.z) / homCamPos.z;
+				camPos = glm::vec3(homCamPos.x, homCamPos.y, homCamPos.z) / homCamPos.w;
 
 				glm::vec3 modelPos = model->getPosition();
 				glm::vec4 homModelPos(modelPos.x, modelPos.y, modelPos.z, 1);
 				homModelPos = model->GetWorldTransformation() * (model->GetObjectTransformation() * homModelPos);
-				modelPos = glm::vec3(homModelPos.x, homModelPos.y, homModelPos.z) / homModelPos.z;
+				modelPos = glm::vec3(homModelPos.x, homModelPos.y, homModelPos.z) / homModelPos.w;
 
 				cam->SetCameraLookAt(camPos, modelPos, glm::vec3(0, 1, 0));
 			}
