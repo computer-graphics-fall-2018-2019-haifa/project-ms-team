@@ -246,10 +246,10 @@ void Renderer::drawModel(const std::vector<Face>& faces, const std::vector<glm::
 			n2 = normals[face.GetNormalIndex(1)];
 			n3 = normals[face.GetNormalIndex(2)];
 		}
-		int top = (int)std::max(v2.y, std::max(v3.y, v1.y));
-		int bottom = (int)std::min(v2.y, std::min(v3.y, v1.y));
-		int right = (int)std::max(v2.x, std::max(v3.x, v1.x));
-		int left = (int)std::min(v2.x, std::min(v3.x, v1.x));
+		int top = (int)glm::clamp(std::max(v2.y, std::max(v3.y, v1.y)), 0.0f, (float)viewportHeight);
+		int bottom = (int)glm::clamp(std::min(v2.y, std::min(v3.y, v1.y)), 0.0f, (float)viewportHeight);
+		int right = (int)glm::clamp(std::max(v2.x, std::max(v3.x, v1.x)), 0.0f, (float)viewportWidth);
+		int left = (int)glm::clamp(std::min(v2.x, std::min(v3.x, v1.x)), 0.0f, (float)viewportWidth);
 		float s1 = v2.y - v3.y;
 		float s2 = v3.y - v1.y;
 		float s3 = v3.x - v2.x;
@@ -301,9 +301,9 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 		break;
 	case(1):		// gouraud
 		glm::vec4 i1, i2, i3;
-		i1 = shade(lights, v1.x, v1.y, v1.z, n1, KA, KD, KS, sExp, volMat, pColor, ambientColor, cameraPos);
-		i2 = shade(lights, v2.x, v2.y, v2.z, n2, KA, KD, KS, sExp, volMat, pColor, ambientColor, cameraPos);
-		i3 = shade(lights, v3.x, v3.y, v3.z, n3, KA, KD, KS, sExp, volMat, pColor, ambientColor, cameraPos);
+		i1 = shade(lights, v1.x, v1.y, v1.z, glm::normalize(n1), KA, KD, KS, sExp, volMat, pColor, ambientColor, cameraPos);
+		i2 = shade(lights, v2.x, v2.y, v2.z, glm::normalize(n2), KA, KD, KS, sExp, volMat, pColor, ambientColor, cameraPos);
+		i3 = shade(lights, v3.x, v3.y, v3.z, glm::normalize(n3), KA, KD, KS, sExp, volMat, pColor, ambientColor, cameraPos);
 		pColor = w1 * i1 + w2 * i2 + w3 * i3;
 		break;
 	case(2):		// phong
@@ -328,7 +328,7 @@ glm::vec4 Renderer::shade(const std::vector<std::shared_ptr<Light>>& lights, flo
 		else {
 			L = glm::normalize(light->getDirection());
 		}
-		glm::vec3 R = glm::reflect(-L, normal);
+		glm::vec3 R = glm::reflect(L, normal);
 		glm::vec3 V = glm::normalize(cameraPos -glm::vec3(i, j, z));
 		float theta = 0.0f;
 		// diffuse
@@ -343,7 +343,7 @@ glm::vec4 Renderer::shade(const std::vector<std::shared_ptr<Light>>& lights, flo
 
 		I += Utils::pointProduct((iD + iS), light->getIntensity());
 	}
-	I += ambientColor * KA;
+	I += Utils::pointProduct(ambientColor, KA * color);
 	I = glm::clamp(I, 0.0f, 1.0f);
 	return I;
 }
