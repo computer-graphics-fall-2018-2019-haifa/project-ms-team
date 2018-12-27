@@ -72,50 +72,55 @@ void Renderer::drawLine(float x1, float y1, float z1, float x2, float y2, float 
 	}
 	float deltaX = x2 - x1;
 	float deltaY = y2 - y1;
+	float deltaZ = z2 - z1;
 	float slope = deltaY / deltaX;
 	deltaX *= 2;		// scaling now to not perform it inside the loop each time
 	deltaY *= 2;
 	if (slope < 0) {	// case of a line with 'downwards' slope
 		if (slope < -1) {		// case of a line that decreases on Y faster then it increases on X
 			float e = deltaY;
+			deltaZ /= (y1 - y2);
 			while (y1 >= y2) {
 				if (e > 0) {
 					x1++; e += deltaY;
 				}
 				this->putPixel((int)x1, (int)y1, z1, color);
-				y1--; e += deltaX;
+				y1--; e += deltaX; z1 += deltaZ;
 			}
 		}
 		else {					// case of a line that decreases on Y slower then it increases on X
 			float e = -deltaX;
+			deltaZ /= (x2 - x1);
 			while (x1 <= x2) {
 				if (e > 0) {
 					y1--; e -= deltaX;
 				}
 				this->putPixel((int)x1, (int)y1, z1, color);
-				x1++; e -= deltaY;
+				x1++; e -= deltaY; z1 += deltaZ;
 			}
 		}
 	}
 	else {				// case of a line with 'upwards' slope
 		if (slope > 1) {		// case of a line that increases on Y faster then it increases on X
 			float e = -deltaY;
+			deltaZ /= (y2 - y1);
 			while (y1 <= y2) {
 				if (e > 0) {
 					x1++; e -= deltaY;
 				}
 				this->putPixel((int)x1, (int)y1, z1, color);
-				y1++; e += deltaX;
+				y1++; e += deltaX; z1 += deltaZ;
 			}
 		}
 		else {					// case of a line that increases on Y slower then it increases on X
 			float e = -deltaX;
+			deltaZ /= (x1 - x2);
 			while (x1 <= x2) {
 				if (e > 0) {
 					y1++; e -= deltaX;
 				}
 				this->putPixel((int)x1, (int)y1, z1, color);
-				x1++; e += deltaY;
+				x1++; e += deltaY; z1 += deltaZ;
 			}
 		}
 	}
@@ -191,7 +196,7 @@ void Renderer::Render(const Scene& scene) {
 		cameraPos = scene.getCamera(scene.GetActiveCameraIndex())->getPosition();
 	}
 
-	glm::mat4 totalMat = scaleWindow * (middleTranslate * (projection * (viewMatrix * worldViewMatrix)));
+	glm::mat4 totalMat = scaleWindow * (middleTranslate * (projection * (worldViewMatrix * viewMatrix)));
 
 	for (int i = 0; i < scene.GetModelCount(); i++) {
 		auto model = scene.getModel(i);
@@ -557,6 +562,7 @@ void Renderer::SwapBuffers()
 				colorBuffer[INDEX(tw, x, y, 0)] = cb[INDEX(tw, x, y, 0)];
 				colorBuffer[INDEX(tw, x, y, 1)] = cb[INDEX(tw, x, y, 1)];
 				colorBuffer[INDEX(tw, x, y, 2)] = cb[INDEX(tw, x, y, 2)];
+				std::cout << cb[INDEX(tw, x, y, 0)] << " ";
 			}
 		}
 		delete[] cb;
