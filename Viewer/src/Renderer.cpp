@@ -301,7 +301,12 @@ glm::vec4 Renderer::getPosColor(float i, float j, float z, const glm::vec3& came
 	}
 	switch (shadingType) {
 	case(0):		// flat
-		normal = glm::normalize(glm::cross(v2 - v1, v3 - v1));
+		if (flipFaceNormals) {
+			normal = glm::normalize(glm::cross(v2 - v1, v3 - v1));
+		}
+		else {
+			normal = glm::normalize(glm::cross(v3 - v1, v2 - v1));
+		}
 		pColor = shade(lights, i, j, z, normal, KA, KD, KS, sExp, volMat, pColor, ambientColor, cameraPos);
 		break;
 	case(1):		// gouraud
@@ -333,7 +338,7 @@ glm::vec4 Renderer::shade(const std::vector<std::shared_ptr<Light>>& lights, flo
 		else {
 			L = glm::normalize(light->getDirection());
 		}
-		glm::vec3 R = glm::reflect(L, normal);
+		glm::vec3 R = glm::normalize(glm::reflect(L, normal));
 		glm::vec3 V = glm::normalize(cameraPos -glm::vec3(i, j, z));
 		float theta = 0.0f;
 		// diffuse
@@ -562,7 +567,6 @@ void Renderer::SwapBuffers()
 				colorBuffer[INDEX(tw, x, y, 0)] = cb[INDEX(tw, x, y, 0)];
 				colorBuffer[INDEX(tw, x, y, 1)] = cb[INDEX(tw, x, y, 1)];
 				colorBuffer[INDEX(tw, x, y, 2)] = cb[INDEX(tw, x, y, 2)];
-				std::cout << cb[INDEX(tw, x, y, 0)] << " ";
 			}
 		}
 		delete[] cb;
