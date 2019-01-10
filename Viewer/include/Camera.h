@@ -42,11 +42,15 @@ public:
 		const float far);
 
 	void SetZoom(const float zoom);
-
+	void SetAspectRatio(const float ratio);
 	glm::mat4x4 getViewTransformation();
 	glm::mat4x4 getWorldViewTransformation();
 	glm::mat4x4 getProjection();
 
-	virtual void updateWorldTransorm();
-	virtual void updateObjectTransorm();
+	float getZNear() const;
+	float getZFar() const;
+	float getParam() const;
+	float getAspect() const;
+
+	bool isPerspective() const;
 };

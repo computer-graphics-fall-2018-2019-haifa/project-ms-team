@@ -18,28 +18,40 @@ bool showDemoWindow = false;
 bool showModelWindow = false;
 bool showCameraWindow = false;
 bool showLightWindow = false;
-bool showScaleError = false;
 bool showFogWindow = false;
 
 std::shared_ptr<MeshModel> cameraModel = nullptr;
 glm::vec4 clearColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
 glm::vec4 ambient = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
 
-int activeModel = -1;
-int cameraIndex = -1;
-int lightIndex = -1;
 int shadingType = 0;
 int fogType = 0;	//no fog
-std::vector<std::string> models;
-std::vector<std::string> cameras;
-std::vector<std::string> lights;
 
 const glm::vec4& GetClearColor() {
 	return clearColor;
 }
 
-void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
+void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& renderer)
 {
+
+	std::vector<std::string> models;
+	std::vector<std::string> cameras;
+	std::vector<std::string> lights;
+
+	for (int i = 0; i < scene->GetModelCount(); ++i) {
+		models.push_back(scene->getModel(i)->GetModelName());
+	}
+	for (int i = 0; i < scene->GetCameraCount(); ++i) {
+		models.push_back(scene->getCamera(i)->GetModelName());
+	}
+	for (int i = 0; i < scene->GetLightCount(); ++i) {
+		models.push_back(scene->getLight(i)->getLightName());
+	}
+
+	int activeModel = scene->GetActiveModelIndex();
+	int cameraIndex = scene->GetActiveCameraIndex();
+	int lightIndex = scene->GetActiveLightIndex();
+
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
 	if (showDemoWindow) {
 		ImGui::ShowDemoWindow(&showDemoWindow);
@@ -69,19 +81,10 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 
 		if ((activeModel != -1) && (cameraIndex != -1)) {
 			if (ImGui::Button("Active Camera Look At Active Model")) {
-				auto cam = scene.getCamera(cameraIndex);
-				auto model = scene.getModel(activeModel);
-
+				auto cam = scene->getCamera(cameraIndex);
+				auto model = scene->getModel(activeModel);
 				glm::vec3 camPos = cam->getPosition();
-				glm::vec4 homCamPos(camPos.x, camPos.y, camPos.z, 1);
-				homCamPos = cam->GetWorldTransformation() * (cam->GetObjectTransformation() * homCamPos);
-				camPos = glm::vec3(homCamPos.x, homCamPos.y, homCamPos.z) / homCamPos.w;
-
 				glm::vec3 modelPos = model->getPosition();
-				glm::vec4 homModelPos(modelPos.x, modelPos.y, modelPos.z, 1);
-				homModelPos = model->GetWorldTransformation() * (model->GetObjectTransformation() * homModelPos);
-				modelPos = glm::vec3(homModelPos.x, homModelPos.y, homModelPos.z) / homModelPos.w;
-
 				cam->SetCameraLookAt(camPos, modelPos, glm::vec3(0, 1, 0));
 			}
 		}
@@ -89,25 +92,17 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 		ImGui::RadioButton("Flat", &shadingType, 0); ImGui::SameLine();
 		ImGui::RadioButton("Gouraud", &shadingType, 1); ImGui::SameLine();
 		ImGui::RadioButton("Phong", &shadingType, 2);
-		scene.setShadingType(shadingType);
+		scene->setShadingType(shadingType);
 		
 		if (ImGui::ColorEdit3("Ambient Color", (float*)&ambient)) {
-			scene.setAmbientColor(ambient);
-		}
-
-
-		if (ImGui::Button("4X Aliasing")) {
-			renderer.toggleAliasing();
-		}
-		if (ImGui::Button("Toggle Blur")) {
-			renderer.toggleBlur();
+			scene->setAmbientColor(ambient);
 		}
 
 		if (ImGui::Button("Rainbow mode!")) {
-			scene.toggleRainbow();
+			scene->toggleRainbow();
 		}
 		if (ImGui::Button("Circles mode!")) {
-			scene.toggleCircles();
+			scene->toggleCircles();
 		}
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -125,10 +120,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 					nfdchar_t *outPath = NULL;
 					nfdresult_t result = NFD_OpenDialog("obj;png,jpg", NULL, &outPath);
 					if (result == NFD_OKAY) {
-						scene.AddModel(std::make_shared<MeshModel>(Utils::LoadMeshModel(outPath)));
-						activeModel = scene.GetModelCount() - 1;
-						scene.SetActiveModelIndex(activeModel);
-						models.push_back(scene.getModel(scene.GetActiveModelIndex())->GetModelName());
+						scene->AddModel(std::make_shared<MeshModel>(Utils::LoadMeshModel(outPath)));
 						free(outPath);
 					}
 					else if (result == NFD_CANCEL) {
@@ -156,143 +148,186 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 		}
 	}
 
-	// Display error when trying to set the scale to 0
-	if (showScaleError) {
-		ImGui::Begin("Scale Use Error", &showScaleError);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-		ImGui::Text("Scale value cannot be set to 0!");
-		if (ImGui::Button("Close")) {
-			showScaleError = false;
-		}
-		ImGui::End();
-	}
-
 	if (showCameraWindow) {
 		ImGui::Begin("Camera Control Window", &showCameraWindow);
-		static float eye[3] = { 0.0f, 0.0f, 0.0f };
-		static float at[3] = { 0.0f, 0.0f, 0.0f };
-		static float up[3] = { 0.0f, 1.0f, 0.0f };
-		static float z[2] = { 1.0f, 10.0f };
-		static float fovy[2] = { 45.0f, 1.0f };
-		static float zoom = 1.0f;
-		static int cameraTrasformType = 0;
-		static float cameraScale[3] = { 1.0f, 1.0f, 1.0f };
-		static float cameraTranslation[3] = { 0.0f, 0.0f, 0.0f };
-		static float cameraRotation[3] = { 0.0f, 0.0f, 0.0f };
-
+		
 		if (cameraModel != nullptr) {
+			static float eye[3] = { 0.0f, 0.0f, 0.0f };
+			static float at[3] = { 0.0f, 0.0f, 0.0f };
+			static float up[3] = { 0.0f, 1.0f, 0.0f };
 			ImGui::InputFloat3("Camera Eye", eye, 2);
 			ImGui::InputFloat3("Camera At", at, 2);
 			ImGui::InputFloat3("Camera Up", up, 2);
 			if (ImGui::Button("Add Camera")) {
-				scene.AddCamera(std::make_shared<Camera>(Camera(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(at[0], at[1], at[2]), glm::vec3(up[0], up[1], up[2]), *cameraModel)));
-				cameraIndex = scene.GetCameraCount() - 1;
-				scene.SetActiveCameraIndex(cameraIndex);
-				std::string s = "Camera ";
-				cameras.push_back(s.append(std::to_string(scene.GetCameraCount())));
+				scene->AddCamera(std::make_shared<Camera>(Camera(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(at[0], at[1], at[2]), glm::vec3(up[0], up[1], up[2]), *cameraModel)));
 			}
 
-			cameraIndex = scene.GetActiveCameraIndex();
 			if (cameraIndex != -1) {
 				ImGui::SameLine();
 				if (ImGui::Button("Set Camera Look At")) {
-					auto m = scene.getCamera(cameraIndex);
+					auto m = scene->getActiveCamera();
 					m->SetCameraLookAt(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(at[0], at[1], at[2]), glm::vec3(up[0], up[1], up[2]));
 				}
 			}
 			if (ImGui::ListBox("Cameras", &cameraIndex, Utils::convertStringVectorToCharArray(cameras), (int)cameras.size())) {
-				scene.SetActiveCameraIndex(cameraIndex);
+				scene->SetActiveCameraIndex(cameraIndex);
 			}
 		}
 		else {
 			ImGui::Text("Load a camera model before adding a camera");
 		}
+
 		if (cameraIndex != -1) {
-			auto m = scene.getCamera(cameraIndex);
-			static glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.00f);
+			auto m = scene->getCamera(cameraIndex);
+			//perspective stuff
+			{
+				float zNear = m->getZNear();
+				float zFar = m->getZFar();
+				float param = m->getParam();
+				float aspect = m->getAspect();
+				bool perspectiveChanged = false;
+
+				perspectiveChanged |= ImGui::SliderFloat("Z Near", &zNear, -100.0f, 100.f);
+				perspectiveChanged |= ImGui::SliderFloat("Z Far", &zFar, -100.0f, 100.f);
+				perspectiveChanged |= ImGui::SliderFloat("Aspect Ratio", &aspect, 1.0f, 5.0f);
+
+				if (m->isPerspective()) {
+					perspectiveChanged |= ImGui::InputFloat("Field of View", &param, -45.0f, 45.0f);
+					if (perspectiveChanged) {
+						m->SetPerspectiveProjection(param, 16.0f / 9.0f, zNear, zFar);
+					}
+				}
+				else {
+					perspectiveChanged |= ImGui::InputFloat("Height", &param, 0.0f, 100.0f);
+					if (perspectiveChanged) {
+						m->SetOrthographicProjection(param, 16.0f / 9.0f, zNear, zFar);
+					}
+				}
+
+				if (ImGui::Button("Set prespective")) {
+					m->SetPerspectiveProjection(param, aspect, zNear, zFar);
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Set orthographic")) {
+					m->SetOrthographicProjection(param, aspect, zNear, zFar);
+				}
+
+				if (ImGui::ArrowButton("Zoom In", 0)) {
+					m->SetZoom(1.1f);
+				}
+				if (ImGui::ArrowButton("Zoom Out", 1)) {
+					m->SetZoom(0.9f);
+				}
+			}
+
+			static int cameraTrasformType = 0;
 			ImGui::RadioButton("Object", &cameraTrasformType, 0); ImGui::SameLine();
 			ImGui::RadioButton("World", &cameraTrasformType, 1);
-			if (ImGui::ColorEdit3("line color", (float*)&lineColor)) {
-				m->SetColor(lineColor);
-			}
-			ImGui::InputFloat2("Z near/Z far", z, 2);
-			ImGui::InputFloat2("fovy/height", fovy, 2);
-			if (ImGui::Button("Set prespective")) {
-				m->SetPerspectiveProjection(fovy[0], 16 / 9, z[0], z[1]);
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Set orthographic")) {
-				m->SetOrthographicProjection(fovy[1], 16 / 9, z[0], z[1]);
-			}
 
-			if (ImGui::InputFloat("Camera Zoom", &zoom, 0.1f, 1, 2)) {
-				m->SetZoom(1 / zoom);
-			}
-
-			ImGui::InputFloat3("XYZ scale", cameraScale, 2);
-			if (ImGui::Button("Set scale")) {
-				if ((cameraScale[0] == 0.0f) || (cameraScale[1] == 0.0f) || (cameraScale[1] == 0.0f)) {
-					cameraScale[0] = 1.0f;
-					cameraScale[1] = 1.0f;
-					cameraScale[2] = 1.0f;
-					showScaleError = true;
+			//scaling stuff
+			{
+				static float scaleXYZ[3] = { 1.0f, 1.0f, 1.0f };
+				if (ImGui::SliderFloat("X Scale", &scaleXYZ[0], -10.0f, 10.f)) {
+					if (scaleXYZ[0] != 0.0f) {
+						scaleXYZ[1] = 1.0f;
+						scaleXYZ[2] = 1.0f;
+						if (cameraTrasformType) {
+							m->scaleWorld(scaleXYZ);
+						}
+						else {
+							m->scaleObject(scaleXYZ);
+						}
+					}
 				}
-				else {
+				if (ImGui::SliderFloat("Y Scale", &scaleXYZ[1], -10.0f, 10.f)) {
+					if (scaleXYZ[1] != 0.0f) {
+						scaleXYZ[0] = 1.0f;
+						scaleXYZ[2] = 1.0f;
+						if (cameraTrasformType) {
+							m->scaleWorld(scaleXYZ);
+						}
+						else {
+							m->scaleObject(scaleXYZ);
+						}
+					}
+				}
+				if (ImGui::SliderFloat("Z Scale", &scaleXYZ[2], -10.0f, 10.f)) {
+					if (scaleXYZ[2] != 0.0f) {
+						scaleXYZ[0] = 1.0f;
+						scaleXYZ[1] = 1.0f;
+						if (cameraTrasformType) {
+							m->scaleWorld(scaleXYZ);
+						}
+						else {
+							m->scaleObject(scaleXYZ);
+						}
+					}
+				}
+			}
+
+			//translation stuff
+			{
+				static float cameraTranslation[3] = {0.0f, 0.0f, 0.0f};
+				if (ImGui::SliderFloat("X translation", &cameraTranslation[0], -10.0f, 10.f)) {
+					cameraTranslation[1] = 0.0f;
+					cameraTranslation[2] = 0.0f;
 					if (cameraTrasformType) {
-						m->scaleWorld(cameraScale);
+						m->translateWorld(cameraTranslation);
 					}
 					else {
-						m->scaleObject(cameraScale);
+						m->translateObject(cameraTranslation);
+					}
+				}
+				if (ImGui::SliderFloat("Y translation", &cameraTranslation[1], -10.0f, 10.f)) {
+					cameraTranslation[0] = 0.0f;
+					cameraTranslation[2] = 0.0f;
+					if (cameraTrasformType) {
+						m->translateWorld(cameraTranslation);
+					}
+					else {
+						m->translateObject(cameraTranslation);
+					}
+				}
+				if (ImGui::SliderFloat("Z translation", &cameraTranslation[2], -10.0f, 10.f)) {
+					cameraTranslation[0] = 0.0f;
+					cameraTranslation[1] = 0.0f;
+					if (cameraTrasformType) {
+						m->translateWorld(cameraTranslation);
+					}
+					else {
+						m->translateObject(cameraTranslation);
 					}
 				}
 			}
 
-			if (ImGui::SliderFloat("X translation", &cameraTranslation[0], -10.0f, 10.f)) {
-				if (cameraTrasformType) {
-					m->translateWorld(cameraTranslation);
+			//rotation stuff
+			{
+				static float cameraRotation[3] = {0.0f, 0.0f, 0.0f};
+				if (ImGui::SliderFloat("X rotation", &cameraRotation[0], -270.0f, 270.0f)) {
+					if (cameraTrasformType) {
+						m->xRotateWorld(cameraRotation[0]);
+					}
+					else {
+						m->xRotateObject(cameraRotation[0]);
+					}
 				}
-				else {
-					m->translateObject(cameraTranslation);
+				if (ImGui::SliderFloat("Y rotation", &cameraRotation[1], -180.0f, 180.0f)) {
+					if (cameraTrasformType) {
+						m->yRotateWorld(cameraRotation[1]);
+					}
+					else {
+						m->yRotateObject(cameraRotation[1]);
+					}
 				}
-			}
-			if (ImGui::SliderFloat("Y translation", &cameraTranslation[1], -10.0f, 10.f)) {
-				if (cameraTrasformType) {
-					m->translateWorld(cameraTranslation);
+				if (ImGui::SliderFloat("Z rotation", &cameraRotation[2], -180.0f, 180.0f)) {
+					if (cameraTrasformType) {
+						m->zRotateWorld(cameraRotation[2]);
+					}
+					else {
+						m->zRotateObject(cameraRotation[2]);
+					}
 				}
-				else {
-					m->translateObject(cameraTranslation);
-				}
-			}if (ImGui::SliderFloat("Z translation", &cameraTranslation[2], -10.0f, 10.f)) {
-				if (cameraTrasformType) {
-					m->translateWorld(cameraTranslation);
-				}
-				else {
-					m->translateObject(cameraTranslation);
-				}
-			}
-			if (ImGui::SliderFloat("X rotation", &cameraRotation[0], -180.0f, 180.0f)) {
-				if (cameraTrasformType) {
-					m->xRotateWorld(cameraRotation[0]);
-				}
-				else {
-					m->xRotateObject(cameraRotation[0]);
-				}
-			}
-			if (ImGui::SliderFloat("Y rotation", &cameraRotation[1], -180.0f, 180.0f)) {
-				if (cameraTrasformType) {
-					m->yRotateWorld(cameraRotation[1]);
-				}
-				else {
-					m->yRotateObject(cameraRotation[1]);
-				}
-			}
-			if (ImGui::SliderFloat("Z rotation", &cameraRotation[2], -180.0f, 180.0f)) {
-				if (cameraTrasformType) {
-					m->zRotateWorld(cameraRotation[2]);
-				}
-				else {
-					m->zRotateObject(cameraRotation[2]);
-				}
-			}
+			}	
 		}
 		else {
 			ImGui::Text("Add a camera to show camera transformations");
@@ -306,124 +341,180 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 
 	if (showModelWindow) {
 		ImGui::Begin("Model Control Window", &showModelWindow);
-		static int trasformType = 0;
-		static float scale[3] = { 1.0f, 1.0f, 1.0f };
-		static float translation[3] = { 0.0f, 0.0f, 0.0f };
-		static float rotation[3] = { 0.0f, 0.0f, 0.0f };
-		static float k1 = 1.0f;
-		static float k2 = 1.0f;
-		static float k3 = 1.0f;
-		static int k4 = 1;
-		static glm::vec4 lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.00f);
 
-		activeModel = scene.GetActiveModelIndex();
 		if (ImGui::ListBox("Models", &activeModel, Utils::convertStringVectorToCharArray(models), (int)models.size())) {
-			scene.SetActiveModelIndex(activeModel);
+			scene->SetActiveModelIndex(activeModel);
 		}
 
 		if (activeModel != -1) {
-			auto m = scene.getModel(activeModel);
-			ImGui::RadioButton("Object", &trasformType, 0); ImGui::SameLine();
-			ImGui::RadioButton("World", &trasformType, 1);
-			if (ImGui::ColorEdit3("line color", (float*)&lineColor)) {
-				m->SetColor(lineColor);
+
+			auto m = scene->getActiveModel();
+
+			static int modelTransformType = 0;
+			ImGui::RadioButton("Object", &modelTransformType, 0); ImGui::SameLine();
+			ImGui::RadioButton("World", &modelTransformType, 1);
+
+			//scaling stuff
+			{
+				static float scaleXYZ[3] = { 1.0f, 1.0f, 1.0f };
+				if (ImGui::SliderFloat("X Scale", &scaleXYZ[0], -10.0f, 10.f)) {
+					if (scaleXYZ[0] != 0.0f) {
+						scaleXYZ[1] = 1.0f;
+						scaleXYZ[2] = 1.0f;
+						if (modelTransformType) {
+							m->scaleWorld(scaleXYZ);
+						}
+						else {
+							m->scaleObject(scaleXYZ);
+						}
+					}
+				}
+				if (ImGui::SliderFloat("Y Scale", &scaleXYZ[1], -10.0f, 10.f)) {
+					if (scaleXYZ[1] != 0.0f) {
+						scaleXYZ[0] = 1.0f;
+						scaleXYZ[2] = 1.0f;
+						if (modelTransformType) {
+							m->scaleWorld(scaleXYZ);
+						}
+						else {
+							m->scaleObject(scaleXYZ);
+						}
+					}
+				}
+				if (ImGui::SliderFloat("Z Scale", &scaleXYZ[2], -10.0f, 10.f)) {
+					if (scaleXYZ[2] != 0.0f) {
+						scaleXYZ[0] = 1.0f;
+						scaleXYZ[1] = 1.0f;
+						if (modelTransformType) {
+							m->scaleWorld(scaleXYZ);
+						}
+						else {
+						m->scaleObject(scaleXYZ);
+						}
+					}
+				}
 			}
 
-			if (ImGui::Button("Toggle Bounding Box")) {
-				m->toggleBounding();
-			}
-
-			if (ImGui::Button("Toggle Vertex Normals")) {
-				m->toggleNormals();
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Flip Vertex Normals")) {
-				m->toggleFlipNormals();
-			}
-
-			if (ImGui::Button("Toggle Face Normals")) {
-				m->toggleFaceNormals();
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Flip Face Normals")) {
-				m->toggleFlipFaceNormals();
-			}
-
-			ImGui::InputFloat3("XYZ scale", scale, 2);
-			if (ImGui::Button("Set scale")) {
-				if ((scale[0] == 0.0f) || (scale[1] == 0.0f) || (scale[1] == 0.0f)) {
-					scale[0] = 1.0f;
-					scale[1] = 1.0f;
-					scale[2] = 1.0f;
-					showScaleError = true;
+			//translation stuff
+			{
+			static float modelTranslation[3] = { 0.0f, 0.0f, 0.0f };
+			if (ImGui::SliderFloat("X translation", &modelTranslation[0], -10.0f, 10.f)) {
+				modelTranslation[1] = 0.0f;
+				modelTranslation[2] = 0.0f;
+				if (modelTransformType) {
+					m->translateWorld(modelTranslation);
 				}
 				else {
-					if (trasformType) {
-						m->scaleWorld(scale);
+					m->translateObject(modelTranslation);
+				}
+			}
+			if (ImGui::SliderFloat("Y translation", &modelTranslation[1], -10.0f, 10.f)) {
+				modelTranslation[0] = 0.0f;
+				modelTranslation[2] = 0.0f;
+				if (modelTransformType) {
+					m->translateWorld(modelTranslation);
+				}
+				else {
+					m->translateObject(modelTranslation);
+				}
+			}
+			if (ImGui::SliderFloat("Z translation", &modelTranslation[2], -10.0f, 10.f)) {
+				modelTranslation[0] = 0.0f;
+				modelTranslation[1] = 0.0f;
+				if (modelTransformType) {
+					m->translateWorld(modelTranslation);
+				}
+				else {
+					m->translateObject(modelTranslation);
+				}
+			}
+			}
+
+			//rotation stuff
+			{
+				static float modelRotation[3] = { 0.0f, 0.0f, 0.0f };
+				if (ImGui::SliderFloat("X rotation", &modelRotation[0], -270.0f, 270.0f)) {
+					if (modelTransformType) {
+						m->xRotateWorld(modelRotation[0]);
 					}
 					else {
-						m->scaleObject(scale);
+						m->xRotateObject(modelRotation[0]);
+					}
+				}
+				if (ImGui::SliderFloat("Y rotation", &modelRotation[1], -180.0f, 180.0f)) {
+					if (modelTransformType) {
+						m->yRotateWorld(modelRotation[1]);
+					}
+					else {
+						m->yRotateObject(modelRotation[1]);
+					}
+				}
+				if (ImGui::SliderFloat("Z rotation", &modelRotation[2], -180.0f, 180.0f)) {
+					if (modelTransformType) {
+						m->zRotateWorld(modelRotation[2]);
+					}
+					else {
+						m->zRotateObject(modelRotation[2]);
 					}
 				}
 			}
-			if (ImGui::SliderFloat("X translation", &translation[0], -10.0f, 10.f)) {
-				if (trasformType) {
-					m->translateWorld(translation);
+
+			//color stuff
+			{
+				glm::vec4 ambient(0.0f);
+				glm::vec4 diffuse(0.0f);
+				glm::vec4 specular(0.0f);
+				glm::vec4 line(0.0f);
+				static float k1 = 1.0f;
+				static float k2 = 1.0f;
+				static float k3 = 1.0f;
+				static int k4 = 1;
+
+				if (ImGui::ColorEdit3("Line Color", (float*)&line)) {
+					m->SetLineColor(line);
 				}
-				else {
-					m->translateObject(translation);
+				if (ImGui::ColorEdit3("Ambient Color", (float*)&ambient)) {
+					m->SetAmbientColor(ambient);
 				}
+				if (ImGui::ColorEdit3("Diffuse Color", (float*)&diffuse)) {
+					m->SetDiffuseColor(diffuse);
+				}
+				if (ImGui::ColorEdit3("Specular Color", (float*)&specular)) {
+					m->SetSpecularColor(specular);
+				}
+
+				if (ImGui::SliderFloat("Ambient K", &k1, 0.0f, 1.0f)) {
+					m->setKAmbient(k1);
+				}
+				if (ImGui::SliderFloat("Diffuse K", &k2, 0.0f, 1.0f)) {
+					m->setKDiffuse(k2);
+				}
+				if (ImGui::SliderFloat("Specualr K", &k3, 0.0f, 1.0f)) {
+					m->setKSpecular(k3);
+				}
+				if (ImGui::SliderInt("Specualr Exponent", &k4, 1, 100)) {
+					m->setSpecularExp((float)k4);
+				}
+
 			}
-			if (ImGui::SliderFloat("Y translation", &translation[1], -10.0f, 10.f)) {
-				if (trasformType) {
-					m->translateWorld(translation);
+
+			//others
+			{
+				if (ImGui::Button("Toggle Bounding Box")) {
+					m->toggleBounding();
 				}
-				else {
-					m->translateObject(translation);
+				if (ImGui::Button("Toggle Vertex Normals")) {
+					m->toggleNormals();
 				}
-			}if (ImGui::SliderFloat("Z translation", &translation[2], -10.0f, 10.f)) {
-				if (trasformType) {
-					m->translateWorld(translation);
+				if (ImGui::Button("Flip Vertex Normals")) {
+					m->toggleFlipNormals();
 				}
-				else {
-					m->translateObject(translation);
+				if (ImGui::Button("Toggle Face Normals")) {
+					m->toggleFaceNormals();
 				}
-			}
-			if (ImGui::SliderFloat("X rotation", &rotation[0], -180.0f, 180.0f)) {
-				if (trasformType) {
-					m->xRotateWorld(rotation[0]);
+				if (ImGui::Button("Flip Face Normals")) {
+					m->toggleFlipFaceNormals();
 				}
-				else {
-					m->xRotateObject(rotation[0]);
-				}
-			}
-			if (ImGui::SliderFloat("Y rotation", &rotation[1], -180.0f, 180.0f)) {
-				if (trasformType) {
-					m->yRotateWorld(rotation[1]);
-				}
-				else {
-					m->yRotateObject(rotation[1]);
-				}
-			}
-			if (ImGui::SliderFloat("Z rotation", &rotation[2], -180.0f, 180.0f)) {
-				if (trasformType) {
-					m->zRotateWorld(rotation[2]);
-				}
-				else {
-					m->zRotateObject(rotation[2]);
-				}
-			}
-			if (ImGui::SliderFloat("Ambient K", &k1, 0.0f, 1.0f)) {
-				m->setKAmbient(k1);
-			}
-			if (ImGui::SliderFloat("Diffuse K", &k2, 0.0f, 1.0f)) {
-				m->setKDiffuse(k2);
-			}
-			if (ImGui::SliderFloat("Specualr K", &k3, 0.0f, 1.0f)) {
-				m->setKSpecular(k3);
-			}
-			if (ImGui::SliderInt("Specualr Exponent", &k4, 1, 100)) {
-				m->setSpecularExp((float)k4);
 			}
 		}
 		else {
@@ -437,55 +528,59 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 
 	if (showLightWindow) {
 		ImGui::Begin("Light Control Window", &showLightWindow);
-		static int lightType = 0;
-		static float translation[3] = { 0.0f, 0.0f, 0.0f };
-		static float direction[3] = { 0.0f, 0.0f, 0.0f };
-		static glm::vec4 lineColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.00f);
-		static float li(1.0f);
 
-
-		lightIndex = scene.GetActiveLightIndex();
 		if (ImGui::ListBox("Lights", &lightIndex, Utils::convertStringVectorToCharArray(lights), (int)lights.size())) {
-			scene.SetActiveLightIndex(lightIndex);
+			scene->SetActiveLightIndex(lightIndex);
 		}
 
-		if (ImGui::Button("Add light")) {
-			scene.AddLight(std::make_shared<Light>(Light(lightType, "light")));
-			lightIndex = scene.GetLightCount() - 1;
-			scene.SetActiveLightIndex(lightIndex);
-			std::string s = "Light ";
-			lights.push_back(s.append(std::to_string(lightIndex)));
+		if (ImGui::Button("Add Light")) {
+			scene->AddLight(std::make_shared<Light>(Light(0, "Light")));
 		}
 
 		if (lightIndex != -1) {
-			auto l = scene.getLight(lightIndex);
-			bool typeChange = false;
-			
-			typeChange |= ImGui::RadioButton("Parallel", &lightType, 0); ImGui::SameLine();
-			typeChange |= ImGui::RadioButton("Point", &lightType, 1);
-			if (typeChange) {
-				l->setType(lightType);
-			}
-			lightType = l->getType();
+			auto l = scene->getActiveLight();
+			int lightType = l->getType();
 
-			if (ImGui::ColorEdit3("Intensity", (float*)&lineColor)) {
-				l->setIntensity(lineColor);
+			{
+				bool typeChange = false;
+				
+				typeChange |= ImGui::RadioButton("Parallel", &lightType, 0); ImGui::SameLine();
+				typeChange |= ImGui::RadioButton("Point", &lightType, 1);
+				if (typeChange) {
+					l->setType(lightType);
+				}
 			}
 
-			if (lightType == 1) {
-				if (ImGui::SliderFloat("X translation", &translation[0], -10.0f, 10.0f)) {
-					l->setXYZ(translation);
+			// light moving
+			{
+				static glm::vec4 lightColor(0.0f);
+				if (ImGui::ColorEdit3("Intensity", (float*)&lightColor)) {
+					l->setIntensity(lightColor);
 				}
-				if (ImGui::SliderFloat("Y translation", &translation[1], -10.0f, 10.0f)) {
-					l->setXYZ(translation);
+
+				if (lightType == 1) {
+					static float translation[3] = {0.0f, 0.0f, 0.0f};
+					if (ImGui::SliderFloat("X translation", &translation[0], -10.0f, 10.0f)) {
+						translation[1] = 0.0f;
+						translation[2] = 0.0f;
+						l->setXYZ(translation);
+					}
+					if (ImGui::SliderFloat("Y translation", &translation[1], -10.0f, 10.0f)) {
+						translation[0] = 0.0f;
+						translation[2] = 0.0f;
+						l->setXYZ(translation);
+					}
+					if (ImGui::SliderFloat("Z translation", &translation[2], -10.0f, 10.0f)) {
+						translation[0] = 0.0f;
+						translation[1] = 0.0f;
+						l->setXYZ(translation);
+					}
 				}
-				if (ImGui::SliderFloat("Z translation", &translation[2], -10.0f, 10.0f)) {
-					l->setXYZ(translation);
-				}
-			}
-			if (lightType == 0) {
-				if (ImGui::InputFloat3("Light Direction", direction, 2)) {
-					l->setDirection(glm::vec3(direction[0], direction[1], direction[2]));
+				if (lightType == 0) {
+					static float direction[3] = { 0.0f, 0.0f, 0.0f };
+					if (ImGui::InputFloat3("Light Direction", direction, 2)) {
+						l->setDirection(glm::vec3(direction[0], direction[1], direction[2]));
+					}
 				}
 			}
 		}
@@ -497,6 +592,8 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 		}
 		ImGui::End();
 	}
+
+
 	if (showFogWindow) {
 		static float end = 2.0f;
 		static float begin = 0.0f;
@@ -505,7 +602,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 		ImGui::Begin("Fog Control Window", &showFogWindow);
 
 		if (ImGui::ColorEdit3("Fog color", (float*)&fogColor)) {
-			scene.setFogColor(fogColor);
+			scene->setFogColor(fogColor);
 		}
 
 		ImGui::RadioButton("No fog", &fogType, 0); ImGui::SameLine();
@@ -513,19 +610,18 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer)
 		ImGui::RadioButton("Exp fog", &fogType, 2); ImGui::SameLine();
 		ImGui::RadioButton("Exp squared", &fogType, 3);
 
-		scene.setFogType(fogType);
-
-		if (ImGui::SliderFloat("Fog Start", &begin, -10.0f, 100.0f)) {
-			scene.setFogBegin(begin);
+		scene->setFogType(fogType);
+		if (fogType) {
+			if (ImGui::SliderFloat("Fog Start", &begin, -10.0f, 100.0f)) {
+				scene->setFogBegin(begin);
+			}
+			if (ImGui::SliderFloat("Fog End", &end, -5.0f, 200.0f)) {
+				scene->setFogEnd(end);
+			}
+			if (ImGui::SliderFloat("Fog Density", &density, -20.0f, 20.0f)) {
+				scene->setDensity(density);
+			}
 		}
-		if (ImGui::SliderFloat("Fog End", &end, -5.0f, 200.0f)) {
-			scene.setFogEnd(end);
-		}
-
-		if (ImGui::SliderFloat("Fog Density", &density, -20.0f, 20.0f)) {
-			scene.setDensity(density);
-		}
-
 		if (ImGui::Button("Close")) {
 			showFogWindow = false;
 		}

@@ -3,11 +3,10 @@
 #include <glm/glm.hpp>
 #include "MeshModel.h"
 
-class Light : public MeshModel
+class Light
 {
 private:
 	int type;
-	float ld;
 	glm::vec4 intensity;
 	glm::vec4 pos;
 	glm::vec3 direction;
@@ -20,6 +19,7 @@ public:
 	void setXYZ(float* pos);
 	int getType() const;
 	void setType(int type);
+	std::string getLightName();
 
 	void setIntensity(const glm::vec4& i);
 	const glm::vec4& getIntensity() const;

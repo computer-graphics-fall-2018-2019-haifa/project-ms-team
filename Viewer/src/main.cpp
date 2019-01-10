@@ -14,14 +14,21 @@
 #include "Camera.h"
 #include "ImguiMenus.h"
 
+
+std::shared_ptr<Scene> scene;
+int windowWidth = 1280, windowHeight = 720;
+
 // Function declarations
 static void GlfwErrorCallback(int error, const char* description);
 GLFWwindow* SetupGlfwWindow(int w, int h, const char* window_name);
 ImGuiIO& SetupDearImgui(GLFWwindow* window);
 void StartFrame();
-void RenderFrame(GLFWwindow* window, Scene& scene, Renderer& renderer, ImGuiIO& io);
+void RenderFrame(GLFWwindow* window, std::shared_ptr<Scene> scene, Renderer& renderer, ImGuiIO& io);
 void Cleanup(GLFWwindow* window);
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+void resizeCallback(GLFWwindow* window, int width, int height);
+float GetAspectRatio();
+
 
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
@@ -30,32 +37,52 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 	// Handle mouse scrolling here...
 }
 
+void resizeCallback(GLFWwindow * window, int width, int height)
+{
+	windowWidth = width;
+	windowHeight = height;
+	glViewport(0, 0, windowWidth, windowHeight);
+	int i = scene->GetActiveCameraIndex();
+	if (i != -1) {
+		scene->getCamera(i)->SetAspectRatio(GetAspectRatio());
+	}
+}
+
+float GetAspectRatio()
+{
+	return static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
+}
+
+
 int main(int argc, char **argv)
 {
 	// Create GLFW window
-	int windowWidth = 1280, windowHeight = 720;
+	
 	GLFWwindow* window = SetupGlfwWindow(windowWidth, windowHeight, "Mesh Viewer");
-	if (!window)
-	{
+	if (!window) {
 		return 1;
 	}
 
 	// Move OpenGL context to the newly created window
 	glfwMakeContextCurrent(window);
 
-	// Get the current width/height of the frame buffer
-	int frameBufferWidth, frameBufferHeight;
-	glfwGetFramebufferSize(window, &frameBufferWidth, &frameBufferHeight);
-
 	// Create the renderer and the scene
-	Renderer renderer = Renderer(frameBufferWidth, frameBufferHeight);
-	Scene scene = Scene();
+	Renderer renderer;
+	scene = std::make_shared<Scene>();
+
+	renderer.LoadShaders();
+	renderer.LoadTextures();
 
 	// Setup ImGui
 	ImGuiIO& io = SetupDearImgui(window);
 
 	// Register a mouse scroll-wheel callback
 	glfwSetScrollCallback(window, ScrollCallback);
+	glfwSetFramebufferSizeCallback(window, resizeCallback);
+	
+	//openGL things
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 
 	// This is the main game loop..
     while (!glfwWindowShouldClose(window))
@@ -75,6 +102,25 @@ int main(int argc, char **argv)
     return 0;
 }
 
+void RenderFrame(GLFWwindow* window, std::shared_ptr<Scene> scene, Renderer& renderer, ImGuiIO& io)
+{
+	// Render the menus
+	ImGui::Render();
+
+	glfwMakeContextCurrent(window);
+	// clear color buffer, zbuffer and set background color
+	glm::vec4 clearColor = GetClearColor();
+	glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.w);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Render the scene
+	renderer.Render(scene);
+
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	glfwSwapBuffers(window);
+}
+
 static void GlfwErrorCallback(int error, const char* description)
 {
 	fprintf(stderr, "Glfw Error %d: %s\n", error, description);
@@ -83,10 +129,11 @@ static void GlfwErrorCallback(int error, const char* description)
 GLFWwindow* SetupGlfwWindow(int w, int h, const char* window_name)
 {
 	glfwSetErrorCallback(GlfwErrorCallback);
+
 	if (!glfwInit())
 		return NULL;
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #if __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -122,30 +169,6 @@ void StartFrame()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-}
-
-void RenderFrame(GLFWwindow* window, Scene& scene, Renderer& renderer, ImGuiIO& io)
-{
-	// Render the menus
-	ImGui::Render();
-
-	// That's how you get the current width/height of the frame buffer (for example, after the window was resized)
-	int frameBufferWidth, frameBufferHeight;
-	glfwGetFramebufferSize(window, &frameBufferWidth, &frameBufferHeight);
-
-	// Resize handling here... (a suggestion)
-	renderer.SetViewport(frameBufferWidth, frameBufferHeight);
-
-	// Clear the frame buffer
-	renderer.ClearColorBuffer(GetClearColor());
-	// Render the scene
-	renderer.Render(scene);
-
-	// Swap buffers
-	renderer.SwapBuffers();
-
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	glfwSwapBuffers(window);
 }
 
 void Cleanup(GLFWwindow* window)

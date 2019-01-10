@@ -7,25 +7,11 @@
 #include <sstream>
 #include <limits>
 
-MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::string& modelName) :
+MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& textureCoords, const std::string& modelName) :
 	modelName(modelName),
-	color(0.0f, 0.0f, 0.0f, 1.0f),
-	worldTransform(glm::mat4x4(1)),
-	objectTransform(glm::mat4x4(1)),
-	worldScaleTransform(glm::mat4x4(1)),
-	worldTranslationTransform(glm::mat4x4(1)),
-	worldxRotationTransform(glm::mat4x4(1)),
-	worldyRotationTransform(glm::mat4x4(1)),
-	worldzRotationTransform(glm::mat4x4(1)),
-	scaleTransform(glm::mat4x4(1)),
-	translationTransform(glm::mat4x4(1)),
-	xRotationTransform(glm::mat4x4(1)),
-	yRotationTransform(glm::mat4x4(1)),
-	zRotationTransform(glm::mat4x4(1))
+	worldTransform(glm::mat4x4(1.0f)),
+	objectTransform(glm::mat4x4(1.0f))
 {
-	this->faces = faces;
-	this->vertices = vertices;
-	this->normals = normals;
 	this->drawBounding = false;
 	this->drawFaceNormals = false;
 	this->drawNormals = false;
@@ -64,108 +50,169 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 	boundingVer.push_back(glm::vec3(max.x, min.y, max.z));
 	boundingVer.push_back(glm::vec3(min.x, max.y, max.z));
 	boundingVer.push_back(glm::vec3(max.x, max.y, max.z));
+	// add color and stuff later
+	modelVertices.reserve(3 * faces.size());
+	for (auto face : faces) {
+		for (int i = 0; i < 3; ++i) {
+			Vertex vertex;
+			vertex.position = vertices[face.GetVertexIndex(i)];
+			vertex.normal = normals[face.GetNormalIndex(i)];
+			if (textureCoords.size() > 0) {
+				vertex.tex = textureCoords[face.GetTextureIndex(i)];
+			}
+			else {
+				vertex.tex = glm::vec2(0.0f, 0.0f);
+			}
+			modelVertices.push_back(vertex);
+		}
+	}
+	//GL stuff
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, modelVertices.size() * sizeof(Vertex), &modelVertices[0], GL_STATIC_DRAW);
+
+	// load vertex positions
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, position));
+	
+	// load normals
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, normal));
+	
+	// load textures
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, tex));
+
+	// unbind
+	glBindVertexArray(0);
+}
+
+MeshModel::MeshModel(const MeshModel & ref, const std::string & name)
+{
+	this->drawBounding = false;
+	this->drawFaceNormals = false;
+	this->drawNormals = false;
+	this->flipNormals = false;
+	this->flipFaceNormals = false;
+
+	this->KA = 1.0f;
+	this->KD = 1.0f;
+	this->KS = 1.0f;
+	this->sExp = 1.0f;
+
+	this->boundingVer = ref.boundingVer;
+	this->modelVertices = ref.modelVertices;
+	
+	//GL stuff
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, modelVertices.size() * sizeof(Vertex), &modelVertices[0], GL_STATIC_DRAW);
+
+	// load vertex positions
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, position));
+
+	// load normals
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, normal));
+
+	// load textures
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, tex));
+
+	// unbind
+	glBindVertexArray(0);
 }
 
 MeshModel::~MeshModel()
 {
+	glDeleteVertexArrays(1, &vao);
+	glDeleteBuffers(1, &vbo);
+}
 
+void MeshModel::drawModel(ShaderProgram& shader, Texture2D& tex) const
+{
+	shader.setUniform("model", worldTransform * objectTransform);
+	shader.setUniform("material.AmbientColor", colorAmbient);
+	shader.setUniform("material.DiffuseColor", colorDiffuse);
+	shader.setUniform("material.SpecualrColor", colorSpecular);
+
+	tex.bind(0);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glBindVertexArray(vao);
+	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)modelVertices.size());
+	glBindVertexArray(0);
+	tex.unbind(0);
+
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glBindVertexArray(vao);
+	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)modelVertices.size());
+	glBindVertexArray(0);
 }
 
 void MeshModel::xRotateObject(const float angle)
 {
-	this->xRotationTransform = Utils::getRotationMatrix(angle, 'x');
-	updateObjectTransorm();
+	objectTransform = Utils::getRotationMatrix(angle, 'x') * objectTransform;
 }
 
 void MeshModel::yRotateObject(const float angle)
 {
-	this->yRotationTransform = Utils::getRotationMatrix(angle, 'y');
-	updateObjectTransorm();
+	objectTransform = Utils::getRotationMatrix(angle, 'y') * objectTransform;
 }
 
 void MeshModel::zRotateObject(const float angle)
 {
-	this->zRotationTransform = Utils::getRotationMatrix(angle, 'z');
-	updateObjectTransorm();
+	objectTransform = Utils::getRotationMatrix(angle, 'z') * objectTransform;
 }
 
 void MeshModel::translateObject(const float * translation)
 {
-	this->translationTransform = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
-	updateObjectTransorm();
+	objectTransform = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2])) * objectTransform;
 }
 
 void MeshModel::scaleObject(const float * scale)
 {
-	auto m = Utils::getScaleMatrix(glm::vec3(scale[0], scale[1], scale[2]));
-	this->scaleTransform = m * this->scaleTransform;
-	updateObjectTransorm();
+	objectTransform = Utils::getScaleMatrix(glm::vec3(scale[0], scale[1], scale[2])) * objectTransform;
 }
 
 void MeshModel::xRotateWorld(const float angle)
 {
-	this->worldxRotationTransform = Utils::getRotationMatrix(angle, 'x');
-	updateWorldTransorm();
+	worldTransform = Utils::getRotationMatrix(angle, 'x') * worldTransform;
 }
 
 void MeshModel::yRotateWorld(const float angle)
 {
-	this->worldyRotationTransform = Utils::getRotationMatrix(angle, 'y');
-	updateWorldTransorm();
+	worldTransform = Utils::getRotationMatrix(angle, 'y') * worldTransform;
 }
 
 void MeshModel::zRotateWorld(const float angle)
 {
-	this->worldzRotationTransform = Utils::getRotationMatrix(angle, 'z');
-	updateWorldTransorm();
+	worldTransform = Utils::getRotationMatrix(angle, 'z') * worldTransform;
 }
 
 void MeshModel::translateWorld(const float * translation)
 {
-	this->worldTranslationTransform = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
-	updateWorldTransorm();
+	worldTransform = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2])) * worldTransform;
 }
 
 void MeshModel::scaleWorld(const float * scale)
 {
-	auto m = Utils::getScaleMatrix(glm::vec3(scale[0], scale[1], scale[2]));
-	this->worldScaleTransform = m * this->worldScaleTransform;
-	updateWorldTransorm();
-}
-
-void MeshModel::updateWorldTransorm()
-{
-	this->worldTransform = worldTranslationTransform * worldzRotationTransform * worldyRotationTransform * worldxRotationTransform * worldScaleTransform;
-}
-
-void MeshModel::updateObjectTransorm()
-{
-	this->objectTransform = translationTransform * zRotationTransform * yRotationTransform * xRotationTransform * scaleTransform;
-}
-
-const glm::mat4x4& MeshModel::GetWorldTransformation() const
-{
-	return this->worldTransform;
-}
-
-const glm::mat4x4 & MeshModel::GetObjectTransformation() const
-{
-	return this->objectTransform;
-}
-
-void MeshModel::SetColor(const glm::vec4& color)
-{
-	this->color = color;
+	worldTransform = Utils::getScaleMatrix(glm::vec3(scale[0], scale[1], scale[2])) * worldTransform;
 }
 
 const glm::vec3 & MeshModel::getPosition() const
 {
-	return this->vertices[0];
-}
-
-const glm::vec4& MeshModel::GetColor() const
-{
-	return color;
+	glm::vec4 temp(pos, 1.0f);
+	temp = worldTransform * objectTransform * temp;
+	glm::vec3 t(temp.x, temp.y, temp.z);
+	return t / temp.w;
 }
 
 const std::string& MeshModel::GetModelName()
@@ -173,64 +220,24 @@ const std::string& MeshModel::GetModelName()
 	return modelName;
 }
 
-const std::vector<Face> MeshModel::getFaces() const
+void MeshModel::SetAmbientColor(const glm::vec4 & color)
 {
-	return this->faces;
+	this->colorAmbient = color;
 }
 
-const std::vector<glm::vec3> MeshModel::getVertices() const
+void MeshModel::SetDiffuseColor(const glm::vec4 & color)
 {
-	return this->vertices;
+	this->colorDiffuse = color;
 }
 
-const std::vector<glm::vec3> MeshModel::getBoundingVer() const
+void MeshModel::SetSpecularColor(const glm::vec4 & color)
 {
-	return this->boundingVer;
+	this->colorSpecular = color;
 }
 
-const bool MeshModel::isDrawBounding() const
+void MeshModel::SetLineColor(const glm::vec4 & color)
 {
-	return this->drawBounding;
-}
-
-const bool MeshModel::isDrawNormals() const
-{
-	return this->drawNormals;
-}
-
-const bool MeshModel::isFlipNormals() const
-{
-	return this->flipNormals;
-}
-
-const bool MeshModel::isFlipFaceNormals() const
-{
-	return this->flipFaceNormals;
-}
-
-const float MeshModel::getKAmbient() const
-{
-	return this->KA;
-}
-
-const float MeshModel::getKDiffuse() const
-{
-	return KD;
-}
-
-const float MeshModel::getKSpecular() const
-{
-	return this->KS;
-}
-
-const float MeshModel::getSpecularExp() const
-{
-	return this->sExp;
-}
-
-const bool MeshModel::isDrawFaceNormals() const
-{
-	return this->drawFaceNormals;
+	this->colorLine = color;
 }
 
 void MeshModel::setKAmbient(float k)
@@ -276,9 +283,4 @@ void MeshModel::toggleFlipNormals()
 void MeshModel::toggleFlipFaceNormals()
 {
 	this->flipFaceNormals = !this->flipFaceNormals;
-}
-
-const std::vector<glm::vec3> MeshModel::getNormals() const
-{
-	return this->normals;
 }

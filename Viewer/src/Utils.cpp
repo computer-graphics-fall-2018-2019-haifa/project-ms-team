@@ -25,6 +25,7 @@ MeshModel Utils::LoadMeshModel(const std::string& filePath)
 	std::vector<Face> faces;
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
+	std::vector<glm::vec2> texture;
 	std::ifstream ifile(filePath.c_str());
 
 	// while not end of file
@@ -48,7 +49,7 @@ MeshModel Utils::LoadMeshModel(const std::string& filePath)
 			normals.push_back(Utils::Vec3fFromStream(issLine));
 		}
 		else if (lineType == "vt") {
-			// Texture coordinates
+			texture.push_back(Utils::Vec2fFromStream(issLine));
 		}
 		else if (lineType == "f") {
 			faces.push_back(Face(issLine));
@@ -62,13 +63,13 @@ MeshModel Utils::LoadMeshModel(const std::string& filePath)
 		}
 	}
 
-	return MeshModel(faces, vertices, normals, Utils::GetFileName(filePath));
+	return MeshModel(faces, vertices, normals, texture, Utils::GetFileName(filePath));
 }
 
 glm::mat4 Utils::getRotationMatrix(const float angle, char axis)
 {
 	glm::mat4 mat(1);
-	float  deg = angle * PI / 180;
+	float deg = angle * PI / 180;
 	float c = cos(deg);
 	float s = sin(deg);
 	if (axis == 'x') {

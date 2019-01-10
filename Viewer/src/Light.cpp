@@ -1,11 +1,9 @@
 #include "Light.h"
 
-Light::Light(int type, std::string name) : MeshModel(std::vector<Face>(), std::vector<glm::vec3>(), std::vector<glm::vec3>(), name)
+Light::Light(int type, std::string name)
 {
 	this->type = type;
 	this->direction = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-	this->color = glm::vec4(1.0f);
-	this->vertices.push_back(glm::vec3(0, 0, 0));
 	this->intensity = glm::vec4(1.0f);
 	this->pos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 }
@@ -27,6 +25,14 @@ int Light::getType() const
 void Light::setType(int type)
 {
 	this->type = type;
+}
+
+std::string Light::getLightName()
+{
+	if (type) {
+		return "Point";
+	}
+	return "Parallel";
 }
 
 void Light::setIntensity(const glm::vec4 & i)

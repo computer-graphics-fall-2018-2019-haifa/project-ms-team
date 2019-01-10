@@ -58,6 +58,11 @@ public:
 	const std::shared_ptr<Camera> getCamera(int index) const;
 	const std::shared_ptr<Light> getLight(int index) const;
 
+	const std::shared_ptr<MeshModel> getActiveModel() const;
+	const std::shared_ptr<Camera> getActiveCamera() const;
+	const std::shared_ptr<Light> getActiveLight() const;
+
+
 	const std::vector<std::shared_ptr<Light>> getLights() const;
 
 	void toggleRainbow();

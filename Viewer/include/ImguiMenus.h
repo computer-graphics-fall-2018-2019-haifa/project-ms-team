@@ -4,5 +4,5 @@
 #include "Renderer.h"
 
 
-void DrawImguiMenus(ImGuiIO& io, Scene& scene, Renderer& renderer);
+void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& renderer);
 const glm::vec4& GetClearColor();
