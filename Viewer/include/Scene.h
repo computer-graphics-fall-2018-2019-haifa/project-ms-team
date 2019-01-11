@@ -25,13 +25,12 @@ private:
 	glm::vec4 fogColor;
 	glm::vec4 ambientColor;
 
-	bool rainbowMode;
-	bool circlesMode;
 	int shadingModel;
 
 	float fogEnd;
 	float fogStart;
 	float fogDensity;
+	int aliasLevel;
 
 public:
 	Scene();
@@ -64,11 +63,6 @@ public:
 
 
 	const std::vector<std::shared_ptr<Light>> getLights() const;
-
-	void toggleRainbow();
-	void toggleCircles();
-	const bool getRainbow() const;
-	const bool getCircles() const;
 
 	void applyFog(glm::vec4& color, float z) const;
 	

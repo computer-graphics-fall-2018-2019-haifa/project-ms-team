@@ -6,3 +6,4 @@
 
 void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& renderer);
 const glm::vec4& GetClearColor();
+void HandleImguiInput(std::shared_ptr<Scene> scene, Renderer& renderer, ImGuiIO& imgui);

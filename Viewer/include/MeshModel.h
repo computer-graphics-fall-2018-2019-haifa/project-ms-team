@@ -62,16 +62,16 @@ public:
 	MeshModel(const MeshModel& ref, const std::string& name = "");
 	virtual ~MeshModel();
 
-	void xRotateObject(const float angle);
-	void yRotateObject(const float angle);
-	void zRotateObject(const float angle);
-	void translateObject(const float* translation);
-	void scaleObject(const float* scale);
-	void xRotateWorld(const float angle);
-	void yRotateWorld(const float angle);
-	void zRotateWorld(const float angle);
-	void translateWorld(const float* translation);
-	void scaleWorld(const float* scale);
+	void xRotateObject(const float angle, bool inc = false);
+	void yRotateObject(const float angle, bool inc = false);
+	void zRotateObject(const float angle, bool inc = false);
+	void translateObject(const float* translation, bool inc = false);
+	void scaleObject(const float* scale, bool inc = false);
+	void xRotateWorld(const float angle, bool inc = false);
+	void yRotateWorld(const float angle, bool inc = false);
+	void zRotateWorld(const float angle, bool inc = false);
+	void translateWorld(const float* translation, bool inc = false);
+	void scaleWorld(const float* scale, bool inc = false);
 
 	const std::string& GetModelName();
 

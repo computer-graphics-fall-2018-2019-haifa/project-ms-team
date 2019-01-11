@@ -54,17 +54,17 @@ void Camera::SetPerspectiveProjection(
 	this->znear = zNear;
 	this->aspect = aspectRatio;
 	this->param1 = fovy;
-	this->projectionTransformation = glm::perspective(fovy, aspectRatio, zNear, zFar);
+	this->param1 = glm::min(fovy, glm::pi<float>());
+	this->projectionTransformation = glm::perspective(param1, aspectRatio, zNear, zFar);
 	this->activeView = 1;
 }
 
 void Camera::SetZoom(const float zoom) {
-	float val = this->param1;
+	float val = this->param1 * zoom;
 	if (this->activeView == 0) {
-		this->SetOrthographicProjection(val * zoom, this->aspect, this->znear, this->zfar);
+		this->SetOrthographicProjection(val , this->aspect, this->znear, this->zfar);
 	}
 	else if (this->activeView == 1) {
-		val = glm::min(val * zoom, glm::pi<float>());
 		this->SetPerspectiveProjection(val, this->aspect, this->znear, this->zfar);
 	}
 }

@@ -11,10 +11,9 @@ Scene::Scene() :
 	fogColor((0.5f, 0.5f, 0.5f, 1.0f)),
 	ambientColor((0.8f, 0.8f, 0.8f, 1.0f))
 {
-	this->rainbowMode = false;
-	this->circlesMode = false;
 	this->fogType = 0;
 	this->shadingModel = 0;		// flat
+	this->aliasLevel = 0;
 }
 
 void Scene::AddModel(const std::shared_ptr<MeshModel>& model)
@@ -132,27 +131,6 @@ const std::vector<std::shared_ptr<Light>> Scene::getLights() const
 {
 	return this->lights;
 }
-
-void Scene::toggleRainbow()
-{
-	this->rainbowMode = !this->rainbowMode;
-}
-
-void Scene::toggleCircles()
-{
-	this->circlesMode = !this->circlesMode;
-}
-
-const bool Scene::getRainbow() const
-{
-	return this->rainbowMode;
-}
-
-const bool Scene::getCircles() const
-{
-	return this->circlesMode;
-}
-
 
 void Scene::applyFog(glm::vec4& color, float z) const
 {

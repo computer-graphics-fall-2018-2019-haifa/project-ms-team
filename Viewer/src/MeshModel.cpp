@@ -33,7 +33,7 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 	this->KA = 1.0f;
 	this->KD = 1.0f;
 	this->KS = 1.0f;
-	this->sExp = 1.0f;
+	this->sExp = 50.0f;
 
 
 	glm::vec3 min((float)std::numeric_limits<int>::max());
@@ -197,73 +197,123 @@ void MeshModel::drawModel(ShaderProgram& shader, Texture2D& tex) const
 	glBindVertexArray(0);
 }
 
-void MeshModel::xRotateObject(const float angle)
+void MeshModel::xRotateObject(const float angle, bool inc)
 {
 	const glm::mat4 mat = Utils::getRotationMatrix(angle, 'x');;
-	xRotationTransform = mat;
+	if (inc) {
+		xRotationTransform = mat * xRotationTransform;
+	}
+	else {
+		xRotationTransform = mat;
+	}
 	updateObjectTransform(mat);
 }
 
-void MeshModel::yRotateObject(const float angle)
+void MeshModel::yRotateObject(const float angle, bool inc)
 {
 	const glm::mat4 mat = Utils::getRotationMatrix(angle, 'y');
-	yRotationTransform = mat;
+	if (inc) {
+		yRotationTransform = mat * yRotationTransform;
+	}
+	else {
+		yRotationTransform = mat;
+	}
 	updateObjectTransform(mat);
 }
 
-void MeshModel::zRotateObject(const float angle)
+void MeshModel::zRotateObject(const float angle, bool inc)
 {
 	const glm::mat4 mat = Utils::getRotationMatrix(angle, 'z');
-	zRotationTransform = mat;
+	if (inc) {
+		zRotationTransform = mat * zRotationTransform;
+	}
+	else {
+		zRotationTransform = mat;
+	}
 	updateObjectTransform(mat);
 }
 
-void MeshModel::translateObject(const float * translation)
+void MeshModel::translateObject(const float * translation, bool inc)
 {
 	const glm::mat4 mat = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
-	translationTransform = mat;
+	if (inc) {
+		translationTransform = mat * translationTransform;
+	}
+	else {
+		translationTransform = mat;
+	}
 	updateObjectTransform(mat);
 }
 
-void MeshModel::scaleObject(const float * scale)
+void MeshModel::scaleObject(const float * scale, bool inc)
 {
 	const glm::mat4 mat = Utils::getScaleMatrix(glm::vec3(scale[0], scale[1], scale[2]));
-	scaleTransform = mat;
+	if (inc) {
+		scaleTransform = mat * scaleTransform;
+	}
+	else {
+		scaleTransform = mat;
+	}
 	updateObjectTransform(mat);
 }
 
-void MeshModel::xRotateWorld(const float angle)
+void MeshModel::xRotateWorld(const float angle, bool inc)
 {
 	const glm::mat4 mat = Utils::getRotationMatrix(angle, 'x');
-	worldxRotationTransform = mat;
+	if (inc) {
+		worldxRotationTransform = mat * worldxRotationTransform;
+	}
+	else {
+		worldxRotationTransform = mat;
+	}
 	updateWorldTransform(mat);
 }
 
-void MeshModel::yRotateWorld(const float angle)
+void MeshModel::yRotateWorld(const float angle, bool inc)
 {
 	const glm::mat4 mat = Utils::getRotationMatrix(angle, 'y');
-	worldyRotationTransform = mat;
+	if (inc) {
+		worldyRotationTransform = mat * worldyRotationTransform;
+	}
+	else {
+		worldyRotationTransform = mat;
+	}
 	updateWorldTransform(mat);
 }
 
-void MeshModel::zRotateWorld(const float angle)
+void MeshModel::zRotateWorld(const float angle, bool inc)
 {
 	const glm::mat4 mat = Utils::getRotationMatrix(angle, 'z');
-	worldzRotationTransform = mat;
+	if (inc) {
+		worldzRotationTransform = mat * worldzRotationTransform;
+	}
+	else {
+		worldzRotationTransform = mat;
+	}
 	updateWorldTransform(mat);
 }
 
-void MeshModel::translateWorld(const float * translation)
+void MeshModel::translateWorld(const float * translation, bool inc)
 {
 	const glm::mat4 mat = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
-	worldTranslationTransform = mat;
+	if (inc) {
+		worldTranslationTransform = mat * worldTranslationTransform;
+	}
+	else {
+		worldTranslationTransform = mat;
+	}
 	updateWorldTransform(mat);
 }
 
-void MeshModel::scaleWorld(const float * scale)
+void MeshModel::scaleWorld(const float * scale, bool inc)
 {
 	const glm::mat4 mat = Utils::getScaleMatrix(glm::vec3(scale[0], scale[1], scale[2]));
-	worldScaleTransform = mat;
+	if (inc) {
+		worldScaleTransform = mat * worldScaleTransform;
+	}
+	else {
+		worldScaleTransform = mat;
+	}
 	updateWorldTransform(mat);
 }
 

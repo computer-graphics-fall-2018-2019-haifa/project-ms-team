@@ -57,10 +57,10 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 		ImGui::ShowDemoWindow(&showDemoWindow);
 	}
 
-	// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+	// scene controls
 	{
-		ImGui::Begin("Graphics");								// Create a window called "Hello, world!" and append into it.
-		ImGui::Checkbox("Demo Window", &showDemoWindow);        // Edit bools storing our window open/close state
+		ImGui::Begin("Graphics");
+		ImGui::Checkbox("Demo Window", &showDemoWindow);
 		ImGui::ColorEdit3("background color", (float*)&clearColor);
 
 		if (ImGui::Button("Show Camera Controls")) {
@@ -89,20 +89,22 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 			}
 		}
 
-		ImGui::RadioButton("Flat", &shadingType, 0); ImGui::SameLine();
-		ImGui::RadioButton("Gouraud", &shadingType, 1); ImGui::SameLine();
-		ImGui::RadioButton("Phong", &shadingType, 2);
-		scene->setShadingType(shadingType);
+		bool shadingChange = false;
+		shadingChange |= ImGui::RadioButton("Flat", &shadingType, 0); ImGui::SameLine();
+		shadingChange |= ImGui::RadioButton("Gouraud", &shadingType, 1); ImGui::SameLine();
+		shadingChange |= ImGui::RadioButton("Phong", &shadingType, 2);
+
+		if (shadingChange) {
+			if (shadingType == 1) {
+				renderer.LoadGouradShaders();
+			}
+			if (shadingType == 2) {
+				renderer.LoadPhongShaders();
+			}
+		}
 		
 		if (ImGui::ColorEdit3("Ambient Color", (float*)&ambient)) {
 			scene->setAmbientColor(ambient);
-		}
-
-		if (ImGui::Button("Rainbow mode!")) {
-			scene->toggleRainbow();
-		}
-		if (ImGui::Button("Circles mode!")) {
-			scene->toggleCircles();
 		}
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -292,7 +294,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 			//rotation stuff
 			{
 				static float cameraRotation[3] = {0.0f, 0.0f, 0.0f};
-				if (ImGui::SliderFloat("X rotation", &cameraRotation[0], -270.0f, 270.0f)) {
+				if (ImGui::SliderFloat("X rotation", &cameraRotation[0], -360.0f, 360.0f)) {
 					if (cameraTrasformType) {
 						m->xRotateWorld(cameraRotation[0]);
 					}
@@ -300,7 +302,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 						m->xRotateObject(cameraRotation[0]);
 					}
 				}
-				if (ImGui::SliderFloat("Y rotation", &cameraRotation[1], -180.0f, 180.0f)) {
+				if (ImGui::SliderFloat("Y rotation", &cameraRotation[1], -360.0f, 360.0f)) {
 					if (cameraTrasformType) {
 						m->yRotateWorld(cameraRotation[1]);
 					}
@@ -308,7 +310,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 						m->yRotateObject(cameraRotation[1]);
 					}
 				}
-				if (ImGui::SliderFloat("Z rotation", &cameraRotation[2], -180.0f, 180.0f)) {
+				if (ImGui::SliderFloat("Z rotation", &cameraRotation[2], -360.0f, 360.0f)) {
 					if (cameraTrasformType) {
 						m->zRotateWorld(cameraRotation[2]);
 					}
@@ -410,7 +412,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 			//rotation stuff
 			{
 				static float modelRotation[3] = { 0.0f, 0.0f, 0.0f };
-				if (ImGui::SliderFloat("X rotation", &modelRotation[0], -270.0f, 270.0f)) {
+				if (ImGui::SliderFloat("X rotation", &modelRotation[0], -360.0f, 360.0f)) {
 					if (modelTransformType) {
 						m->xRotateWorld(modelRotation[0]);
 					}
@@ -418,7 +420,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 						m->xRotateObject(modelRotation[0]);
 					}
 				}
-				if (ImGui::SliderFloat("Y rotation", &modelRotation[1], -180.0f, 180.0f)) {
+				if (ImGui::SliderFloat("Y rotation", &modelRotation[1], -360.0f, 360.0f)) {
 					if (modelTransformType) {
 						m->yRotateWorld(modelRotation[1]);
 					}
@@ -426,7 +428,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 						m->yRotateObject(modelRotation[1]);
 					}
 				}
-				if (ImGui::SliderFloat("Z rotation", &modelRotation[2], -180.0f, 180.0f)) {
+				if (ImGui::SliderFloat("Z rotation", &modelRotation[2], -360.0f, 360.0f)) {
 					if (modelTransformType) {
 						m->zRotateWorld(modelRotation[2]);
 					}
@@ -445,7 +447,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 				static float k1 = 1.0f;
 				static float k2 = 1.0f;
 				static float k3 = 1.0f;
-				static int k4 = 1;
+				static int k4 = 50;
 
 				if (ImGui::ColorEdit3("Line Color", (float*)&line)) {
 					m->SetLineColor(line);
@@ -596,5 +598,61 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 			showFogWindow = false;
 		}
 		ImGui::End();
+	}
+
+	HandleImguiInput(scene, renderer, io);
+}
+
+
+void HandleImguiInput(std::shared_ptr<Scene> scene, Renderer & renderer, ImGuiIO& imgui)
+{
+	auto model = scene->getActiveModel();
+	if ((!imgui.WantCaptureKeyboard) && model != nullptr)
+	{
+		if (imgui.KeysDown[81]) // q
+		{
+			model->yRotateObject(3, true);
+		}
+
+		if (imgui.KeysDown[69]) // e
+		{
+			model->yRotateObject(-3, true);
+		}
+
+		if (imgui.KeysDown[45]) // -
+		{
+			float mov[3] = { 0.9f, 0.9f, 0.9f };
+			model->scaleObject(mov, true);
+		}
+
+		if (imgui.KeysDown[61]) // +
+		{
+			float mov[3] = { 1.1f, 1.1f, 1.1f };
+			model->scaleObject(mov, true);
+		}
+
+		if (imgui.KeysDown[65]) // a
+		{
+			float mov[3] = { -0.1f, 0.0f, 0.0f };
+			model->translateObject(mov, true);
+		}
+
+		if (imgui.KeysDown[68]) // d
+		{
+			float mov[3] = { 0.1f, 0.0f, 0.0f };
+			model->translateObject(mov, true);
+		}
+
+		if (imgui.KeysDown[83]) // s
+		{
+			float mov[3] = { 0.0f, -0.1f, 0.0f };
+			model->translateObject(mov, true);
+		}
+
+		if (imgui.KeysDown[87]) // w
+		{
+			float mov[3] = { 0.0f, 0.1f, 0.0f };
+			model->translateObject(mov, true);
+		}
 	}
 }

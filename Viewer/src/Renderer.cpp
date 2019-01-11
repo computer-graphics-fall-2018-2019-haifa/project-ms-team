@@ -73,9 +73,14 @@ void Renderer::Render(std::shared_ptr<Scene>  scene) {
 	}
 }
 
-void Renderer::LoadShaders()
+void Renderer::LoadPhongShaders()
 {
 	colorShader.loadShaders("vshader.glsl", "fshader.glsl");
+}
+
+void Renderer::LoadGouradShaders()
+{
+	colorShader.loadShaders("vshader_gourad.glsl", "fshader_gourad.glsl");
 }
 
 void Renderer::LoadTextures()

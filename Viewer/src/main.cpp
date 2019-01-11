@@ -34,7 +34,15 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
 	
-	// Handle mouse scrolling here...
+	auto cam = scene->getActiveCamera();
+	if (cam != nullptr) {
+		if (yoffset > 0) {
+			cam->SetZoom(1.1f);
+		}
+		else {
+			cam->SetZoom(0.9f);
+		}
+	}
 }
 
 void resizeCallback(GLFWwindow * window, int width, int height)
@@ -70,7 +78,7 @@ int main(int argc, char **argv)
 	Renderer renderer;
 	scene = std::make_shared<Scene>();
 
-	renderer.LoadShaders();
+	renderer.LoadPhongShaders();
 	renderer.LoadTextures();
 
 	// Setup ImGui
@@ -135,6 +143,7 @@ GLFWwindow* SetupGlfwWindow(int w, int h, const char* window_name)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_SAMPLES, 8);
 #if __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif

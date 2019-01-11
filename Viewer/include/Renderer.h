@@ -22,6 +22,7 @@ public:
 	~Renderer();
 
 	void Render(std::shared_ptr<Scene> scene);
-	void LoadShaders();
+	void LoadPhongShaders();
+	void LoadGouradShaders();
 	void LoadTextures();
 };
