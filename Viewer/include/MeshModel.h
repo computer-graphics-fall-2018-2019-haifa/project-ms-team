@@ -94,6 +94,6 @@ public:
 	void toggleFlipNormals();
 	void toggleFlipFaceNormals();
 
-	void updateObjectTransform(const glm::mat4& mat);
-	void updateWorldTransform(const glm::mat4& mat);
+	virtual void updateObjectTransform(const glm::mat4& mat);
+	virtual void updateWorldTransform(const glm::mat4& mat);
 };

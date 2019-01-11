@@ -33,7 +33,6 @@ const glm::vec4& GetClearColor() {
 
 void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& renderer)
 {
-
 	std::vector<std::string> models;
 	std::vector<std::string> cameras;
 	std::vector<std::string> lights;
@@ -154,7 +153,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 		ImGui::Begin("Camera Control Window", &showCameraWindow);
 		
 		if (cameraModel != nullptr) {
-			static float eye[3] = { 0.0f, 0.0f, 0.0f };
+			static float eye[3] = { 0.0f, 0.0f, 5.0f };
 			static float at[3] = { 0.0f, 0.0f, 0.0f };
 			static float up[3] = { 0.0f, 1.0f, 0.0f };
 			ImGui::InputFloat3("Camera Eye", eye, 2);
@@ -183,24 +182,24 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 			auto m = scene->getCamera(cameraIndex);
 			//perspective stuff
 			{
-				static float zNear = m->getZNear();
-				static float zFar = m->getZFar();
-				static float param = m->getParam();
-				static float aspect = m->getAspect();
+				static float zNear = 0.1f;
+				static float zFar = 200.0f;
+				static float param = 10.0f;
+				static float aspect = 16.0f / 9.0f;
 				bool perspectiveChanged = false;
 
-				perspectiveChanged |= ImGui::SliderFloat("Z Near", &zNear, -100.0f, 100.f);
-				perspectiveChanged |= ImGui::SliderFloat("Z Far", &zFar, -100.0f, 100.f);
-				perspectiveChanged |= ImGui::SliderFloat("Aspect Ratio", &aspect, 1.0f, 5.0f);
+				perspectiveChanged |= ImGui::SliderFloat("Z Near", &zNear, -100.0f, 100.0f);
+				perspectiveChanged |= ImGui::SliderFloat("Z Far", &zFar, -100.0f, 200.0f);
+				perspectiveChanged |= ImGui::SliderFloat("Aspect Ratio", &aspect, 0.1f, 5.0f);
 
 				if (m->isPerspective()) {
-					perspectiveChanged |= ImGui::InputFloat("Field of View", &param, -45.0f, 45.0f);
+					perspectiveChanged |= ImGui::SliderFloat("Field of View", &param, -45.0f, 45.0f);
 					if (perspectiveChanged) {
 						m->SetPerspectiveProjection(param, aspect, zNear, zFar);
 					}
 				}
 				else {
-					perspectiveChanged |= ImGui::InputFloat("Height", &param, 0.0f, 100.0f);
+					perspectiveChanged |= ImGui::SliderFloat("Height", &param, -45.0f, 45.0f);
 					if (perspectiveChanged) {
 						m->SetOrthographicProjection(param, aspect, zNear, zFar);
 					}
@@ -617,6 +616,26 @@ void HandleImguiInput(std::shared_ptr<Scene> scene, Renderer & renderer, ImGuiIO
 		if (imgui.KeysDown[69]) // e
 		{
 			model->yRotateObject(-3, true);
+		}
+
+		if (imgui.KeysDown[GLFW_KEY_UP]) // up
+		{
+			model->xRotateObject(3, true);
+		}
+
+		if (imgui.KeysDown[GLFW_KEY_DOWN]) // down
+		{
+			model->xRotateObject(-3, true);
+		}
+
+		if (imgui.KeysDown[GLFW_KEY_LEFT]) // left
+		{
+			model->zRotateObject(-3, true);
+		}
+
+		if (imgui.KeysDown[GLFW_KEY_RIGHT]) // right
+		{
+			model->zRotateObject(3, true);
 		}
 
 		if (imgui.KeysDown[45]) // -

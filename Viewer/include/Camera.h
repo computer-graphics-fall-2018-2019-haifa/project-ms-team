@@ -17,6 +17,9 @@ private:
 	glm::mat4x4 viewTransformation;
 	glm::mat4x4 worldViewTransformation;
 	glm::mat4x4 projectionTransformation;
+
+	glm::mat4 matExtra;
+
 	float znear;
 	float zfar;
 	float aspect;

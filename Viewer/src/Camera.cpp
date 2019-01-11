@@ -6,9 +6,10 @@
 
 Camera::Camera(const glm::vec3& eye, const glm::vec3& at, const glm::vec3& up, const MeshModel& cameraModel) :
 	MeshModel(cameraModel, "Camera"),
-	viewTransformation(1),
-	worldViewTransformation(1),
-	projectionTransformation(1)
+	viewTransformation(1.0f),
+	worldViewTransformation(1.0f),
+	projectionTransformation(1.0f),
+	matExtra(1.0f)
 {
 	this->znear = 0.1f;
 	this->zfar = 200.0f;
@@ -24,9 +25,10 @@ Camera::~Camera()
 
 void Camera::SetCameraLookAt(const glm::vec3& eye, const glm::vec3& at, const glm::vec3& up) {
 	this->viewTransformation = glm::lookAt(eye, at, up);
-	this->objectTransform = glm::inverse(this->viewTransformation);
-	this->worldViewTransformation = glm::mat4(1);
-	this->worldTransform = glm::mat4(1);
+	this->matExtra = glm::inverse(this->viewTransformation);
+	updateObjectTransform(translationTransform);
+	this->worldViewTransformation = glm::mat4(1.0f);
+	this->worldTransform = glm::mat4(1.0f);
 }
 
 void Camera::SetOrthographicProjection(
@@ -55,7 +57,7 @@ void Camera::SetPerspectiveProjection(
 	this->aspect = aspectRatio;
 	this->param1 = fovy;
 	this->param1 = glm::min(fovy, glm::pi<float>());
-	this->projectionTransformation = glm::perspective(param1, aspectRatio, zNear, zFar);
+	this->projectionTransformation = glm::perspective(glm::radians(param1), aspectRatio, zNear, zFar);
 	this->activeView = 1;
 }
 
@@ -116,12 +118,12 @@ bool Camera::isPerspective() const
 
 void Camera::updateObjectTransform(const glm::mat4 & mat)
 {
-	MeshModel::updateObjectTransform(mat);
-	this->viewTransformation = glm::inverse(objectTransform);
+	objectTransform = matExtra * translationTransform * xRotationTransform * yRotationTransform * zRotationTransform * scaleTransform;
+	viewTransformation = glm::inverse(objectTransform);
 }
 
 void Camera::updateWorldTransform(const glm::mat4 & mat)
 {
-	MeshModel::updateWorldTransform(mat);
+	worldTransform = worldTranslationTransform * worldxRotationTransform * worldyRotationTransform * worldzRotationTransform * worldScaleTransform;
 	worldViewTransformation = glm::inverse(worldTransform);
 }
