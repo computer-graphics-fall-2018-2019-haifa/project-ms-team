@@ -181,6 +181,18 @@ void ShaderProgram::setUniform(const GLchar* name, const glm::vec4& v)
 	glUniform4f(loc, v.x, v.y, v.z, v.w);
 }
 
+void ShaderProgram::setUniform(const GLchar * name, const glm::vec4 * v)
+{
+	GLint loc = getUniformLocation(name);
+	glUniform4fv(loc, 10, glm::value_ptr(v[0]));
+}
+
+void ShaderProgram::setUniform(const GLchar * name, const glm::vec3 * v)
+{
+	GLint loc = getUniformLocation(name);
+	glUniform3fv(loc, 10, glm::value_ptr(v[0]));
+}
+
 //-----------------------------------------------------------------------------
 // Sets a glm::mat4 shader uniform
 //-----------------------------------------------------------------------------

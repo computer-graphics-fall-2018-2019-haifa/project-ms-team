@@ -10,21 +10,23 @@ uniform mat4 view;
 uniform mat4 projection;
 
 // These outputs will be available in the fragment shader as inputs
-out vec3 fragPos;
-out vec3 fragNormal;
+out vec4 fragPos;
+out vec4 fragNormal;
 out vec2 fragTexCoords;
 
 void main()
 {
+	mat4 MVP = projection * view *  model;
 	// Apply the model transformation to the 'position' and 'normal' properties of the vertex,
 	// so the interpolated values of these properties will be available for us in the fragment shader
-	fragPos = vec3(model * vec4(pos, 1.0f));
-	fragNormal = mat3(model) * normal;
+
+	vec4 pos = MVP * vec4(pos, 1.0f);
+	gl_Position = pos;
+	fragPos = pos;
+
+	fragNormal = MVP * vec4(normal, 1.0f);
 
 	// Pass the vertex texture coordinates property as is. Its interpolated value
 	// will be avilable for us in the fragment shader
-	fragTexCoords = texCoords;
-
-	// This is an internal OpenGL variable, we must set a value to this variable
-	gl_Position = projection * view *  model * vec4(pos, 1.0f);
+	fragTexCoords = texCoords;	
 }

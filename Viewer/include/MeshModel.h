@@ -49,6 +49,9 @@ protected:
 	bool drawFaceNormals;
 	bool flipNormals;
 	bool flipFaceNormals;
+
+	bool textureAvailable;
+
 	float KA;
 	float KD;
 	float KS;
@@ -83,7 +86,7 @@ public:
 
 	void drawModel(ShaderProgram& shader, Texture2D& tex) const;
 
-	const glm::vec3& getPosition() const;
+	const glm::vec3 getPosition() const;
 
 	void toggleBounding();
 	void toggleNormals();

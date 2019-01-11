@@ -126,7 +126,7 @@ char ** Utils::convertStringVectorToCharArray(std::vector<std::string> vec)
 	char** strings = new char*[vec.size() + 1];
 	for (auto s : vec) {
 		strings[i] = new char[s.size() + 1];
-		std::strcpy(strings[i++], s.c_str());
+		strcpy_s(strings[i++], s.size() + 1, s.c_str());
 	}
 	return strings;
 }

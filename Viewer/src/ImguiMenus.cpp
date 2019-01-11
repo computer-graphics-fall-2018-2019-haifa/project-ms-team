@@ -42,10 +42,10 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 		models.push_back(scene->getModel(i)->GetModelName());
 	}
 	for (int i = 0; i < scene->GetCameraCount(); ++i) {
-		models.push_back(scene->getCamera(i)->GetModelName());
+		cameras.push_back(scene->getCamera(i)->GetModelName());
 	}
 	for (int i = 0; i < scene->GetLightCount(); ++i) {
-		models.push_back(scene->getLight(i)->getLightName());
+		lights.push_back(scene->getLight(i)->getLightName());
 	}
 
 	int activeModel = scene->GetActiveModelIndex();
@@ -517,7 +517,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 		if (lightIndex != -1) {
 			auto l = scene->getActiveLight();
 			int lightType = l->getType();
-
+			// light type
 			{
 				bool typeChange = false;
 				
@@ -538,18 +538,12 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 				if (lightType == 1) {
 					static float translation[3] = {0.0f, 0.0f, 0.0f};
 					if (ImGui::SliderFloat("X translation", &translation[0], -10.0f, 10.0f)) {
-						translation[1] = 0.0f;
-						translation[2] = 0.0f;
 						l->setXYZ(translation);
 					}
 					if (ImGui::SliderFloat("Y translation", &translation[1], -10.0f, 10.0f)) {
-						translation[0] = 0.0f;
-						translation[2] = 0.0f;
 						l->setXYZ(translation);
 					}
 					if (ImGui::SliderFloat("Z translation", &translation[2], -10.0f, 10.0f)) {
-						translation[0] = 0.0f;
-						translation[1] = 0.0f;
 						l->setXYZ(translation);
 					}
 				}

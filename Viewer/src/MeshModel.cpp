@@ -28,6 +28,8 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 	this->flipNormals = false;
 	this->flipFaceNormals = false;
 
+	this->textureAvailable = (textureCoords.size() > 0);
+
 	this->KA = 1.0f;
 	this->KD = 1.0f;
 	this->KS = 1.0f;
@@ -67,7 +69,7 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 			Vertex vertex;
 			vertex.position = vertices[face.GetVertexIndex(i)];
 			vertex.normal = normals[face.GetNormalIndex(i)];
-			if (textureCoords.size() > 0) {
+			if (textureAvailable) {
 				vertex.tex = textureCoords[face.GetTextureIndex(i)];
 			}
 			else {
@@ -112,6 +114,8 @@ MeshModel::MeshModel(const MeshModel & ref, const std::string & name)
 	this->KD = 1.0f;
 	this->KS = 1.0f;
 	this->sExp = 1.0f;
+
+	this->textureAvailable = ref.textureAvailable;
 
 	this->boundingVer = ref.boundingVer;
 	this->modelVertices = ref.modelVertices;
@@ -172,13 +176,16 @@ void MeshModel::drawModel(ShaderProgram& shader, Texture2D& tex) const
 	shader.setUniform("material.KD", KD);
 	shader.setUniform("material.KS", KS);
 	shader.setUniform("material.KSE", sExp);
-
-	tex.bind(0);
+	if (textureAvailable) {
+		tex.bind(0);
+	}
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)modelVertices.size());
 	glBindVertexArray(0);
-	tex.unbind(0);
+	if (textureAvailable) {
+		tex.unbind(0);
+	}
 
 	shader.setUniform("material.AmbientColor", colorLine);
 	shader.setUniform("material.DiffuseColor", colorLine);
@@ -260,7 +267,7 @@ void MeshModel::scaleWorld(const float * scale)
 	updateWorldTransform(mat);
 }
 
-const glm::vec3 & MeshModel::getPosition() const
+const glm::vec3 MeshModel::getPosition() const
 {
 	glm::vec4 temp(0.0f, 0.0f, 0.0f, 1.0f);
 	temp = worldTransform * objectTransform * temp;
