@@ -10,7 +10,17 @@
 MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& textureCoords, const std::string& modelName) :
 	modelName(modelName),
 	worldTransform(glm::mat4x4(1.0f)),
-	objectTransform(glm::mat4x4(1.0f))
+	objectTransform(glm::mat4x4(1.0f)),
+	worldScaleTransform(glm::mat4x4(1.0f)),
+	worldTranslationTransform(glm::mat4x4(1.0f)),
+	worldxRotationTransform(glm::mat4x4(1.0f)),
+	worldyRotationTransform(glm::mat4x4(1.0f)),
+	worldzRotationTransform(glm::mat4x4(1.0f)),
+	scaleTransform(glm::mat4x4(1.0f)),
+	translationTransform(glm::mat4x4(1.0f)),
+	xRotationTransform(glm::mat4x4(1.0f)),
+	yRotationTransform(glm::mat4x4(1.0f)),
+	zRotationTransform(glm::mat4x4(1.0f))
 {
 	this->drawBounding = false;
 	this->drawFaceNormals = false;
@@ -105,7 +115,23 @@ MeshModel::MeshModel(const MeshModel & ref, const std::string & name)
 
 	this->boundingVer = ref.boundingVer;
 	this->modelVertices = ref.modelVertices;
+
+	this->modelName = ref.modelName;
+	this->objectTransform = ref.objectTransform;
+	this->worldTransform = ref.worldTransform;
 	
+	this->worldScaleTransform = ref.worldScaleTransform;
+	this->worldTranslationTransform = ref.worldTranslationTransform;
+	this->worldxRotationTransform = ref.worldxRotationTransform;
+	this->worldyRotationTransform = ref.worldyRotationTransform;
+	this->worldzRotationTransform = ref.worldzRotationTransform;
+	
+	this->scaleTransform = ref.worldTransform;
+	this->translationTransform = ref.translationTransform;
+	this->xRotationTransform = ref.xRotationTransform;
+	this->yRotationTransform = ref.yRotationTransform;
+	this->zRotationTransform = ref.zRotationTransform;
+
 	//GL stuff
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
@@ -142,6 +168,10 @@ void MeshModel::drawModel(ShaderProgram& shader, Texture2D& tex) const
 	shader.setUniform("material.AmbientColor", colorAmbient);
 	shader.setUniform("material.DiffuseColor", colorDiffuse);
 	shader.setUniform("material.SpecualrColor", colorSpecular);
+	shader.setUniform("material.KA", KA);
+	shader.setUniform("material.KD", KD);
+	shader.setUniform("material.KS", KS);
+	shader.setUniform("material.KSE", sExp);
 
 	tex.bind(0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -150,6 +180,9 @@ void MeshModel::drawModel(ShaderProgram& shader, Texture2D& tex) const
 	glBindVertexArray(0);
 	tex.unbind(0);
 
+	shader.setUniform("material.AmbientColor", colorLine);
+	shader.setUniform("material.DiffuseColor", colorLine);
+	shader.setUniform("material.SpecualrColor", colorLine);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glBindVertexArray(vao);
@@ -159,57 +192,77 @@ void MeshModel::drawModel(ShaderProgram& shader, Texture2D& tex) const
 
 void MeshModel::xRotateObject(const float angle)
 {
-	objectTransform = Utils::getRotationMatrix(angle, 'x') * objectTransform;
+	const glm::mat4 mat = Utils::getRotationMatrix(angle, 'x');;
+	xRotationTransform = mat;
+	updateObjectTransform(mat);
 }
 
 void MeshModel::yRotateObject(const float angle)
 {
-	objectTransform = Utils::getRotationMatrix(angle, 'y') * objectTransform;
+	const glm::mat4 mat = Utils::getRotationMatrix(angle, 'y');
+	yRotationTransform = mat;
+	updateObjectTransform(mat);
 }
 
 void MeshModel::zRotateObject(const float angle)
 {
-	objectTransform = Utils::getRotationMatrix(angle, 'z') * objectTransform;
+	const glm::mat4 mat = Utils::getRotationMatrix(angle, 'z');
+	zRotationTransform = mat;
+	updateObjectTransform(mat);
 }
 
 void MeshModel::translateObject(const float * translation)
 {
-	objectTransform = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2])) * objectTransform;
+	const glm::mat4 mat = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
+	translationTransform = mat;
+	updateObjectTransform(mat);
 }
 
 void MeshModel::scaleObject(const float * scale)
 {
-	objectTransform = Utils::getScaleMatrix(glm::vec3(scale[0], scale[1], scale[2])) * objectTransform;
+	const glm::mat4 mat = Utils::getScaleMatrix(glm::vec3(scale[0], scale[1], scale[2]));
+	scaleTransform = mat;
+	updateObjectTransform(mat);
 }
 
 void MeshModel::xRotateWorld(const float angle)
 {
-	worldTransform = Utils::getRotationMatrix(angle, 'x') * worldTransform;
+	const glm::mat4 mat = Utils::getRotationMatrix(angle, 'x');
+	worldxRotationTransform = mat;
+	updateWorldTransform(mat);
 }
 
 void MeshModel::yRotateWorld(const float angle)
 {
-	worldTransform = Utils::getRotationMatrix(angle, 'y') * worldTransform;
+	const glm::mat4 mat = Utils::getRotationMatrix(angle, 'y');
+	worldyRotationTransform = mat;
+	updateWorldTransform(mat);
 }
 
 void MeshModel::zRotateWorld(const float angle)
 {
-	worldTransform = Utils::getRotationMatrix(angle, 'z') * worldTransform;
+	const glm::mat4 mat = Utils::getRotationMatrix(angle, 'z');
+	worldzRotationTransform = mat;
+	updateWorldTransform(mat);
 }
 
 void MeshModel::translateWorld(const float * translation)
 {
-	worldTransform = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2])) * worldTransform;
+	const glm::mat4 mat = Utils::getTranslationMatrix(glm::vec3(translation[0], translation[1], translation[2]));
+	worldTranslationTransform = mat;
+	updateWorldTransform(mat);
 }
 
 void MeshModel::scaleWorld(const float * scale)
 {
-	worldTransform = Utils::getScaleMatrix(glm::vec3(scale[0], scale[1], scale[2])) * worldTransform;
+	const glm::mat4 mat = Utils::getScaleMatrix(glm::vec3(scale[0], scale[1], scale[2]));
+	worldScaleTransform = mat;
+	updateWorldTransform(mat);
 }
 
 const glm::vec3 & MeshModel::getPosition() const
 {
-	glm::vec4 temp(pos, 1.0f);
+	glm::vec4 temp(0.0f, 0.0f, 0.0f, 1.0f);
 	temp = worldTransform * objectTransform * temp;
 	glm::vec3 t(temp.x, temp.y, temp.z);
 	return t / temp.w;
@@ -283,4 +336,14 @@ void MeshModel::toggleFlipNormals()
 void MeshModel::toggleFlipFaceNormals()
 {
 	this->flipFaceNormals = !this->flipFaceNormals;
+}
+
+void MeshModel::updateObjectTransform(const glm::mat4 & mat)
+{
+	objectTransform = translationTransform * xRotationTransform * yRotationTransform * zRotationTransform * scaleTransform;
+}
+
+void MeshModel::updateWorldTransform(const glm::mat4 & mat)
+{
+	worldTransform = worldTranslationTransform * worldxRotationTransform * worldyRotationTransform * worldzRotationTransform * worldScaleTransform;
 }

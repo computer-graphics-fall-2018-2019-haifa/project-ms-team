@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Scene.h"
 #include "MeshModel.h"
 #include "Light.h"

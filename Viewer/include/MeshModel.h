@@ -28,11 +28,9 @@ protected:
 	glm::vec4 colorSpecular;
 	glm::vec4 colorLine;
 
-	glm::vec3 pos;
-
 	GLuint vao;
 	GLuint vbo;
-	/*
+	
 	glm::mat4x4 worldScaleTransform;
 	glm::mat4x4 worldTranslationTransform;
 	glm::mat4x4 worldxRotationTransform;
@@ -44,7 +42,7 @@ protected:
 	glm::mat4x4 xRotationTransform;
 	glm::mat4x4 yRotationTransform;
 	glm::mat4x4 zRotationTransform;
-	*/
+	
 	
 	bool drawBounding;
 	bool drawNormals;
@@ -92,4 +90,7 @@ public:
 	void toggleFaceNormals();
 	void toggleFlipNormals();
 	void toggleFlipFaceNormals();
+
+	void updateObjectTransform(const glm::mat4& mat);
+	void updateWorldTransform(const glm::mat4& mat);
 };

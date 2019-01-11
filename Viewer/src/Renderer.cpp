@@ -33,6 +33,7 @@ void Renderer::Render(std::shared_ptr<Scene>  scene) {
 		viewMatrix = cam->getViewTransformation();
 		worldViewMatrix = cam->getWorldViewTransformation();
 		projection = cam->getProjection();
+		cameraPos = cam->getPosition();
 	}
 
 	glm::mat4 view = viewMatrix * worldViewMatrix;

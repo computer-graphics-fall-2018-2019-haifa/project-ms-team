@@ -59,7 +59,7 @@ MeshModel Utils::LoadMeshModel(const std::string& filePath)
 			// comment / empty line
 		}
 		else {
-			std::cout << "Found unknown line Type \"" << lineType << "\"";
+			std::cout << "Found unknown line Type \"" << lineType << "\"" << '\n';
 		}
 	}
 

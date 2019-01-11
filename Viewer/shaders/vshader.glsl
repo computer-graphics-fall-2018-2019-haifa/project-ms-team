@@ -26,6 +26,5 @@ void main()
 	fragTexCoords = texCoords;
 
 	// This is an internal OpenGL variable, we must set a value to this variable
-	gl_Position = vec4(pos, 1.0f);
-	// gl_Position = projection * view *  model * vec4(pos, 1.0f);
+	gl_Position = projection * view *  model * vec4(pos, 1.0f);
 }

@@ -7,6 +7,11 @@ struct Material
 	vec4 AmbientColor;
 	vec4 DiffuseColor;
 	vec4 SpecualrColor;
+
+	float KA;
+	float KD;
+	float KS;
+	float KSE;
 };
 
 // We set this field's properties from the C++ code

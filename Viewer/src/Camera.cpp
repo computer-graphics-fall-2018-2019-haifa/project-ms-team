@@ -61,10 +61,10 @@ void Camera::SetPerspectiveProjection(
 void Camera::SetZoom(const float zoom) {
 	float val = this->param1;
 	if (this->activeView == 0) {
-		this->SetOrthographicProjection(val, this->aspect, this->znear, this->zfar);
+		this->SetOrthographicProjection(val * zoom, this->aspect, this->znear, this->zfar);
 	}
 	else if (this->activeView == 1) {
-		val = glm::min(val, glm::pi<float>());
+		val = glm::min(val * zoom, glm::pi<float>());
 		this->SetPerspectiveProjection(val, this->aspect, this->znear, this->zfar);
 	}
 }
@@ -112,4 +112,16 @@ float Camera::getAspect() const
 bool Camera::isPerspective() const
 {
 	return activeView;
+}
+
+void Camera::updateObjectTransform(const glm::mat4 & mat)
+{
+	MeshModel::updateObjectTransform(mat);
+	this->viewTransformation = glm::inverse(objectTransform);
+}
+
+void Camera::updateWorldTransform(const glm::mat4 & mat)
+{
+	MeshModel::updateWorldTransform(mat);
+	worldViewTransformation = glm::inverse(worldTransform);
 }

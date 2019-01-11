@@ -181,10 +181,10 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 			auto m = scene->getCamera(cameraIndex);
 			//perspective stuff
 			{
-				float zNear = m->getZNear();
-				float zFar = m->getZFar();
-				float param = m->getParam();
-				float aspect = m->getAspect();
+				static float zNear = m->getZNear();
+				static float zFar = m->getZFar();
+				static float param = m->getParam();
+				static float aspect = m->getAspect();
 				bool perspectiveChanged = false;
 
 				perspectiveChanged |= ImGui::SliderFloat("Z Near", &zNear, -100.0f, 100.f);
@@ -194,13 +194,13 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 				if (m->isPerspective()) {
 					perspectiveChanged |= ImGui::InputFloat("Field of View", &param, -45.0f, 45.0f);
 					if (perspectiveChanged) {
-						m->SetPerspectiveProjection(param, 16.0f / 9.0f, zNear, zFar);
+						m->SetPerspectiveProjection(param, aspect, zNear, zFar);
 					}
 				}
 				else {
 					perspectiveChanged |= ImGui::InputFloat("Height", &param, 0.0f, 100.0f);
 					if (perspectiveChanged) {
-						m->SetOrthographicProjection(param, 16.0f / 9.0f, zNear, zFar);
+						m->SetOrthographicProjection(param, aspect, zNear, zFar);
 					}
 				}
 
@@ -212,10 +212,11 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 					m->SetOrthographicProjection(param, aspect, zNear, zFar);
 				}
 
-				if (ImGui::ArrowButton("Zoom In", 0)) {
+				if (ImGui::ArrowButton("Zoom In", 2)) {
 					m->SetZoom(1.1f);
 				}
-				if (ImGui::ArrowButton("Zoom Out", 1)) {
+				ImGui::SameLine();
+				if (ImGui::ArrowButton("Zoom Out", 3)) {
 					m->SetZoom(0.9f);
 				}
 			}
@@ -229,8 +230,6 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 				static float scaleXYZ[3] = { 1.0f, 1.0f, 1.0f };
 				if (ImGui::SliderFloat("X Scale", &scaleXYZ[0], -10.0f, 10.f)) {
 					if (scaleXYZ[0] != 0.0f) {
-						scaleXYZ[1] = 1.0f;
-						scaleXYZ[2] = 1.0f;
 						if (cameraTrasformType) {
 							m->scaleWorld(scaleXYZ);
 						}
@@ -241,8 +240,6 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 				}
 				if (ImGui::SliderFloat("Y Scale", &scaleXYZ[1], -10.0f, 10.f)) {
 					if (scaleXYZ[1] != 0.0f) {
-						scaleXYZ[0] = 1.0f;
-						scaleXYZ[2] = 1.0f;
 						if (cameraTrasformType) {
 							m->scaleWorld(scaleXYZ);
 						}
@@ -253,8 +250,6 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 				}
 				if (ImGui::SliderFloat("Z Scale", &scaleXYZ[2], -10.0f, 10.f)) {
 					if (scaleXYZ[2] != 0.0f) {
-						scaleXYZ[0] = 1.0f;
-						scaleXYZ[1] = 1.0f;
 						if (cameraTrasformType) {
 							m->scaleWorld(scaleXYZ);
 						}
@@ -269,8 +264,6 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 			{
 				static float cameraTranslation[3] = {0.0f, 0.0f, 0.0f};
 				if (ImGui::SliderFloat("X translation", &cameraTranslation[0], -10.0f, 10.f)) {
-					cameraTranslation[1] = 0.0f;
-					cameraTranslation[2] = 0.0f;
 					if (cameraTrasformType) {
 						m->translateWorld(cameraTranslation);
 					}
@@ -279,8 +272,6 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 					}
 				}
 				if (ImGui::SliderFloat("Y translation", &cameraTranslation[1], -10.0f, 10.f)) {
-					cameraTranslation[0] = 0.0f;
-					cameraTranslation[2] = 0.0f;
 					if (cameraTrasformType) {
 						m->translateWorld(cameraTranslation);
 					}
@@ -289,8 +280,6 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 					}
 				}
 				if (ImGui::SliderFloat("Z translation", &cameraTranslation[2], -10.0f, 10.f)) {
-					cameraTranslation[0] = 0.0f;
-					cameraTranslation[1] = 0.0f;
 					if (cameraTrasformType) {
 						m->translateWorld(cameraTranslation);
 					}
@@ -359,8 +348,6 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 				static float scaleXYZ[3] = { 1.0f, 1.0f, 1.0f };
 				if (ImGui::SliderFloat("X Scale", &scaleXYZ[0], -10.0f, 10.f)) {
 					if (scaleXYZ[0] != 0.0f) {
-						scaleXYZ[1] = 1.0f;
-						scaleXYZ[2] = 1.0f;
 						if (modelTransformType) {
 							m->scaleWorld(scaleXYZ);
 						}
@@ -371,8 +358,6 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 				}
 				if (ImGui::SliderFloat("Y Scale", &scaleXYZ[1], -10.0f, 10.f)) {
 					if (scaleXYZ[1] != 0.0f) {
-						scaleXYZ[0] = 1.0f;
-						scaleXYZ[2] = 1.0f;
 						if (modelTransformType) {
 							m->scaleWorld(scaleXYZ);
 						}
@@ -383,8 +368,6 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 				}
 				if (ImGui::SliderFloat("Z Scale", &scaleXYZ[2], -10.0f, 10.f)) {
 					if (scaleXYZ[2] != 0.0f) {
-						scaleXYZ[0] = 1.0f;
-						scaleXYZ[1] = 1.0f;
 						if (modelTransformType) {
 							m->scaleWorld(scaleXYZ);
 						}
@@ -397,37 +380,31 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 
 			//translation stuff
 			{
-			static float modelTranslation[3] = { 0.0f, 0.0f, 0.0f };
-			if (ImGui::SliderFloat("X translation", &modelTranslation[0], -10.0f, 10.f)) {
-				modelTranslation[1] = 0.0f;
-				modelTranslation[2] = 0.0f;
-				if (modelTransformType) {
-					m->translateWorld(modelTranslation);
+				static float modelTranslation[3] = { 0.0f, 0.0f, 0.0f };
+				if (ImGui::SliderFloat("X translation", &modelTranslation[0], -10.0f, 10.f)) {
+					if (modelTransformType) {
+						m->translateWorld(modelTranslation);
+					}
+					else {
+						m->translateObject(modelTranslation);
+					}
 				}
-				else {
-					m->translateObject(modelTranslation);
+				if (ImGui::SliderFloat("Y translation", &modelTranslation[1], -10.0f, 10.f)) {
+					if (modelTransformType) {
+						m->translateWorld(modelTranslation);
+					}
+					else {
+						m->translateObject(modelTranslation);
+					}
 				}
-			}
-			if (ImGui::SliderFloat("Y translation", &modelTranslation[1], -10.0f, 10.f)) {
-				modelTranslation[0] = 0.0f;
-				modelTranslation[2] = 0.0f;
-				if (modelTransformType) {
-					m->translateWorld(modelTranslation);
+				if (ImGui::SliderFloat("Z translation", &modelTranslation[2], -10.0f, 10.f)) {
+					if (modelTransformType) {
+						m->translateWorld(modelTranslation);
+					}
+					else {
+						m->translateObject(modelTranslation);
+					}
 				}
-				else {
-					m->translateObject(modelTranslation);
-				}
-			}
-			if (ImGui::SliderFloat("Z translation", &modelTranslation[2], -10.0f, 10.f)) {
-				modelTranslation[0] = 0.0f;
-				modelTranslation[1] = 0.0f;
-				if (modelTransformType) {
-					m->translateWorld(modelTranslation);
-				}
-				else {
-					m->translateObject(modelTranslation);
-				}
-			}
 			}
 
 			//rotation stuff
@@ -461,10 +438,10 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 
 			//color stuff
 			{
-				glm::vec4 ambient(0.0f);
-				glm::vec4 diffuse(0.0f);
-				glm::vec4 specular(0.0f);
-				glm::vec4 line(0.0f);
+				static glm::vec4 ambient(0.0f);
+				static glm::vec4 diffuse(0.0f);
+				static glm::vec4 specular(0.0f);
+				static glm::vec4 line(0.0f);
 				static float k1 = 1.0f;
 				static float k2 = 1.0f;
 				static float k3 = 1.0f;
@@ -592,7 +569,6 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 		}
 		ImGui::End();
 	}
-
 
 	if (showFogWindow) {
 		static float end = 2.0f;

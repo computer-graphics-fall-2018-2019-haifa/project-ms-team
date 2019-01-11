@@ -53,4 +53,7 @@ public:
 	float getAspect() const;
 
 	bool isPerspective() const;
+
+	void updateObjectTransform(const glm::mat4& mat);
+	void updateWorldTransform(const glm::mat4& mat);
 };
