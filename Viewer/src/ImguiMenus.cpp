@@ -583,7 +583,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 		static float end = 2.0f;
 		static float begin = 0.0f;
 		static float density = 1.0f;
-		static glm::vec4 fogColor(0.0f, 0.0f, 0.0f, 1.00f);
+		static glm::vec4 fogColor(0.0f, 0.0f, 0.0f, 1.0f);
 		ImGui::Begin("Fog Control Window", &showFogWindow);
 
 		if (ImGui::ColorEdit3("Fog color", (float*)&fogColor)) {
@@ -597,13 +597,13 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 
 		scene->setFogType(fogType);
 		if (fogType) {
-			if (ImGui::SliderFloat("Fog Start", &begin, -10.0f, 100.0f)) {
+			if (ImGui::SliderFloat("Fog Start", &begin, 0.0f, 10.0f)) {
 				scene->setFogBegin(begin);
 			}
-			if (ImGui::SliderFloat("Fog End", &end, -5.0f, 200.0f)) {
+			if (ImGui::SliderFloat("Fog End", &end, 0.0f, 20.0f)) {
 				scene->setFogEnd(end);
 			}
-			if (ImGui::SliderFloat("Fog Density", &density, -20.0f, 20.0f)) {
+			if (ImGui::SliderFloat("Fog Density", &density, 0.0f, 20.0f)) {
 				scene->setDensity(density);
 			}
 		}

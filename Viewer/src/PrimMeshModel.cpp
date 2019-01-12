@@ -47,7 +47,7 @@ MeshModel PrimMeshModel::genCube()
 	faces.push_back(Face(2, 1, 5, 4, 1, 2, 6, 6, 6));
 	faces.push_back(Face(5, 8, 2, 2, 3, 4, 6, 6, 6));
 
-	return MeshModel(faces, vertices, normals, tex, "Prim Cube");
+	return MeshModel(faces, vertices, Utils::CalculateNormals(vertices, faces), tex, "Prim Cube");
 }
 
 MeshModel PrimMeshModel::genPyramid()
@@ -77,7 +77,7 @@ MeshModel PrimMeshModel::genPyramid()
 	faces.push_back(Face(1, 3, 4, 1, 3, 4, 1, 3, 4));
 	faces.push_back(Face(2, 3, 4, 2, 3, 4, 2, 3, 4));
 
-	return MeshModel(faces, vertices, normals, tex, "Prim Pyramid");
+	return MeshModel(faces, vertices, Utils::CalculateNormals(vertices, faces), tex, "Prim Pyramid");
 }
 
 PrimMeshModel::~PrimMeshModel()

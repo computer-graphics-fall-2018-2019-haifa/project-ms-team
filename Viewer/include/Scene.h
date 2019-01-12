@@ -7,6 +7,7 @@
 #include "MeshModel.h"
 #include "Camera.h"
 #include "Light.h"
+#include "ShaderProgram.h"
 
 /*
  * Scene class.
@@ -64,12 +65,13 @@ public:
 
 	const std::vector<std::shared_ptr<Light>> getLights() const;
 
-	void applyFog(glm::vec4& color, float z) const;
+	void applyFog(ShaderProgram& shader) const;
 	
 	int getShadingType() const;
 	void setShadingType(int type);
+
 	void setFogType(int type);
-	void setFogColor(glm::vec4 color);
+	void setFogColor(const glm::vec4& color);
 
 	void setFogBegin(float begin);
 	void setFogEnd(float end);

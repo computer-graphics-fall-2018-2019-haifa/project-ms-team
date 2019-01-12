@@ -82,7 +82,7 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 		for (int i = 0; i < 3; ++i) {
 			Vertex vertex;
 			vertex.position = vertices[face.GetVertexIndex(i)];
-			vertex.normal = normals[face.GetNormalIndex(i)];
+			vertex.normal = normals[face.GetVertexIndex(i)];
 			if (textureAvailable) {
 				vertex.tex = textureCoords[face.GetTextureIndex(i)];
 			}

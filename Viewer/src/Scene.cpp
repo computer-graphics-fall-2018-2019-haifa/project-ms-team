@@ -132,23 +132,13 @@ const std::vector<std::shared_ptr<Light>> Scene::getLights() const
 	return this->lights;
 }
 
-void Scene::applyFog(glm::vec4& color, float z) const
+void Scene::applyFog(ShaderProgram& shader) const
 {
-	float f = 1.0f;
-	switch (fogType) {
-	case(0):
-		break;
-	case(1):
-		f = (this->fogEnd - z) / (this->fogEnd - this->fogStart);
-		break;
-	case(2):
-		f = std::exp(-z * this->fogDensity);
-		break;
-	case(3):
-		f = std::exp(-std::pow(z * this->fogDensity, 2));
-		break;
-	}
-	color = f * color + (1.0f - f) * this->fogColor;
+	shader.setUniform("fog.fogType", fogType);
+	shader.setUniform("fog.fogColor", fogColor);
+	shader.setUniform("fog.density", fogDensity);
+	shader.setUniform("fog.start", fogStart);
+	shader.setUniform("fog.end", fogEnd);
 }
 
 int Scene::getShadingType() const
@@ -166,7 +156,7 @@ void Scene::setFogType(int type)
 	this->fogType = type;
 }
 
-void Scene::setFogColor(glm::vec4 color)
+void Scene::setFogColor(const glm::vec4& color)
 {
 	this->fogColor = color;
 }

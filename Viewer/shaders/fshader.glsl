@@ -14,8 +14,18 @@ struct Material
 	float KSE;
 };
 
+struct Fog
+{
+	int fogType;
+	vec4 fogColor;
+	float density;
+	float start;
+	float end;
+};
+
 // We set this field's properties from the C++ code
 uniform Material material;
+uniform Fog fog;
 uniform vec4 SceneAmbient;
 uniform vec4 lightPos[10];
 uniform vec4 lightColor[10];
@@ -54,6 +64,22 @@ void main()
 		vec4 sc = material.KS * RV * material.SpecualrColor;
 		IS = IS + clamp(vec4(sc.x * lightColor.x, sc.y * lightColor.y, sc.z * lightColor.z, 1.0f), 0.0f, 1.0f);
 	}
-
 	frag_color = clamp(IA + ID + IS, 0.0f, 1.0f);
+	
+	// fog coloring
+	float dist = abs(fragPos.z / fragPos.w);
+	float fogFactor = 0.0f;
+	// linear
+	if (fog.fogType == 1) {
+		fogFactor = clamp((fog.end-dist)/(fog.end-fog.start), 0.0f, 1.0f);
+		frag_color = mix(fog.fogColor, frag_color, fogFactor);
+	}
+	else if (fog.fogType == 2) {	// exp
+		fogFactor = clamp((1.0f/exp(dist * fog.density)), 0.0f, 1.0f);
+		frag_color = mix(fog.fogColor, frag_color, fogFactor);
+	}
+	else if (fog.fogType == 3) {	//exp squared
+		fogFactor = clamp(1.0 /exp((dist * fog.density) * (dist * fog.density)), 0.0f, 1.0f);
+		frag_color = mix(fog.fogColor, frag_color, fogFactor);
+	}
 }

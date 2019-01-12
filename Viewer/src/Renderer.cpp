@@ -66,6 +66,7 @@ void Renderer::Render(std::shared_ptr<Scene>  scene) {
 	colorShader.setUniform("lightColor", lightColors);
 	colorShader.setUniform("lightPos", lightPos);
 	
+	scene->applyFog(colorShader);
 
 	for (int i = 0; i < scene->GetModelCount(); ++i) {
 		auto model = scene->getModel(i);

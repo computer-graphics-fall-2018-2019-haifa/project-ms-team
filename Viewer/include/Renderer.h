@@ -16,7 +16,6 @@ private:
 	ShaderProgram colorShader;
 	Texture2D texture1;
 
-
 public:
 	Renderer();
 	~Renderer();

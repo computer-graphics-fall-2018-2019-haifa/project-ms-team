@@ -18,9 +18,8 @@ public:
 	static glm::mat4 getScaleMatrix(const glm::vec3 vec);
 	static char** convertStringVectorToCharArray(std::vector<std::string> vec);
 	static glm::vec4 pointProduct(const glm::vec4& v1, const glm::vec4& v2);
-	// Add here more static utility functions...
-	// For example:
-	//	anything else that may be useful in global scope
+
+	static std::vector<glm::vec3> CalculateNormals(std::vector<glm::vec3> vertices, std::vector<Face> faces);
 
 private:
 	static std::string GetFileName(const std::string& filePath);

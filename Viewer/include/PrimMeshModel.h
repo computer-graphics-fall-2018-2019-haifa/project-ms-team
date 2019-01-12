@@ -1,5 +1,6 @@
 #pragma once
 #include "MeshModel.h"
+#include "Utils.h"
 
 class PrimMeshModel
 {
