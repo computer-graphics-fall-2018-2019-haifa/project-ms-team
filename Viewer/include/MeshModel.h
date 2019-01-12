@@ -15,7 +15,7 @@ struct Vertex {
 class MeshModel
 {
 protected:
-	std::vector<glm::vec3> boundingVer;
+	std::vector<Vertex> boundingVer;
 	std::vector<Vertex> modelVertices;
 
 	std::string modelName;
@@ -31,6 +31,9 @@ protected:
 	GLuint vao;
 	GLuint vbo;
 	
+	GLuint boundingVAO;
+	GLuint boundingVBO;
+
 	glm::mat4x4 worldScaleTransform;
 	glm::mat4x4 worldTranslationTransform;
 	glm::mat4x4 worldxRotationTransform;
@@ -51,6 +54,8 @@ protected:
 	bool flipFaceNormals;
 
 	bool textureAvailable;
+
+	bool wireOnlyMode;
 
 	float KA;
 	float KD;
@@ -93,6 +98,7 @@ public:
 	void toggleFaceNormals();
 	void toggleFlipNormals();
 	void toggleFlipFaceNormals();
+	void toggleWireFrameOnly();
 
 	virtual void updateObjectTransform(const glm::mat4& mat);
 	virtual void updateWorldTransform(const glm::mat4& mat);

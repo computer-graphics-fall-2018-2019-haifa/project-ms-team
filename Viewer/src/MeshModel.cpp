@@ -29,12 +29,12 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 	this->flipFaceNormals = false;
 
 	this->textureAvailable = (textureCoords.size() > 0);
+	this->wireOnlyMode = false;
 
 	this->KA = 1.0f;
 	this->KD = 1.0f;
 	this->KS = 1.0f;
 	this->sExp = 50.0f;
-
 
 	glm::vec3 min((float)std::numeric_limits<int>::max());
 	glm::vec3 max((float)std::numeric_limits<int>::min());
@@ -53,16 +53,30 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 		if (ver.z > max.z)
 			max.z = ver.z;
 	}
-	
-	boundingVer.push_back(glm::vec3(min.x, min.y, min.z));
-	boundingVer.push_back(glm::vec3(max.x, min.y, min.z));
-	boundingVer.push_back(glm::vec3(min.x, max.y, min.z));
-	boundingVer.push_back(glm::vec3(max.x, max.y, min.z));
-	boundingVer.push_back(glm::vec3(min.x, min.y, max.z));
-	boundingVer.push_back(glm::vec3(max.x, min.y, max.z));
-	boundingVer.push_back(glm::vec3(min.x, max.y, max.z));
-	boundingVer.push_back(glm::vec3(max.x, max.y, max.z));
-	// add color and stuff later
+	Vertex v0, v1, v2, v3, v4, v5, v6, v7;
+	v0.normal = v0.position = glm::vec3(min.x, min.y, min.z); // left low close 0
+	v1.normal = v1.position = glm::vec3(max.x, min.y, min.z); // right low close 1
+	v2.normal = v2.position = glm::vec3(min.x, max.y, min.z); // left high close 2
+	v3.normal = v3.position = glm::vec3(max.x, max.y, min.z); // right high close 3
+	v4.normal = v4.position = glm::vec3(min.x, min.y, max.z); // left low far 4
+	v5.normal = v5.position = glm::vec3(max.x, min.y, max.z); // right low far 5
+	v6.normal = v6.position = glm::vec3(min.x, max.y, max.z); // left high far 6
+	v7.normal = v7.position = glm::vec3(max.x, max.y, max.z); // right high far 7
+	v0.tex = v1.tex = v2.tex = v3.tex = v4.tex = v5.tex = v6.tex = v7.tex = glm::vec2(0.0f, 0.0f);
+	boundingVer.reserve(36);
+	boundingVer.push_back(v0); boundingVer.push_back(v1); boundingVer.push_back(v3);
+	boundingVer.push_back(v0); boundingVer.push_back(v1); boundingVer.push_back(v2);
+	boundingVer.push_back(v1); boundingVer.push_back(v3); boundingVer.push_back(v5);
+	boundingVer.push_back(v1); boundingVer.push_back(v5); boundingVer.push_back(v7);
+	boundingVer.push_back(v4); boundingVer.push_back(v5); boundingVer.push_back(v6);
+	boundingVer.push_back(v5); boundingVer.push_back(v6); boundingVer.push_back(v7);
+	boundingVer.push_back(v0); boundingVer.push_back(v2); boundingVer.push_back(v4);
+	boundingVer.push_back(v2); boundingVer.push_back(v4); boundingVer.push_back(v6);
+	boundingVer.push_back(v2); boundingVer.push_back(v3); boundingVer.push_back(v7);
+	boundingVer.push_back(v2); boundingVer.push_back(v6); boundingVer.push_back(v7);
+	boundingVer.push_back(v0); boundingVer.push_back(v1); boundingVer.push_back(v5);
+	boundingVer.push_back(v0); boundingVer.push_back(v4); boundingVer.push_back(v5);
+
 	modelVertices.reserve(3 * faces.size());
 	for (auto face : faces) {
 		for (int i = 0; i < 3; ++i) {
@@ -100,6 +114,29 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 
 	// unbind
 	glBindVertexArray(0);
+
+	//bounding box gen
+	glGenVertexArrays(1, &boundingVAO);
+	glBindVertexArray(boundingVAO);
+
+	glGenBuffers(1, &boundingVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, boundingVBO);
+	glBufferData(GL_ARRAY_BUFFER, boundingVer.size() * sizeof(Vertex), &boundingVer[0], GL_STATIC_DRAW);
+
+	// load vertex positions
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, position));
+
+	// load normals
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, normal));
+
+	// load textures
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, tex));
+
+	// unbind
+	glBindVertexArray(0);
 }
 
 MeshModel::MeshModel(const MeshModel & ref, const std::string & name)
@@ -116,6 +153,7 @@ MeshModel::MeshModel(const MeshModel & ref, const std::string & name)
 	this->sExp = 1.0f;
 
 	this->textureAvailable = ref.textureAvailable;
+	this->wireOnlyMode = ref.wireOnlyMode;
 
 	this->boundingVer = ref.boundingVer;
 	this->modelVertices = ref.modelVertices;
@@ -158,6 +196,29 @@ MeshModel::MeshModel(const MeshModel & ref, const std::string & name)
 
 	// unbind
 	glBindVertexArray(0);
+
+	//bounding box gen
+	glGenVertexArrays(1, &boundingVAO);
+	glBindVertexArray(boundingVAO);
+
+	glGenBuffers(1, &boundingVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, boundingVBO);
+	glBufferData(GL_ARRAY_BUFFER, boundingVer.size() * sizeof(Vertex), &boundingVer[0], GL_STATIC_DRAW);
+
+	// load vertex positions
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, position));
+
+	// load normals
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, normal));
+
+	// load textures
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, tex));
+
+	// unbind
+	glBindVertexArray(0);
 }
 
 MeshModel::~MeshModel()
@@ -176,15 +237,18 @@ void MeshModel::drawModel(ShaderProgram& shader, Texture2D& tex) const
 	shader.setUniform("material.KD", KD);
 	shader.setUniform("material.KS", KS);
 	shader.setUniform("material.KSE", sExp);
-	if (textureAvailable) {
-		tex.bind(0);
-	}
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glBindVertexArray(vao);
-	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)modelVertices.size());
-	glBindVertexArray(0);
-	if (textureAvailable) {
-		tex.unbind(0);
+	
+	if (!wireOnlyMode) {
+		if (textureAvailable) {
+			tex.bind(0);
+		}
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glBindVertexArray(vao);
+		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)modelVertices.size());
+		glBindVertexArray(0);
+		if (textureAvailable) {
+			tex.unbind(0);
+		}
 	}
 
 	shader.setUniform("material.AmbientColor", colorLine);
@@ -195,6 +259,13 @@ void MeshModel::drawModel(ShaderProgram& shader, Texture2D& tex) const
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)modelVertices.size());
 	glBindVertexArray(0);
+
+	if (drawBounding) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glBindVertexArray(boundingVAO);
+		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)boundingVer.size());
+		glBindVertexArray(0);
+	}
 }
 
 void MeshModel::xRotateObject(const float angle, bool inc)
@@ -393,6 +464,11 @@ void MeshModel::toggleFlipNormals()
 void MeshModel::toggleFlipFaceNormals()
 {
 	this->flipFaceNormals = !this->flipFaceNormals;
+}
+
+void MeshModel::toggleWireFrameOnly()
+{
+	this->wireOnlyMode = !this->wireOnlyMode;
 }
 
 void MeshModel::updateObjectTransform(const glm::mat4 & mat)

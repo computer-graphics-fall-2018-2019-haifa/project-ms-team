@@ -478,6 +478,9 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 
 			//others
 			{
+				if (ImGui::Button("Toggle Wireframe Only")) {
+					m->toggleWireFrameOnly();
+				}
 				if (ImGui::Button("Toggle Bounding Box")) {
 					m->toggleBounding();
 				}

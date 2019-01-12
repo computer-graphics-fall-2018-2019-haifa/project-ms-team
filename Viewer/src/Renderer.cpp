@@ -71,6 +71,13 @@ void Renderer::Render(std::shared_ptr<Scene>  scene) {
 		auto model = scene->getModel(i);
 		model->drawModel(colorShader, texture1);
 	}
+
+	for (int i = 0; i < scene->GetCameraCount(); ++i) {
+		if (i != scene->GetActiveCameraIndex()) {
+			auto cam = scene->getCamera(i);
+			cam->drawModel(colorShader, texture1);
+		}
+	}
 }
 
 void Renderer::LoadPhongShaders()
