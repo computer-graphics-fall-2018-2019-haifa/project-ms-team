@@ -28,8 +28,8 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 	this->flipNormals = false;
 	this->flipFaceNormals = false;
 
-	this->textureAvailable = (textureCoords.size() > 0);
 	this->wireOnlyMode = false;
+	this->useTexture = false;
 
 	this->KA = 1.0f;
 	this->KD = 1.0f;
@@ -83,11 +83,11 @@ MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3
 			Vertex vertex;
 			vertex.position = vertices[face.GetVertexIndex(i)];
 			vertex.normal = normals[face.GetVertexIndex(i)];
-			if (textureAvailable) {
+			if ((textureCoords.size() > 0)) {
 				vertex.tex = textureCoords[face.GetTextureIndex(i)];
 			}
 			else {
-				vertex.tex = glm::vec2(0.0f, 0.0f);
+				vertex.tex = glm::vec2(vertex.position.x, vertex.position.z);
 			}
 			modelVertices.push_back(vertex);
 		}
@@ -152,7 +152,7 @@ MeshModel::MeshModel(const MeshModel & ref, const std::string & name)
 	this->KS = 1.0f;
 	this->sExp = 1.0f;
 
-	this->textureAvailable = ref.textureAvailable;
+	this->useTexture = ref.useTexture;
 	this->wireOnlyMode = ref.wireOnlyMode;
 
 	this->boundingVer = ref.boundingVer;
@@ -237,7 +237,7 @@ void MeshModel::drawModel(ShaderProgram& shader) const
 	shader.setUniform("material.KD", KD);
 	shader.setUniform("material.KS", KS);
 	shader.setUniform("material.KSE", sExp);
-	shader.setUniform("hasTex", this->textureAvailable);
+	shader.setUniform("hasTex", this->useTexture);
 
 	if (!wireOnlyMode) {
 		texture.bind(0);
@@ -268,6 +268,40 @@ void MeshModel::drawModel(ShaderProgram& shader) const
 void MeshModel::LoadTextures(const char * path)
 {
 	texture.loadTexture(path, true);
+}
+
+void MeshModel::toggleTexture()
+{
+	this->useTexture = !useTexture;
+}
+
+void MeshModel::usePlanarMap()
+{
+	for (Vertex& ver : modelVertices) {
+		ver.tex = glm::vec2(ver.position.x, ver.position.z);
+	}
+
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, modelVertices.size() * sizeof(Vertex), &modelVertices[0]);
+
+	glBindVertexArray(0);
+}
+
+void MeshModel::useCylindricalMap()
+{
+	for (Vertex& ver : modelVertices) {
+		float theta = glm::atan(ver.position.z / ver.position.x);
+		ver.tex = glm::normalize(glm::abs(glm::vec2(glm::cos(theta), glm::sin(theta))));
+	}
+
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, modelVertices.size() * sizeof(Vertex), &modelVertices[0]);
+
+	glBindVertexArray(0);
 }
 
 void MeshModel::xRotateObject(const float angle, bool inc)

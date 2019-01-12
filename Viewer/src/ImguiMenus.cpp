@@ -511,21 +511,38 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 
 			//others
 			{
+				if (ImGui::Button("Toggle Texture")) {
+					m->toggleTexture();
+				}
+
 				if (ImGui::Button("Toggle Wireframe Only")) {
 					m->toggleWireFrameOnly();
 				}
+				ImGui::SameLine();
 				if (ImGui::Button("Toggle Bounding Box")) {
 					m->toggleBounding();
 				}
+
+				if (ImGui::Button("Use Planar Mapping")) {
+					m->usePlanarMap();
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Use Cylindrical Mapping")) {
+					m->useCylindricalMap();
+				}
+
 				if (ImGui::Button("Toggle Vertex Normals")) {
 					m->toggleNormals();
 				}
+				ImGui::SameLine();
 				if (ImGui::Button("Flip Vertex Normals")) {
 					m->toggleFlipNormals();
 				}
+
 				if (ImGui::Button("Toggle Face Normals")) {
 					m->toggleFaceNormals();
 				}
+				ImGui::SameLine();
 				if (ImGui::Button("Flip Face Normals")) {
 					m->toggleFlipFaceNormals();
 				}

@@ -55,7 +55,7 @@ protected:
 	bool flipNormals;
 	bool flipFaceNormals;
 
-	bool textureAvailable;
+	bool useTexture;
 
 	bool wireOnlyMode;
 
@@ -93,6 +93,9 @@ public:
 
 	void drawModel(ShaderProgram& shader) const;
 	void LoadTextures(const char * path);
+	void usePlanarMap();
+	void useCylindricalMap();
+	void toggleTexture();
 
 	const glm::vec3 getPosition() const;
 

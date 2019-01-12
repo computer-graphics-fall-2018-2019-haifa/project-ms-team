@@ -41,15 +41,6 @@ out vec4 frag_color;
 
 void main()
 {
-	//texturing if any
-	if (hasTex) {
-		vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
-		vec4 AmbientColor = vec4(textureColor, 1.0f);
-		vec4 DiffuseColor = vec4(textureColor, 1.0f);
-		vec4 SpecualrColor = vec4(textureColor, 1.0f);
-		frag_color = vec4(textureColor, 1.0f);
-	}
-
 	vec3 N = normalize(fragNormal.xyz / fragNormal.w);
 	vec3 V = normalize(fragPos.xyz / fragPos.w);	//assuming camera is always at 0,0,0
 	// ambient is only needed once
@@ -75,6 +66,15 @@ void main()
 		IS = IS + clamp(vec4(sc.x * lightColor.x, sc.y * lightColor.y, sc.z * lightColor.z, 1.0f), 0.0f, 1.0f);
 	}
 	frag_color = clamp(IA + ID + IS, 0.0f, 1.0f);
+
+	//texturing if any
+	if (hasTex) {
+		vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
+		vec4 AmbientColor = vec4(textureColor, 1.0f);
+		vec4 DiffuseColor = vec4(textureColor, 1.0f);
+		vec4 SpecualrColor = vec4(textureColor, 1.0f);
+		frag_color = vec4(textureColor, 1.0f);
+	}
 
 	// fog coloring
 	float dist = abs(fragPos.z / fragPos.w);
