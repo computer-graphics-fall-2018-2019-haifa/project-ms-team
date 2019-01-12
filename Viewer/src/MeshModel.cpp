@@ -227,7 +227,7 @@ MeshModel::~MeshModel()
 	glDeleteBuffers(1, &vbo);
 }
 
-void MeshModel::drawModel(ShaderProgram& shader, Texture2D& tex) const
+void MeshModel::drawModel(ShaderProgram& shader) const
 {
 	shader.setUniform("model", worldTransform * objectTransform);
 	shader.setUniform("material.AmbientColor", colorAmbient);
@@ -237,18 +237,15 @@ void MeshModel::drawModel(ShaderProgram& shader, Texture2D& tex) const
 	shader.setUniform("material.KD", KD);
 	shader.setUniform("material.KS", KS);
 	shader.setUniform("material.KSE", sExp);
-	
+	shader.setUniform("hasTex", this->textureAvailable);
+
 	if (!wireOnlyMode) {
-		if (textureAvailable) {
-			tex.bind(0);
-		}
+		texture.bind(0);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glBindVertexArray(vao);
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)modelVertices.size());
 		glBindVertexArray(0);
-		if (textureAvailable) {
-			tex.unbind(0);
-		}
+		texture.unbind(0);
 	}
 
 	shader.setUniform("material.AmbientColor", colorLine);
@@ -266,6 +263,11 @@ void MeshModel::drawModel(ShaderProgram& shader, Texture2D& tex) const
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)boundingVer.size());
 		glBindVertexArray(0);
 	}
+}
+
+void MeshModel::LoadTextures(const char * path)
+{
+	texture.loadTexture(path, true);
 }
 
 void MeshModel::xRotateObject(const float angle, bool inc)

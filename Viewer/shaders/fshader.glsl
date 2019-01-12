@@ -29,6 +29,7 @@ uniform Fog fog;
 uniform vec4 SceneAmbient;
 uniform vec4 lightPos[10];
 uniform vec4 lightColor[10];
+uniform int hasTex;
 
 // Inputs from vertex shader (after interpolation was applied)
 in vec4 fragPos;
@@ -40,8 +41,17 @@ out vec4 frag_color;
 
 void main()
 {
-	vec4 N = normalize(fragNormal);
-	vec4 V = normalize(fragPos);	//assuming camera is always at 0,0,0
+	//texturing if any
+	if (hasTex) {
+		vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
+		vec4 AmbientColor = vec4(textureColor, 1.0f);
+		vec4 DiffuseColor = vec4(textureColor, 1.0f);
+		vec4 SpecualrColor = vec4(textureColor, 1.0f);
+		frag_color = vec4(textureColor, 1.0f);
+	}
+
+	vec3 N = normalize(fragNormal.xyz / fragNormal.w);
+	vec3 V = normalize(fragPos.xyz / fragPos.w);	//assuming camera is always at 0,0,0
 	// ambient is only needed once
 	vec4 ac = material.KA * material.AmbientColor;
 	vec4 IA = clamp(vec4(ac.x * SceneAmbient.x, ac.y * SceneAmbient.y, ac.z * SceneAmbient.z, 1.0f), 0.0f, 1.0f);
@@ -51,10 +61,10 @@ void main()
 
 	for (int i=0; i<10; i++) {
 		vec4 lightColor = lightColor[i];
-		vec4 pos = lightPos[i];
+		vec3 pos = lightPos[i].xyz / lightPos[i].w;
 
-		vec4 L = normalize(pos - fragPos);
-		vec4 R = normalize(reflect(-L, N));
+		vec3 L = normalize(pos - (fragPos.xyz / fragPos.w));
+		vec3 R = normalize(reflect(-L, N));
 
 		float LN = max(dot(N, L), 0.0f);
 		vec4 dc = material.KD * LN * material.DiffuseColor;
@@ -65,7 +75,7 @@ void main()
 		IS = IS + clamp(vec4(sc.x * lightColor.x, sc.y * lightColor.y, sc.z * lightColor.z, 1.0f), 0.0f, 1.0f);
 	}
 	frag_color = clamp(IA + ID + IS, 0.0f, 1.0f);
-	
+
 	// fog coloring
 	float dist = abs(fragPos.z / fragPos.w);
 	float fogFactor = 0.0f;
@@ -81,5 +91,5 @@ void main()
 	else if (fog.fogType == 3) {	//exp squared
 		fogFactor = clamp(1.0 /exp((dist * fog.density) * (dist * fog.density)), 0.0f, 1.0f);
 		frag_color = mix(fog.fogColor, frag_color, fogFactor);
-	}
+	}	
 }

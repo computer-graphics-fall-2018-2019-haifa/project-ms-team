@@ -70,13 +70,13 @@ void Renderer::Render(std::shared_ptr<Scene>  scene) {
 
 	for (int i = 0; i < scene->GetModelCount(); ++i) {
 		auto model = scene->getModel(i);
-		model->drawModel(colorShader, texture1);
+		model->drawModel(colorShader);
 	}
 
 	for (int i = 0; i < scene->GetCameraCount(); ++i) {
 		if (i != scene->GetActiveCameraIndex()) {
 			auto cam = scene->getCamera(i);
-			cam->drawModel(colorShader, texture1);
+			cam->drawModel(colorShader);
 		}
 	}
 }
@@ -89,12 +89,4 @@ void Renderer::LoadPhongShaders()
 void Renderer::LoadGouradShaders()
 {
 	colorShader.loadShaders("vshader_gourad.glsl", "fshader_gourad.glsl");
-}
-
-void Renderer::LoadTextures()
-{
-	if (!texture1.loadTexture("bin\\Debug\\crate.jpg", true))
-	{
-		texture1.loadTexture("bin\\Release\\crate.jpg", true);
-	}
 }

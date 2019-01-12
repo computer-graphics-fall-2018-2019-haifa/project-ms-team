@@ -53,8 +53,8 @@ void main()
 
 	//lighting
 
-	vec4 N = normalize(fragNormal);
-	vec4 V = normalize(fragPos);	//assuming camera is always at 0,0,0
+	vec3 N = normalize(fragNormal.xyz / fragNormal.w);
+	vec3 V = normalize(fragPos.xyz / fragPos.w);	//assuming camera is always at 0,0,0
 	// ambient is only needed once
 	vec4 ac = material.KA * material.AmbientColor;
 	vec4 IA = clamp(vec4(ac.x * SceneAmbient.x, ac.y * SceneAmbient.y, ac.z * SceneAmbient.z, 1.0f), 0.0f, 1.0f);
@@ -64,10 +64,10 @@ void main()
 
 	for (int i=0; i<10; i++) {
 		vec4 lightColor = lightColor[i];
-		vec4 pos = lightPos[i];
+		vec3 pos = lightPos[i].xyz / lightPos[i].w;
 
-		vec4 L = normalize(pos - fragPos);
-		vec4 R = normalize(reflect(-L, N));
+		vec3 L = normalize(pos - (fragPos.xyz / fragPos.w));
+		vec3 R = normalize(reflect(-L, N));
 
 		float LN = max(dot(N, L), 0.0f);
 		vec4 dc = material.KD * LN * material.DiffuseColor;

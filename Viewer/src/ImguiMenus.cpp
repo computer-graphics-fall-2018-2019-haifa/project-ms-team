@@ -156,6 +156,28 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 				}
 				ImGui::EndMenu();
 			}
+
+			if (ImGui::BeginMenu("Textures"))
+			{
+				if (ImGui::MenuItem("Texture", "CTRL+T")) {
+					nfdchar_t *outPath = NULL;
+					nfdresult_t result = NFD_OpenDialog("jpg", NULL, &outPath);
+					if (result == NFD_OKAY) {
+						auto model = scene->getActiveModel();
+						if (model != nullptr) {
+							model->LoadTextures(outPath);
+						}
+						free(outPath);
+					}
+					else if (result == NFD_CANCEL) {
+					}
+					else {
+					}
+
+				}
+				ImGui::EndMenu();
+			}
+
 			ImGui::EndMainMenuBar();
 		}
 	}

@@ -14,7 +14,6 @@ class Renderer
 private:
 	ShaderProgram lightShader;
 	ShaderProgram colorShader;
-	Texture2D texture1;
 
 public:
 	Renderer();
@@ -23,5 +22,4 @@ public:
 	void Render(std::shared_ptr<Scene> scene);
 	void LoadPhongShaders();
 	void LoadGouradShaders();
-	void LoadTextures();
 };

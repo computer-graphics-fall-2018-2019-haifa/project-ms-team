@@ -65,7 +65,7 @@ MeshModel PrimMeshModel::genPyramid()
 	normals.push_back(glm::vec3(0.942f, 0.0f, -0.333f));
 	normals.push_back(glm::vec3(-0.471f, 0.471f, -0.333f));
 	normals.push_back(glm::vec3(-0.471f, -0.471f, -0.333f));
-	normals.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
+	normals.push_back(glm::vec3(0.0f, 0.0f, 0.471f));
 
 	tex.push_back(glm::vec2(1.0f, 0.0f));
 	tex.push_back(glm::vec2(1.0f, 1.0f));

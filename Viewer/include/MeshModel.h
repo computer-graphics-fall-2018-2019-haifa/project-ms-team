@@ -34,6 +34,8 @@ protected:
 	GLuint boundingVAO;
 	GLuint boundingVBO;
 
+	Texture2D texture;
+
 	glm::mat4x4 worldScaleTransform;
 	glm::mat4x4 worldTranslationTransform;
 	glm::mat4x4 worldxRotationTransform;
@@ -89,7 +91,8 @@ public:
 	void setKSpecular(float k);
 	void setSpecularExp(float k);
 
-	void drawModel(ShaderProgram& shader, Texture2D& tex) const;
+	void drawModel(ShaderProgram& shader) const;
+	void LoadTextures(const char * path);
 
 	const glm::vec3 getPosition() const;
 

@@ -79,7 +79,6 @@ int main(int argc, char **argv)
 	scene = std::make_shared<Scene>();
 
 	renderer.LoadPhongShaders();
-	renderer.LoadTextures();
 
 	// Setup ImGui
 	ImGuiIO& io = SetupDearImgui(window);
