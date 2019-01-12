@@ -4,6 +4,7 @@
 #include "ImguiMenus.h"
 #include "MeshModel.h"
 #include "Utils.h"
+#include "PrimMeshModel.h"
 #include <cmath>
 #include <memory>
 #include <stdio.h>
@@ -76,6 +77,16 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 
 		if (ImGui::Button("Show Fog Controls")) {
 			showFogWindow = true;
+		}
+
+		if (ImGui::Button("Add Cube")) {
+			auto m = PrimMeshModel::genCube();
+			scene->AddModel(std::make_shared<MeshModel>(m));
+		}
+
+		if (ImGui::Button("Add Pyramid")) {
+			auto m = PrimMeshModel::genPyramid();
+			scene->AddModel(std::make_shared<MeshModel>(m));
 		}
 
 		if ((activeModel != -1) && (cameraIndex != -1)) {

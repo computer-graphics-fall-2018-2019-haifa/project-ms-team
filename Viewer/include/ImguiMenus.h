@@ -2,6 +2,7 @@
 #include <imgui/imgui.h>
 #include "Scene.h"
 #include "Renderer.h"
+#include "PrimMeshModel.h"
 
 
 void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& renderer);

@@ -13,6 +13,7 @@ private:
 
 public:
 	Face(std::istream& issLine);
+	Face(int v1, int v2, int v3, int t1, int t2, int t3, int n1, int n2, int n3);
 	virtual ~Face();
 	const int Face::GetVertexIndex(int index);
 	const int Face::GetNormalIndex(int index);

@@ -37,6 +37,25 @@ Face::Face(std::istream& issLine)
 	}
 }
 
+Face::Face(int v1, int v2, int v3, int t1, int t2, int t3, int n1, int n2, int n3)
+{
+	vertexIndices = { 0, 0, 0 };
+	normalIndices = { 0, 0, 0 };
+	textureIndices = { 0, 0, 0 };
+
+	vertexIndices[0] = v1;
+	vertexIndices[1] = v2;
+	vertexIndices[2] = v3;
+
+	normalIndices[0] = n1;
+	normalIndices[1] = n2;
+	normalIndices[2] = n3;
+
+	textureIndices[0] = t1;
+	textureIndices[1] = t2;
+	textureIndices[2] = t3;
+}
+
 Face::~Face()
 {
 
