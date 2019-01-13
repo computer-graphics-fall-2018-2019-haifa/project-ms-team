@@ -267,7 +267,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 			//scaling stuff
 			{
 				static float scaleXYZ[3] = { 1.0f, 1.0f, 1.0f };
-				if (ImGui::SliderFloat("X Scale", &scaleXYZ[0], -10.0f, 10.f)) {
+				if (ImGui::SliderFloat("X Scale", &scaleXYZ[0], 0.0f, 10.f)) {
 					if (scaleXYZ[0] != 0.0f) {
 						if (cameraTrasformType) {
 							m->scaleWorld(scaleXYZ);
@@ -277,7 +277,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 						}
 					}
 				}
-				if (ImGui::SliderFloat("Y Scale", &scaleXYZ[1], -10.0f, 10.f)) {
+				if (ImGui::SliderFloat("Y Scale", &scaleXYZ[1], 0.0f, 10.f)) {
 					if (scaleXYZ[1] != 0.0f) {
 						if (cameraTrasformType) {
 							m->scaleWorld(scaleXYZ);
@@ -287,7 +287,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 						}
 					}
 				}
-				if (ImGui::SliderFloat("Z Scale", &scaleXYZ[2], -10.0f, 10.f)) {
+				if (ImGui::SliderFloat("Z Scale", &scaleXYZ[2], 0.0f, 10.f)) {
 					if (scaleXYZ[2] != 0.0f) {
 						if (cameraTrasformType) {
 							m->scaleWorld(scaleXYZ);
@@ -385,7 +385,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 			//scaling stuff
 			{
 				static float scaleXYZ[3] = { 1.0f, 1.0f, 1.0f };
-				if (ImGui::SliderFloat("X Scale", &scaleXYZ[0], -10.0f, 10.f)) {
+				if (ImGui::SliderFloat("X Scale", &scaleXYZ[0], 0.0f, 10.f)) {
 					if (scaleXYZ[0] != 0.0f) {
 						if (modelTransformType) {
 							m->scaleWorld(scaleXYZ);
@@ -395,7 +395,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 						}
 					}
 				}
-				if (ImGui::SliderFloat("Y Scale", &scaleXYZ[1], -10.0f, 10.f)) {
+				if (ImGui::SliderFloat("Y Scale", &scaleXYZ[1], 0.0f, 10.f)) {
 					if (scaleXYZ[1] != 0.0f) {
 						if (modelTransformType) {
 							m->scaleWorld(scaleXYZ);
@@ -405,7 +405,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 						}
 					}
 				}
-				if (ImGui::SliderFloat("Z Scale", &scaleXYZ[2], -10.0f, 10.f)) {
+				if (ImGui::SliderFloat("Z Scale", &scaleXYZ[2], 0.0f, 10.f)) {
 					if (scaleXYZ[2] != 0.0f) {
 						if (modelTransformType) {
 							m->scaleWorld(scaleXYZ);
