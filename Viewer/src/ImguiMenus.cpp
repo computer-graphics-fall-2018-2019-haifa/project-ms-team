@@ -535,6 +535,10 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 				if (ImGui::Button("Use Cylindrical Mapping")) {
 					m->useCylindricalMap();
 				}
+				ImGui::SameLine();
+				if (ImGui::Button("Use Spherical Mapping")) {
+					m->useSphericalMap();
+				}
 
 				if (ImGui::Button("Toggle Vertex Normals")) {
 					m->toggleNormals();

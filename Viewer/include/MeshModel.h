@@ -95,6 +95,7 @@ public:
 	void LoadTextures(const char * path);
 	void usePlanarMap();
 	void useCylindricalMap();
+	void useSphericalMap();
 	void toggleTexture();
 
 	const glm::vec3 getPosition() const;

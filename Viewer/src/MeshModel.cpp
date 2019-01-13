@@ -7,6 +7,8 @@
 #include <sstream>
 #include <limits>
 
+constexpr auto PI = 3.14159265359f;
+
 MeshModel::MeshModel(const std::vector<Face>& faces, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& textureCoords, const std::string& modelName) :
 	modelName(modelName),
 	worldTransform(glm::mat4x4(1.0f)),
@@ -294,6 +296,20 @@ void MeshModel::useCylindricalMap()
 	for (Vertex& ver : modelVertices) {
 		float theta = glm::atan(ver.position.z / ver.position.x);
 		ver.tex = glm::normalize(glm::abs(glm::vec2(glm::cos(theta), glm::sin(theta))));
+	}
+
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, modelVertices.size() * sizeof(Vertex), &modelVertices[0]);
+
+	glBindVertexArray(0);
+}
+
+void MeshModel::useSphericalMap()
+{
+	for (Vertex& ver : modelVertices) {
+		ver.tex = glm::normalize(glm::vec2(glm::atan(ver.position.x, ver.position.y) / 2*PI + 0.5f, 0.5f - glm::asin(ver.position.z) / PI));		
 	}
 
 	glBindVertexArray(vao);
