@@ -84,9 +84,16 @@ void Renderer::Render(std::shared_ptr<Scene>  scene) {
 void Renderer::LoadPhongShaders()
 {
 	colorShader.loadShaders("vshader.glsl", "fshader.glsl");
+	colorShader.setUniform("numColors", 1);
 }
 
 void Renderer::LoadGouradShaders()
 {
 	colorShader.loadShaders("vshader_gourad.glsl", "fshader_gourad.glsl");
+	colorShader.setUniform("numColors", 1);
+}
+
+void Renderer::setNumColors(int num)
+{
+	colorShader.setUniform("numColors", num);
 }

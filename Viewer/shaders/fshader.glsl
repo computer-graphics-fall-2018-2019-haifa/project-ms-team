@@ -30,6 +30,7 @@ uniform vec4 SceneAmbient;
 uniform vec4 lightPos[10];
 uniform vec4 lightColor[10];
 uniform int hasTex;
+uniform int numColors;
 
 // Inputs from vertex shader (after interpolation was applied)
 in vec4 fragPos;
@@ -64,7 +65,9 @@ void main()
 		float RV = pow(max(dot(R, V), 0.0f), material.KSE);
 		vec4 sc = material.KS * RV * material.SpecualrColor;
 		IS = IS + clamp(vec4(sc.x * lightColor.x, sc.y * lightColor.y, sc.z * lightColor.z, 1.0f), 0.0f, 1.0f);
+
 	}
+
 	frag_color = clamp(IA + ID + IS, 0.0f, 1.0f);
 
 	//texturing if any
@@ -91,5 +94,7 @@ void main()
 	else if (fog.fogType == 3) {	//exp squared
 		fogFactor = clamp(1.0 /exp((dist * fog.density) * (dist * fog.density)), 0.0f, 1.0f);
 		frag_color = mix(fog.fogColor, frag_color, fogFactor);
-	}	
+	}
+
+	frag_color = (round(frag_color * 255 / numColors) * numColors) / 255;
 }

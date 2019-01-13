@@ -14,7 +14,6 @@ class Renderer
 private:
 	ShaderProgram lightShader;
 	ShaderProgram colorShader;
-
 public:
 	Renderer();
 	~Renderer();
@@ -22,4 +21,6 @@ public:
 	void Render(std::shared_ptr<Scene> scene);
 	void LoadPhongShaders();
 	void LoadGouradShaders();
+
+	void setNumColors(int num);
 };

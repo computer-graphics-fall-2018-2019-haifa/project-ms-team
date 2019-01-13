@@ -25,8 +25,9 @@ std::shared_ptr<MeshModel> cameraModel = nullptr;
 glm::vec4 clearColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
 glm::vec4 ambient = glm::vec4(0.8f, 0.8f, 0.8f, 1.00f);
 
-int shadingType = 0;
+int shadingType = 2;
 int fogType = 0;	//no fog
+int numColors = 255;
 
 const glm::vec4& GetClearColor() {
 	return clearColor;
@@ -100,7 +101,6 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 		}
 
 		bool shadingChange = false;
-		shadingChange |= ImGui::RadioButton("Flat", &shadingType, 0); ImGui::SameLine();
 		shadingChange |= ImGui::RadioButton("Gouraud", &shadingType, 1); ImGui::SameLine();
 		shadingChange |= ImGui::RadioButton("Phong", &shadingType, 2);
 
@@ -116,6 +116,11 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 		if (ImGui::ColorEdit3("Ambient Color", (float*)&ambient)) {
 			scene->setAmbientColor(ambient);
 		}
+
+		if (ImGui::SliderInt("Number of Colors", &numColors, 1, 255)) {
+			renderer.setNumColors(256-numColors);
+		}
+
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();
