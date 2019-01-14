@@ -180,6 +180,12 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 					}
 
 				}
+				if (ImGui::MenuItem("Circles", "CTRL+P")) {
+					auto model = scene->getActiveModel();
+					if (model != nullptr) {
+						model->LoadBombTexture();
+					}
+				}
 				ImGui::EndMenu();
 			}
 

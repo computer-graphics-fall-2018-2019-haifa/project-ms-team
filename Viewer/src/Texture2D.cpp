@@ -28,7 +28,7 @@ Texture2D::~Texture2D()
 bool Texture2D::loadTexture(const string& fileName, bool generateMipMaps)
 {
 	int width, height, components;
-
+	glDeleteTextures(1, &mTexture); // clean old textures
 	// Use stbi image library to load our image
 	unsigned char* imageData = stbi_load(fileName.c_str(), &width, &height, &components, STBI_rgb_alpha);
 
@@ -102,4 +102,59 @@ void Texture2D::unbind(GLuint texUnit) const
 {
 	glActiveTexture(GL_TEXTURE0 + texUnit);
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+bool Texture2D::genRandomTexture(bool generateMipMaps)
+{
+	glDeleteTextures(1, &mTexture); // clean old textures
+
+	float * image = new float[512 * 512 * 3];
+	//unsigned char imageData[256][256][3];
+	srand(time(NULL));
+
+	for (int iter = 0; iter < 5000; ++iter) {
+		int centerX = rand() % 512;
+		int centerY = rand() % 512;
+
+		int radius = rand() % 20;
+
+		float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+		float g = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+		float b = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+
+		for (int i = std::max(0, centerX - radius); i < std::min(512, centerX + radius); ++i) {
+			for (int j = std::max(0, centerY - radius); j < std::min(512, centerY + radius); ++j) {
+				float dist = std::sqrt((i - centerX)*(i - centerX) + (j - centerY)*(j - centerY));
+				if (dist < radius) {
+					image[3 * (i * 512 + j) + 0] = r;
+					image[3 * (i * 512 + j) + 1] = g;
+					image[3 * (i * 512 + j) + 2] = b;
+				}
+			}
+		}
+	}
+
+	glGenTextures(1, &mTexture);
+	glBindTexture(GL_TEXTURE_2D, mTexture); // all upcoming GL_TEXTURE_2D operations will affect our texture object (mTexture)
+
+	// Set the texture wrapping/filtering options (on the currently bound texture object)
+	// GL_CLAMP_TO_EDGE
+	// GL_REPEAT
+	// GL_MIRRORED_REPEAT
+	// GL_CLAMP_TO_BORDER
+	// GL_LINEAR
+	// GL_NEAREST
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+
+	if (generateMipMaps)
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, 0); // unbind texture when done so we don't accidentally mess up our mTexture
+
+	return true;
 }

@@ -272,6 +272,11 @@ void MeshModel::LoadTextures(const char * path)
 	texture.loadTexture(path, true);
 }
 
+void MeshModel::LoadBombTexture()
+{
+	texture.genRandomTexture();
+}
+
 void MeshModel::toggleTexture()
 {
 	this->useTexture = !useTexture;

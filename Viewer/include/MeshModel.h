@@ -93,6 +93,7 @@ public:
 
 	void drawModel(ShaderProgram& shader) const;
 	void LoadTextures(const char * path);
+	void LoadBombTexture();
 	void usePlanarMap();
 	void useCylindricalMap();
 	void useSphericalMap();
