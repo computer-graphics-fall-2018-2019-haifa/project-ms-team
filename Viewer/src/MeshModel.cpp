@@ -238,7 +238,7 @@ void MeshModel::drawModel(ShaderProgram& shader) const
 	shader.setUniform("material.KA", KA);
 	shader.setUniform("material.KD", KD);
 	shader.setUniform("material.KS", KS);
-	shader.setUniform("material.KSE", sExp);
+	shader.setUniform("material.KSE", 100/sExp);
 	shader.setUniform("hasTex", this->useTexture);
 
 	if (!wireOnlyMode) {
