@@ -29,6 +29,7 @@ int shadingType = 2;
 int fogType = 0;	//no fog
 int numColors = 255;
 int sides = 5;
+int topDiff = 2;
 
 const glm::vec4& GetClearColor() {
 	return clearColor;
@@ -92,11 +93,12 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 		}
 
 		if (ImGui::Button("Add Prismatic Uniform Polyhedron")) {
-			auto m = PrimMeshModel::genUniform(sides);
+			auto m = PrimMeshModel::genUniform(sides, topDiff);
 			scene->AddModel(std::make_shared<MeshModel>(m));
 		}
 
 		ImGui::SliderInt("Prism Vertex", &sides, 5, 20);
+		ImGui::SliderInt("Prism Vertex Top", &topDiff, 2, sides-2);
 
 		if ((activeModel != -1) && (cameraIndex != -1)) {
 			if (ImGui::Button("Active Camera Look At Active Model")) {

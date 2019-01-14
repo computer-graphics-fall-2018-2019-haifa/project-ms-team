@@ -80,7 +80,7 @@ MeshModel PrimMeshModel::genPyramid()
 	return MeshModel(faces, vertices, Utils::CalculateNormals(vertices, faces), tex, "Prim Pyramid");
 }
 
-MeshModel PrimMeshModel::genUniform(int sides)
+MeshModel PrimMeshModel::genUniform(int sides, int topDiff)
 {
 	assert(sides > 4);
 	std::vector<Face> faces;
@@ -149,7 +149,7 @@ MeshModel PrimMeshModel::genUniform(int sides)
 
 	for (int i = 0; i < sides; ++i) {
 		int lc0 = i;
-		int lc1 = (i + 2) % sides;
+		int lc1 = (i + topDiff) % sides;
 		int hc0 = lc0 + sides;
 		int hc1 = lc1 + sides;
 

@@ -11,7 +11,7 @@ private:
 public:
 	static MeshModel genCube();
 	static MeshModel genPyramid();
-	static MeshModel genUniform(int sides);
+	static MeshModel genUniform(int sides, int topDiff = 2);
 	~PrimMeshModel();
 };
 
