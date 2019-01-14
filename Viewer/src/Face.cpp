@@ -56,6 +56,16 @@ Face::Face(int v1, int v2, int v3, int t1, int t2, int t3, int n1, int n2, int n
 	textureIndices[2] = t3;
 }
 
+Face::Face(int v1, int v2, int v3)
+{
+	this->vertexIndices = { 0, 0, 0 };
+	this->normalIndices = { 0, 0, 0 };
+	this->textureIndices = { 0, 0, 0 };
+	this->vertexIndices[0] = v1 + 1;
+	this->vertexIndices[1] = v2 + 1;
+	this->vertexIndices[2] = v3 + 1;
+}
+
 Face::~Face()
 {
 
