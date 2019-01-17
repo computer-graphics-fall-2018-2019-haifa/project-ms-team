@@ -47,7 +47,7 @@ void main()
 	vec4 SpecualrColor = material.SpecualrColor;
 
 	//texturing if any
-	if (hasTex) {
+	if (hasTex == 1) {
 		vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
 		AmbientColor = vec4(textureColor, 1.0f);
 		DiffuseColor = vec4(textureColor, 1.0f);

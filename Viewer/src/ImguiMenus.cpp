@@ -247,7 +247,7 @@ void DrawImguiMenus(ImGuiIO& io, std::shared_ptr<Scene> scene, Renderer& rendere
 				perspectiveChanged |= ImGui::SliderFloat("Aspect Ratio", &aspect, 0.1f, 5.0f);
 
 				if (m->isPerspective()) {
-					perspectiveChanged |= ImGui::SliderFloat("Field of View", &param, -45.0f, 45.0f);
+					perspectiveChanged |= ImGui::SliderFloat("Field of View", &param, -3.1415f, 3.1415f);
 					if (perspectiveChanged) {
 						m->SetPerspectiveProjection(param, aspect, zNear, zFar);
 					}

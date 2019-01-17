@@ -56,8 +56,8 @@ void Camera::SetPerspectiveProjection(
 	this->znear = zNear;
 	this->aspect = aspectRatio;
 	this->param1 = fovy;
-	this->param1 = glm::min(fovy, glm::pi<float>());
-	this->projectionTransformation = glm::perspective(glm::radians(param1), aspectRatio, zNear, zFar);
+	this->param1 = glm::min(fovy, glm::degrees(glm::pi<float>()));
+	this->projectionTransformation = glm::perspective(param1, aspectRatio, zNear, zFar);
 	this->activeView = 1;
 }
 
